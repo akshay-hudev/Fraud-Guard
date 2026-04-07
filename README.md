@@ -10,6 +10,24 @@
 
 > Detect fraudulent healthcare insurance claims in real-time using a Heterogeneous Graph Transformer (HGT) that models relationships between **patients → claims → doctors → hospitals**.
 
+## 📋 About
+
+**Fraud-Guard** is a comprehensive healthcare fraud detection solution that combines cutting-edge machine learning with graph neural networks. This project addresses the critical problem of fraudulent insurance claims by analyzing complex relationships between healthcare entities (patients, doctors, hospitals, and claims) using heterogeneous graph neural networks.
+
+### Key Features
+- **Heterogeneous Graph Neural Networks (HGT)**: Models multi-type entity relationships for sophisticated fraud pattern detection
+- **Baseline Ensemble**: Logistic Regression, Random Forest, and Gradient Boosting for comparative analysis
+- **Real-time Predictions**: FastAPI backend for low-latency claim scoring
+- **Interactive Dashboard**: Streamlit frontend with visualizations, SHAP explanations, and graph exploration
+- **Scalable Architecture**: Docker containerization for production deployment
+- **Comprehensive Testing**: 39+ test cases ensuring code quality and reliability
+
+### Dataset & Performance
+- **Dataset**: Synthetic healthcare insurance claims with 2,000+ samples
+- **Features**: 36 engineered features covering claim attributes, entity profiles, and relationship signals
+- **Architecture**: Graph with patients, doctors, hospitals, and claims as heterogeneous nodes
+- **Baseline Metrics**: RF (94% AUC), GB (93% AUC), LR (89% AUC)
+
 ---
 
 ## 📸 System Preview

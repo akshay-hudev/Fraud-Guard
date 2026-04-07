@@ -1,0 +1,71 @@
+version: "3.9"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Health Insurance Fraud Detection — Docker Compose Stack
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+services:
+
+  # ── ML Pipeline (runs once to train models) ──────────────
+  pipeline:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: fraud-pipeline
+    command: python scripts/run_pipeline.py --skip-gnn
+    volumes:
+      - ../data:/app/data
+      - ../models:/app/models
+    environment:
+      - PYTHONPATH=/app
+    profiles: ["train"]   # only runs with: docker compose --profile train up
+
+  # ── FastAPI Backend ───────────────────────────────────────
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: fraud-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../data:/app/data
+      - ../models:/app/models
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ── Streamlit Frontend ────────────────────────────────────
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    container_name: fraud-frontend
+    ports:
+      - "8501:8501"
+    environment:
+      - API_BASE=http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Optional: Prometheus metrics ─────────────────────────
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   ports: ["9090:9090"]
+  #   volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml"]
+
+volumes:
+  data:
+  models:
+
+networks:
+  default:
+    name: fraud-detection-network

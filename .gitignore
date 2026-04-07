@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# Data (large files)
+data/raw/*.csv
+data/processed/*.npy
+data/processed/*.pt
+data/processed/*.pkl
+data/*.jsonl
+
+# Models
+models/baseline/*.pkl
+models/gnn/*.pt
+
+# Jupyter
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Docker
+.docker/
+
+# Env
+.env
+.env.local
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/

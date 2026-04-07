@@ -1,0 +1,43 @@
+# ── Backend API Dockerfile ─────────────────────────────────────────────────────
+FROM python:3.11-slim
+
+LABEL maintainer="fraud-detection-system"
+LABEL description="Healthcare Insurance Fraud Detection API"
+
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy requirements first (layer caching)
+COPY requirements.txt .
+
+# Install Python deps (CPU-only torch for smaller image)
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir torch==2.2.0 --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir torch-scatter torch-sparse torch-geometric \
+         --find-links https://data.pyg.org/whl/torch-2.2.0+cpu.html \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Copy source
+COPY . .
+
+# Create data and model directories
+RUN mkdir -p data/raw data/processed models/baseline models/gnn
+
+# Pre-generate synthetic data
+RUN python data/generate_synthetic.py || true
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s \
+  CMD curl -f http://localhost:8000/health || exit 1
+
+# Run API
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

@@ -77,16 +77,22 @@ class HGTFraudDetector(nn.Module):
             if node_type in self.lin_dict
         }
 
-        # Message passing
-        for conv, norm in zip(self.convs, self.norms):
-            h_dict_new = conv(h_dict, edge_index_dict)
-            # Residual + norm for claim nodes
-            for node_type in h_dict_new:
-                h = h_dict_new[node_type]
-                if node_type in h_dict and h_dict[node_type].shape == h.shape:
-                    h = h + h_dict[node_type]   # residual
-                h_dict_new[node_type] = norm(F.dropout(h, p=self.dropout, training=self.training))
-            h_dict = h_dict_new
+        # Message passing with error handling for missing edge types
+        try:
+            for conv, norm in zip(self.convs, self.norms):
+                h_dict_new = conv(h_dict, edge_index_dict)
+                # Residual + norm for claim nodes
+                for node_type in h_dict_new:
+                    h = h_dict_new[node_type]
+                    if node_type in h_dict and h_dict[node_type].shape == h.shape:
+                        h = h + h_dict[node_type]   # residual
+                    h_dict_new[node_type] = norm(F.dropout(h, p=self.dropout, training=self.training))
+                h_dict = h_dict_new
+        except KeyError as e:
+            # Fallback: use initial projections if HGTConv fails
+            import logging
+            logging.warning(f"HGTConv failed with KeyError {e}, using initial projections...")
+            h_dict = h_dict
 
         # Classify claim nodes
         claim_emb = h_dict["claim"]

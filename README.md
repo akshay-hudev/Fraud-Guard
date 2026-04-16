@@ -344,7 +344,109 @@ GET /batch/results/{job_id}     # Get results + errors
 - Error log
 
 ---
+## 🔍 Data Quality Monitoring (Step 5)
 
+**Status:** ✅ Fully implemented with 4 quality modules
+
+### 1️⃣ Anomaly Detection
+Detect statistical outliers using Z-score and IQR methods.
+
+**Features:**
+- Z-score detection (configurable threshold: 3σ default)
+- IQR-based outlier detection (1.5× IQR multiplier)
+- Per-feature baseline learning
+- Real-time alerts
+
+**Endpoint:** `POST /quality/check`
+```json
+{
+  "age": 45,
+  "claim_amount": 15000,
+  "procedure_code": "99213"
+}
+```
+
+**Response:**
+```json
+{
+  "quality_score": 95.5,
+  "alerts": [],
+  "critical_alerts": 0
+}
+```
+
+### 2️⃣ Distribution Drift Detection
+Track shifts in feature distributions over time.
+
+**Features:**
+- Baseline statistics (mean, stdev, quartiles)
+- Sliding window analysis (100 records)
+- Relative percentage change tracking (20% threshold)
+- Variance shift detection
+
+**Endpoint:** `GET /quality/summary?window_minutes=60`
+
+**Response:**
+```json
+{
+  "avg_quality_score": 94.3,
+  "quality_trend": "stable",
+  "critical_count": 0,
+  "alert_count": 12
+}
+```
+
+### 3️⃣ Data Validation
+Enforce constraints on incoming data.
+
+**Validation Types:**
+- Required field checks
+- Numeric range validation
+- Categorical value validation
+- Data type correctness
+
+**Endpoint:** `GET /quality/alerts?limit=50`
+
+Returns recent alerts with severity levels:
+- 🔴 `critical` - Data integrity issue
+- ⚠️ `warning` - Outside normal range
+- ℹ️ `info` - Notable but acceptable
+
+### 4️⃣ Batch Quality Analysis
+Analyze quality of multiple records at once.
+
+**Endpoint:** `POST /quality/analyze-batch`
+```json
+{
+  "records": [
+    {"age": 45, "claim_amount": 15000},
+    {"age": 32, "claim_amount": 22000}
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "avg_quality_score": 93.5,
+  "quality_grade": "A",
+  "critical_issues": 0,
+  "results": [...]
+}
+```
+
+**Frontend:** 🔍 Data Quality tab
+- 📊 Summary: Quality metrics + trend + top issues
+- ⚠️ Alerts: Filterable alert history by severity
+- 🔬 Batch Analysis: Upload CSV for quality analysis
+
+**Quality Grades:**
+- **A** - 90-100: Excellent
+- **B** - 80-90: Good
+- **C** - 70-80: Average
+- **D** - 0-70: Poor
+
+---
 ## �🐳 Deployment
 
 ### Docker

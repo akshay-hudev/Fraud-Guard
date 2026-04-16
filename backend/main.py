@@ -12,7 +12,7 @@ import random
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 import pandas as pd
 from fastapi import (
@@ -39,6 +39,7 @@ from backend.advanced_features import (
     FeatureImportanceAnalyzer, ModelComparator, ThresholdOptimizer,
     PredictionExporter, BatchJobTracker, feature_analyzer, batch_tracker,
 )
+from backend.data_quality import QualityMonitor, quality_monitor
 from backend.schemas import (
     PredictionRequest, PredictionResponse,
     BatchPredictionRequest, BatchPredictionResponse,
@@ -904,6 +905,102 @@ async def get_batch_results(job_id: str):
         raise
     except Exception as e:
         logger.error(f"Failed to get batch results: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Step 5: Data Quality Monitoring ────────────────────────────────────────────
+
+@app.post("/quality/check", tags=["Quality"])
+async def check_data_quality(data: dict = None):
+    """Check data quality for a record."""
+    try:
+        if not data:
+            raise HTTPException(status_code=400, detail="No data provided")
+        
+        quality_result = quality_monitor.check_quality(data)
+        
+        return {
+            "status": "success",
+            "quality": quality_result,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Quality check failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/quality/summary", tags=["Quality"])
+async def get_quality_summary(window_minutes: int = Query(60, ge=1, le=1440)):
+    """Get data quality monitoring summary."""
+    try:
+        summary = quality_monitor.get_summary(time_window_minutes=window_minutes)
+        
+        return {
+            "status": "success",
+            "summary": summary,
+            "window_minutes": window_minutes,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get quality summary: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/quality/alerts", tags=["Quality"])
+async def get_quality_alerts(limit: int = Query(50, ge=1, le=500)):
+    """Get recent quality alerts."""
+    try:
+        alerts = quality_monitor.get_alerts(limit=limit)
+        
+        critical = sum(1 for a in alerts if a["severity"] == "critical")
+        warnings = sum(1 for a in alerts if a["severity"] == "warning")
+        
+        return {
+            "status": "success",
+            "alerts": alerts,
+            "stats": {
+                "total": len(alerts),
+                "critical": critical,
+                "warnings": warnings,
+            },
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get quality alerts: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/quality/analyze-batch", tags=["Quality"])
+async def analyze_batch_quality(records: List[dict] = None):
+    """Analyze quality of a batch of records."""
+    try:
+        if not records:
+            raise HTTPException(status_code=400, detail="No records provided")
+        
+        results = []
+        avg_quality = 0
+        critical_count = 0
+        
+        for record in records[:100]:  # Limit to 100 for performance
+            quality_result = quality_monitor.check_quality(record)
+            results.append(quality_result)
+            avg_quality += quality_result["quality_score"]
+            critical_count += quality_result["critical_alerts"]
+        
+        avg_quality = avg_quality / len(results) if results else 100
+        
+        return {
+            "status": "success",
+            "total_records": len(records),
+            "analyzed": len(results),
+            "avg_quality_score": round(avg_quality, 2),
+            "critical_issues": critical_count,
+            "quality_grade": "A" if avg_quality >= 90 else "B" if avg_quality >= 80 else "C" if avg_quality >= 70 else "D",
+            "results": results[:10],  # Return first 10 for preview
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Batch quality analysis failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

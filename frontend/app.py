@@ -161,7 +161,7 @@ with st.sidebar:
         "🏠 Dashboard", "🔍 Single Claim", "📁 Bulk Upload",
         "🕸️ Graph Explorer", "📊 Model Analytics", "⚡ Live Feed",
         "📈 Feature Importance", "🔬 Model Comparison", "⚙️ Thresholds",
-        "📥 Export Data", "⏳ Batch Status",
+        "📥 Export Data", "⏳ Batch Status", "🔍 Data Quality",
     ])
 
     st.divider()
@@ -792,3 +792,159 @@ elif page == "⏳ Batch Status":
             st.error("Job not found or error retrieving status.")
     else:
         st.info("Enter a Job ID to view batch status and results.")
+
+
+# ── Data Quality Monitoring (Step 5) ────────────────────────────────────────────
+elif page == "🔍 Data Quality":
+    st.title("🔍 Data Quality Monitoring")
+    st.markdown("**Monitor incoming data for anomalies, drift, and validation issues**")
+    st.divider()
+    
+    # Tabs for different quality views
+    quality_tab, alerts_tab, analyze_tab = st.tabs(["📊 Summary", "⚠️ Alerts", "🔬 Batch Analysis"])
+    
+    with quality_tab:
+        st.subheader("Quality Monitoring Summary")
+        
+        # Get quality summary
+        summary_response = api_get("/quality/summary?window_minutes=60")
+        
+        if summary_response and "summary" in summary_response:
+            summary = summary_response["summary"]
+            
+            # Key metrics
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("🎯 Avg Quality Score", f"{summary.get('avg_quality_score', 0):.1f}/100")
+            c2.metric("⚠️ Critical Issues", summary.get("critical_count", 0))
+            c3.metric("⚡ Total Alerts", summary.get("alerts_count", 0))
+            
+            trend = summary.get("quality_trend", "stable")
+            trend_emoji = "📈" if trend == "stable" else "📉" if trend == "degrading" else "⚠️"
+            c4.metric(f"{trend_emoji} Trend", trend.title())
+            
+            st.divider()
+            
+            # Most common issues
+            most_common = summary.get("most_common_issues", [])
+            if most_common:
+                st.subheader("🔴 Top Data Quality Issues")
+                issue_df = pd.DataFrame(most_common)
+                st.dataframe(issue_df, use_container_width=True, hide_index=True)
+                
+                # Pie chart
+                fig = px.pie(
+                    issue_df,
+                    values="count",
+                    names="field",
+                    title="Issues Distribution",
+                    hole=0.3,
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            
+            st.info(f"📊 Monitoring window: Last 60 minutes | Total records checked: {summary.get('total_records_checked', 0)}")
+        else:
+            st.error("Failed to fetch quality summary")
+    
+    with alerts_tab:
+        st.subheader("Recent Quality Alerts")
+        
+        limit = st.slider("Alerts to show", min_value=10, max_value=500, value=50, step=10)
+        
+        # Get alerts
+        alerts_response = api_get(f"/quality/alerts?limit={limit}")
+        
+        if alerts_response and "alerts" in alerts_response:
+            alerts = alerts_response["alerts"]
+            stats = alerts_response.get("stats", {})
+            
+            # Stats
+            s_c1, s_c2, s_c3 = st.columns(3)
+            s_c1.metric("Total Alerts", stats.get("total", 0))
+            s_c2.metric("🔴 Critical", stats.get("critical", 0))
+            s_c3.metric("⚠️ Warnings", stats.get("warnings", 0))
+            
+            st.divider()
+            
+            if alerts:
+                # Sort by timestamp desc
+                alerts_sorted = sorted(alerts, key=lambda x: x.get("timestamp", ""), reverse=True)
+                
+                for alert in alerts_sorted[:20]:  # Show first 20
+                    severity = alert.get("severity", "info")
+                    check_type = alert.get("check_type", "unknown")
+                    field = alert.get("field", "unknown")
+                    message = alert.get("message", "")
+                    
+                    if severity == "critical":
+                        st.error(f"🔴 [{check_type.upper()}] {field}: {message}")
+                    elif severity == "warning":
+                        st.warning(f"⚠️ [{check_type.upper()}] {field}: {message}")
+                    else:
+                        st.info(f"ℹ️ [{check_type.upper()}] {field}: {message}")
+            else:
+                st.success("✅ No recent alerts - data quality is good!")
+        else:
+            st.error("Failed to fetch alerts")
+    
+    with analyze_tab:
+        st.subheader("Batch Quality Analysis")
+        st.markdown("Upload a CSV to analyze data quality of multiple records")
+        
+        uploaded_file = st.file_uploader("Upload CSV file", type="csv")
+        
+        if uploaded_file is not None:
+            try:
+                df = pd.read_csv(uploaded_file)
+                st.info(f"Loaded {len(df)} records for analysis")
+                
+                # Show preview
+                with st.expander("📋 Preview Data", expanded=False):
+                    st.dataframe(df.head(10), use_container_width=True)
+                
+                if st.button("🔬 Analyze Quality", key="analyze_quality"):
+                    with st.spinner("Analyzing data quality..."):
+                        # Convert to list of dicts
+                        records = df.fillna("").to_dict('records')
+                        
+                        # Send to backend
+                        response = requests.post(
+                            f"{API_BASE}/quality/analyze-batch",
+                            json=records,
+                            headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                        )
+                        
+                        if response.status_code == 200:
+                            result = response.json()
+                            
+                            st.subheader("📊 Analysis Results")
+                            
+                            # Metrics
+                            a_c1, a_c2, a_c3, a_c4 = st.columns(4)
+                            a_c1.metric("Records Analyzed", result.get("analyzed", 0))
+                            a_c2.metric("Avg Quality Score", f"{result.get('avg_quality_score', 0):.1f}")
+                            a_c3.metric("Quality Grade", result.get("quality_grade", "N/A"))
+                            a_c4.metric("Critical Issues", result.get("critical_issues", 0))
+                            
+                            st.divider()
+                            
+                            # Detailed results
+                            results = result.get("results", [])
+                            if results:
+                                st.subheader("🔍 Sample Results (First 10)")
+                                for i, res in enumerate(results[:10]):
+                                    with st.expander(f"Record {i+1} - Quality Score: {res['quality_score']}", expanded=False):
+                                        col1, col2, col3 = st.columns(3)
+                                        col1.metric("Quality Score", res["quality_score"])
+                                        col2.metric("Alerts", res["alert_count"])
+                                        col3.metric("Critical", res["critical_alerts"])
+                                        
+                                        if res.get("alerts"):
+                                            st.markdown("**Issues Found:**")
+                                            for alert in res["alerts"][:5]:
+                                                st.caption(f"• {alert['field']}: {alert['message']}")
+                        else:
+                            st.error(f"Analysis failed: {response.status_code}")
+            except Exception as e:
+                st.error(f"Error processing file: {e}")
+        else:
+            st.info("Upload a CSV file to begin analysis")

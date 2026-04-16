@@ -162,7 +162,7 @@ with st.sidebar:
         "🕸️ Graph Explorer", "📊 Model Analytics", "⚡ Live Feed",
         "📈 Feature Importance", "🔬 Model Comparison", "⚙️ Thresholds",
         "📥 Export Data", "⏳ Batch Status", "🔍 Data Quality", "⚡ Performance", 
-        "🔮 Interpretability", "📋 Compliance", "🧠 Explainability",
+        "🔮 Interpretability", "📋 Compliance", "🧠 Explainability", "🛡️ Resilience",
     ])
 
     st.divider()
@@ -2102,3 +2102,305 @@ elif page == "🧠 Explainability":
                         st.error(f"Failed: {boundary_response.status_code}")
                 except Exception as e:
                     st.error(f"Error: {e}")
+
+
+# ── Production Resilience (Step 10) ────────────────────────────────────────────
+elif page == "🛡️ Resilience":
+    st.title("🛡️ Production Resilience & Fault Tolerance")
+    st.markdown("**Enterprise resilience: Circuit breakers, failover, rate limiting, graceful degradation**")
+    st.divider()
+    
+    health_tab, circuit_tab, rate_tab, bulkhead_tab, degrade_tab, summary_tab = st.tabs([
+        "❤️ Health", "🔌 Circuit Breakers", "🚦 Rate Limiting", "🚧 Bulkheads", "📉 Degradation", "📊 Summary"
+    ])
+    
+    with health_tab:
+        st.subheader("System Health Checks")
+        
+        if st.button("🔄 Refresh Health", key="refresh_health"):
+            st.rerun()
+        
+        try:
+            health_response = api_get("/health")
+            
+            if health_response and "checks" in health_response:
+                overall = health_response["status"]
+                
+                # Show overall status
+                if overall == "healthy":
+                    st.success(f"✅ **System Status:** HEALTHY")
+                elif overall == "degraded":
+                    st.warning(f"🟡 **System Status:** DEGRADED")
+                else:
+                    st.error(f"🔴 **System Status:** UNHEALTHY")
+                
+                st.divider()
+                
+                # Check details
+                st.subheader("Check Details")
+                checks = health_response["checks"]
+                
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    healthy_count = sum(1 for c in checks.values() if c == "healthy")
+                    st.metric("Healthy Checks", healthy_count)
+                
+                with col2:
+                    degraded_count = sum(1 for c in checks.values() if c == "degraded")
+                    st.metric("Degraded Checks", degraded_count)
+                
+                with col3:
+                    unhealthy_count = sum(1 for c in checks.values() if c == "unhealthy")
+                    st.metric("Unhealthy Checks", unhealthy_count)
+                
+                st.markdown("**Individual Checks:**")
+                for check_name, status in checks.items():
+                    if status == "healthy":
+                        st.caption(f"✅ {check_name}")
+                    elif status == "degraded":
+                        st.caption(f"🟡 {check_name}")
+                    else:
+                        st.caption(f"🔴 {check_name}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+    
+    with circuit_tab:
+        st.subheader("Circuit Breaker Status")
+        st.info("Circuit breakers prevent cascading failures by stopping requests to failing services.")
+        
+        try:
+            cb_response = api_get("/resilience/circuit-breakers")
+            
+            if cb_response and "circuit_breakers" in cb_response:
+                cbs = cb_response["circuit_breakers"]
+                
+                st.metric("Total Circuit Breakers", len(cbs))
+                st.divider()
+                
+                for cb_name, cb_status in cbs.items():
+                    with st.expander(f"🔌 {cb_name} - **{cb_status['state'].upper()}**", expanded=False):
+                        col1, col2, col3, col4 = st.columns(4)
+                        
+                        col1.metric("Total Calls", cb_status["total_calls"])
+                        col2.metric("Success Rate", f"{cb_status['success_rate']:.1%}")
+                        col3.metric("Rejected", cb_status["rejected"])
+                        col4.metric("State Changes", cb_status["state_changes"])
+                        
+                        if cb_status["last_failure"]:
+                            st.caption(f"Last failure: {cb_status['last_failure'][:19]}")
+                        
+                        # Show state indicator
+                        state_color = "🟢" if cb_status["state"] == "closed" else (
+                            "🟡" if cb_status["state"] == "half_open" else "🔴"
+                        )
+                        st.markdown(f"{state_color} **State:** {cb_status['state'].upper()}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+    
+    with rate_tab:
+        st.subheader("Rate Limiting Status")
+        st.info("Rate limiters protect services from being overwhelmed by too many requests.")
+        
+        try:
+            rl_response = api_get("/resilience/rate-limits")
+            
+            if rl_response and "rate_limiters" in rl_response:
+                rls = rl_response["rate_limiters"]
+                
+                st.metric("Total Rate Limiters", len(rls))
+                st.divider()
+                
+                for rl_name, rl_status in rls.items():
+                    with st.expander(f"🚦 {rl_name}", expanded=False):
+                        col1, col2, col3, col4 = st.columns(4)
+                        
+                        col1.metric("Tokens Available", f"{rl_status['tokens_available']:.0f}")
+                        col2.metric("Allowed", rl_status["requests_allowed"])
+                        col3.metric("Rejected", rl_status["requests_rejected"])
+                        col4.metric("Rejection Rate", f"{rl_status['rejection_rate']:.2%}")
+                        
+                        # Show capacity bar
+                        if rl_status['tokens_available'] > 0:
+                            st.progress(min(rl_status['tokens_available'] / 100, 1.0))
+                        else:
+                            st.warning("⚠️ Rate limit exceeded - requests being throttled")
+        except Exception as e:
+            st.error(f"Error: {e}")
+    
+    with bulkhead_tab:
+        st.subheader("Resource Bulkheads")
+        st.info("Bulkheads isolate resources and limit concurrent access to prevent resource exhaustion.")
+        
+        try:
+            bh_response = api_get("/resilience/bulkheads")
+            
+            if bh_response and "bulkheads" in bh_response:
+                bhs = bh_response["bulkheads"]
+                
+                st.metric("Total Bulkheads", len(bhs))
+                st.divider()
+                
+                for bh_name, bh_status in bhs.items():
+                    with st.expander(f"🚧 {bh_name}", expanded=False):
+                        current = bh_status["current_tasks"]
+                        max_cap = bh_status["max_concurrent"]
+                        util = bh_status["utilization"]
+                        
+                        col1, col2, col3 = st.columns(3)
+                        col1.metric("Current Tasks", current)
+                        col2.metric("Max Capacity", max_cap)
+                        col3.metric("Utilization", f"{util:.1%}")
+                        
+                        # Show utilization bar
+                        st.progress(util)
+                        
+                        if util > 0.9:
+                            st.warning(f"⚠️ High utilization ({util:.1%}) - near capacity")
+                        elif util > 0.7:
+                            st.info(f"ℹ️ Moderate utilization ({util:.1%})")
+                        else:
+                            st.success(f"✅ Low utilization ({util:.1%})")
+                        
+                        st.caption(f"Total executed: {bh_status['total_executed']} | Rejected: {bh_status['rejected']}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+    
+    with degrade_tab:
+        st.subheader("Graceful Degradation")
+        st.info("Disable non-critical features during failures to keep core services running.")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            degrade_reason = st.text_input("Degradation reason", value="Manual maintenance")
+        
+        with col2:
+            if st.button("📉 Trigger Degradation", key="trigger_degrade"):
+                with st.spinner("Degrading services..."):
+                    try:
+                        degrade_response = requests.post(
+                            f"{API_BASE}/resilience/degrade",
+                            params={"reason": degrade_reason},
+                            headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                        )
+                        
+                        if degrade_response.status_code == 200:
+                            result = degrade_response.json()
+                            st.success("✅ Graceful degradation triggered")
+                            st.json(result["features"])
+                        else:
+                            st.error(f"Failed: {degrade_response.status_code}")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+        
+        if st.button("🔧 Recover Services", key="recover_services"):
+            with st.spinner("Recovering services..."):
+                try:
+                    recover_response = requests.post(
+                        f"{API_BASE}/resilience/recover",
+                        headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                    )
+                    
+                    if recover_response.status_code == 200:
+                        result = recover_response.json()
+                        st.success("✅ Service recovery initiated")
+                        st.json(result["features"])
+                    else:
+                        st.error(f"Failed: {recover_response.status_code}")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+        
+        st.divider()
+        
+        try:
+            feature_response = api_get("/resilience/features")
+            
+            if feature_response and "degradation" in feature_response:
+                degrad = feature_response["degradation"]
+                
+                st.subheader("Feature Status")
+                
+                c1, c2, c3 = st.columns(3)
+                c1.metric("Total Features", degrad["total_features"])
+                c2.metric("Enabled", degrad["enabled"])
+                c3.metric("Disabled", degrad["disabled"])
+                
+                if degrad["disabled_features"]:
+                    st.warning("**Disabled Features:**")
+                    for feat in degrad["disabled_features"]:
+                        st.caption(f"• {feat}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+    
+    with summary_tab:
+        st.subheader("Resilience Dashboard")
+        st.info("Complete overview of all resilience metrics.")
+        
+        if st.button("🔄 Refresh Dashboard", key="refresh_resilience"):
+            st.rerun()
+        
+        try:
+            resilience_response = api_get("/resilience/dashboard")
+            
+            if resilience_response and "dashboard" in resilience_response:
+                dashboard = resilience_response["dashboard"]
+                
+                # Overall status
+                overall = dashboard["overall_health"]
+                if overall == "healthy":
+                    st.success(f"✅ **Overall System Health:** HEALTHY")
+                elif overall == "degraded":
+                    st.warning(f"🟡 **Overall System Health:** DEGRADED")
+                else:
+                    st.error(f"🔴 **Overall System Health:** UNHEALTHY")
+                
+                st.divider()
+                
+                # Summary metrics
+                col1, col2, col3, col4 = st.columns(4)
+                
+                with col1:
+                    cbs = dashboard.get("circuit_breakers", {})
+                    open_count = sum(1 for cb in cbs.values() if cb.get("state") == "open")
+                    st.metric("Open Circuit Breakers", open_count)
+                
+                with col2:
+                    rls = dashboard.get("rate_limiters", {})
+                    rejected = sum(rl.get("requests_rejected", 0) for rl in rls.values())
+                    st.metric("Rate Limited Requests", rejected)
+                
+                with col3:
+                    bhs = dashboard.get("bulkheads", {})
+                    total_util = sum(bh.get("utilization", 0) for bh in bhs.values()) / max(len(bhs), 1)
+                    st.metric("Avg Bulkhead Utilization", f"{total_util:.1%}")
+                
+                with col4:
+                    degrad = dashboard.get("graceful_degradation", {})
+                    st.metric("Disabled Features", degrad.get("disabled", 0))
+                
+                st.divider()
+                
+                # Timeline
+                st.subheader("Recent Activity")
+                st.info("All metrics collected at: " + dashboard["timestamp"][:19])
+                
+                # Show key insights
+                insights = []
+                
+                if open_count > 0:
+                    insights.append(f"⚠️ {open_count} circuit breaker(s) open - services may be failing")
+                
+                if total_util > 0.8:
+                    insights.append(f"⚠️ High resource utilization ({total_util:.1%}) - potential bottleneck")
+                
+                if degrad.get("disabled", 0) > 0:
+                    insights.append(f"📉 {degrad['disabled']} features disabled - running in degraded mode")
+                
+                if not insights:
+                    st.success("✅ All systems nominal - no issues detected")
+                else:
+                    for insight in insights:
+                        st.warning(insight)
+        except Exception as e:
+            st.error(f"Error: {e}")

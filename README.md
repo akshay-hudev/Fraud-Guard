@@ -1210,6 +1210,334 @@ scenario = explainable_ai_manager.whatif_analyzer.analyze_modification(
 
 ---
 
+## 🛡️ Production Resilience & Hardening (Step 10)
+
+**Purpose:** Enterprise-grade fault tolerance, automatic recovery, resource protection, and graceful degradation
+
+**Key Modules:**
+
+### 1️⃣ Circuit Breaker Pattern
+Prevent cascading failures by rejecting requests to failing services.
+
+**States:**
+- 🟢 **CLOSED:** Normal operation (requests pass through)
+- 🟡 **HALF_OPEN:** Testing if recovered (limited requests allowed)
+- 🔴 **OPEN:** Service failing (all requests rejected)
+
+**Configuration:**
+```python
+CircuitBreakerConfig(
+    failure_threshold=5,      # Open after 5 failures
+    success_threshold=2,      # Close after 2 successes (from half-open)
+    timeout_secs=60,          # Wait 60s before half-open attempt
+    name="predictions"
+)
+```
+
+**Metrics:**
+- Total calls, successful, failed, rejected
+- Success rate (% of successful calls)
+- State changes (how many times switched states)
+- Last failure timestamp
+
+**Endpoint:** `GET /resilience/circuit-breakers`
+
+**Example:**
+```
+Service failing consistently → Circuit opens
+Requests rejected with error: "Circuit breaker is OPEN"
+After timeout → Switch to HALF_OPEN, trial requests sent
+Trial succeeds → Full CLOSED (recovered)
+```
+
+### 2️⃣ Failover & Redundancy
+Automatic switchover to backup services on primary failure.
+
+**Architecture:**
+```
+Primary Service (active)
+    ↓ (fails)
+Backup 1 Service
+    ↓ (fails)
+Backup 2 Service
+    ↓ (succeeds)
+Return result from Backup 2
+```
+
+**Failover Statistics:**
+- Number of failovers triggered
+- Primary availability status
+- Backup service count
+
+**Use Case:** Database connection fails → Switch to read-only replica
+
+### 3️⃣ Rate Limiting (Token Bucket)
+Protect services from being overwhelmed by too many requests.
+
+**Configuration:**
+```
+100 requests per second (token bucket)
+Each request = 1 token
+Bucket refills continuously
+```
+
+**States:**
+- ✅ Token available → REQUEST ALLOWED
+- ❌ No tokens → REQUEST REJECTED (throttled)
+
+**Metrics:**
+- Tokens available (current capacity)
+- Requests allowed vs rejected
+- Rejection rate (% throttled)
+- Refill count
+
+**Endpoint:** `GET /resilience/rate-limits`
+
+**Example:**
+```
+Rate Limit: 100 req/sec
+Requests: 95 allowed, 5 rejected
+Rejection Rate: 5%
+```
+
+### 4️⃣ Bulkhead Pattern
+Isolate resources and limit concurrent access to prevent exhaustion.
+
+**Concept:** Each service gets a fixed pool of threads/connections.
+
+**Configuration:**
+```
+Prediction Workers: 20 concurrent max
+Database Connections: 10 concurrent max
+```
+
+**States:**
+- ✅ Slot available → ACQUIRE (task executes)
+- ❌ All slots full → REJECT (task queued or failed)
+
+**Metrics:**
+- Current tasks running
+- Max capacity limit
+- Utilization percentage (0-100%)
+- Total executed, rejected
+
+**Endpoint:** `GET /resilience/bulkheads`
+
+**Example:**
+```
+Prediction Workers: 18/20 (90% utilized)
+⚠️ High utilization - near capacity
+```
+
+### 5️⃣ Health Checks
+Continuous system health monitoring with self-healing.
+
+**Check Types:**
+- Database connectivity (ping, query)
+- Service health (API response)
+- Resource availability (disk, memory)
+- Model readiness (weights loaded)
+
+**Health Statuses:**
+- 🟢 **HEALTHY:** All checks passing
+- 🟡 **DEGRADED:** Some checks failing
+- 🔴 **UNHEALTHY:** Critical checks failing
+
+**Auto-Healing:**
+- Failed checks retried automatically
+- Consecutive failures tracked (3 failures = UNHEALTHY)
+- Healthy checks regularly refresh
+
+**Endpoint:** `GET /health`
+
+### 6️⃣ Graceful Degradation
+Disable non-critical features during failures, keep core services running.
+
+**Feature Dependency Tree:**
+```
+predictions (critical - always enabled)
+├── explanations (depends on predictions)
+├── reporting (depends on predictions)
+└── data_export (depends on predictions)
+```
+
+**During Failure:**
+1. Detect critical service failure
+2. Disable non-critical features (explanations, reporting)
+3. Keep predictions running (core service)
+4. Return degraded responses instead of errors
+
+**Example:**
+```
+Database fails → Disable report generation
+But predictions still work (they use cache/fallback)
+Users still get fraud scores, just no analytics
+```
+
+**Operations:**
+- `Disable feature` - cascade to dependents
+- `Enable feature` - check dependencies
+- `Is enabled` - query feature status
+
+**Endpoint:** `GET /resilience/features`
+
+### Production Hardening Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/health` | GET | System health status |
+| `/resilience/dashboard` | GET | Comprehensive resilience overview |
+| `/resilience/circuit-breakers` | GET | Circuit breaker status per service |
+| `/resilience/rate-limits` | GET | Rate limiter capacity & rejection rates |
+| `/resilience/bulkheads` | GET | Resource utilization & concurrency |
+| `/resilience/features` | GET | Graceful degradation status |
+| `/resilience/degrade` | POST | Trigger graceful degradation |
+| `/resilience/recover` | POST | Recover services from degradation |
+
+### Frontend Tab: 🛡️ Resilience
+
+**❤️ Health Sub-tab:**
+- System health status (HEALTHY / DEGRADED / UNHEALTHY)
+- Individual check status (database, cache, model, etc.)
+- Metrics: healthy/degraded/unhealthy count
+
+**🔌 Circuit Breakers Sub-tab:**
+- Status per circuit breaker (CLOSED / HALF_OPEN / OPEN)
+- Success rate & rejection count
+- State change history
+- Last failure timestamp
+
+**🚦 Rate Limiting Sub-tab:**
+- Tokens available (capacity bar)
+- Allowed vs rejected requests
+- Rejection rate percentage
+- Per-limiter metrics
+
+**🚧 Bulkheads Sub-tab:**
+- Current tasks running vs max capacity
+- Utilization percentage (with color indicator)
+- Total executed & rejected count
+- Per-bulkhead metrics
+
+**📉 Degradation Sub-tab:**
+- Trigger graceful degradation button
+- Recover services button
+- Disabled features list
+- Feature status (enabled/disabled)
+- Degradation history
+
+**📊 Summary Sub-tab:**
+- Overall system health (HEALTHY / DEGRADED / UNHEALTHY)
+- Key metrics: open circuit breakers, rate limited requests, avg bulkhead utilization, disabled features
+- AI-generated insights (warnings/alerts)
+- Real-time status timestamp
+
+### Production Hardening Flow
+
+```
+Request arrives
+    ↓
+Rate Limiter Check → ALLOWED / REJECTED
+    ↓ (if allowed)
+Circuit Breaker → CLOSED / OPEN / HALF_OPEN
+    ↓ (if not open)
+Bulkhead Acquire → SLOT AVAILABLE / REJECTED
+    ↓ (if slot acquired)
+Execute Function
+    ↓
+Bulkhead Release → Free slot
+    ↓
+Update Health Checks
+    ↓
+Check Overall Health
+    ↓ (if degraded)
+Enable/Disable Features (graceful degradation)
+```
+
+### Resilience Dashboard
+
+**Unified View:**
+- Overall system health indicator
+- Circuit breaker status summary
+- Rate limit pressure (total rejections)
+- Resource utilization average
+- Graceful degradation status
+- Actionable insights & alerts
+
+**Key Insights (Auto-Generated):**
+- 🛑 "5 circuit breaker(s) open - services may be failing"
+- ⚠️ "High resource utilization (92%) - potential bottleneck"
+- 📉 "3 features disabled - running in degraded mode"
+- ✅ "All systems nominal - no issues detected"
+
+### ProductionHardeningManager Usage
+
+```python
+from backend.production_hardening import production_hardening_manager
+
+# Get full resilience status
+dashboard = production_hardening_manager.get_resilience_dashboard()
+
+# Manually degrade services
+production_hardening_manager.handle_service_degradation("Database connection pool exhausted")
+
+# Recover services
+production_hardening_manager.recover_services()
+
+# Check if feature is enabled
+if production_hardening_manager.graceful_degradation.is_enabled("explanations"):
+    # Generate explanations
+    ...
+else:
+    # Return degraded response
+    ...
+
+# Register health check
+def check_database():
+    return database.ping()
+
+production_hardening_manager.register_health_check("database", check_database)
+```
+
+### Default Configuration
+
+```python
+# Circuit Breakers
+- predictions: 5 failures before open, 60s timeout
+- database: 3 failures before open, 30s timeout
+
+# Rate Limiters
+- predictions: 100 requests/second
+- bulk_uploads: 10 requests/minute
+
+# Bulkheads
+- prediction_workers: 20 concurrent max
+- database_connections: 10 concurrent max
+```
+
+### Benefits
+
+| Component | Benefit | When Used |
+|-----------|---------|-----------|
+| **Circuit Breaker** | Prevent cascading failures | Service starts failing consistently |
+| **Failover** | Automatic backup activation | Primary service down |
+| **Rate Limiting** | Protect from overload | Traffic spike |
+| **Bulkhead** | Prevent resource exhaustion | Many concurrent requests |
+| **Health Checks** | Detect issues early | Continuous monitoring |
+| **Graceful Degradation** | Keep core services alive | Non-critical service fails |
+
+### Resilience Best Practices
+
+1. **Monitor Continuously:** Check `/health` and `/resilience/dashboard` regularly
+2. **Set Alerts:** Alert on circuit breaker OPEN state
+3. **Test Failover:** Practice recovery procedures
+4. **Tune Thresholds:** Adjust failure/success thresholds for your SLO
+5. **Document Dependencies:** Know which features depend on which services
+6. **Capacity Planning:** Monitor bulkhead utilization trends
+7. **Rate Limit Tuning:** Set limits based on actual traffic patterns
+
+---
+
 ## Deployment
 
 ### Docker

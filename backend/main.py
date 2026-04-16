@@ -44,6 +44,7 @@ from backend.performance import PerformanceMonitor, performance_monitor
 from backend.interpretability import ModelExplainer, model_explainer
 from backend.compliance import ComplianceManager, compliance_manager
 from backend.explainable_ai import ExplainableAIManager, explainable_ai_manager
+from backend.production_hardening import ProductionHardeningManager, production_hardening_manager
 from backend.schemas import (
     PredictionRequest, PredictionResponse,
     BatchPredictionRequest, BatchPredictionResponse,
@@ -1690,6 +1691,158 @@ async def analyze_decision_boundaries(feature_name: str = Query(...)):
         }
     except Exception as e:
         logger.error(f"Decision boundary analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Step 10: Production Hardening ──────────────────────────────────────────────
+
+@app.get("/health", tags=["Resilience"])
+async def health_check():
+    """System health check."""
+    try:
+        health_status = production_hardening_manager.health_checker.get_health_status()
+        
+        return {
+            "status": health_status["overall"],
+            "checks": health_status["checks"],
+            "timestamp": health_status["timestamp"],
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/resilience/dashboard", tags=["Resilience"])
+async def get_resilience_dashboard():
+    """Get comprehensive resilience status dashboard."""
+    try:
+        dashboard = production_hardening_manager.get_resilience_dashboard()
+        
+        return {
+            "status": "success",
+            "dashboard": dashboard,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get resilience dashboard: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/resilience/circuit-breakers", tags=["Resilience"])
+async def get_circuit_breakers():
+    """Get circuit breaker status for all services."""
+    try:
+        cb_status = {
+            name: cb.get_status()
+            for name, cb in production_hardening_manager.circuit_breakers.items()
+        }
+        
+        return {
+            "status": "success",
+            "circuit_breakers": cb_status,
+            "total": len(cb_status),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get circuit breaker status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/resilience/rate-limits", tags=["Resilience"])
+async def get_rate_limit_status():
+    """Get rate limiter status."""
+    try:
+        rl_status = {
+            name: rl.get_stats()
+            for name, rl in production_hardening_manager.rate_limiters.items()
+        }
+        
+        return {
+            "status": "success",
+            "rate_limiters": rl_status,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get rate limit status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/resilience/bulkheads", tags=["Resilience"])
+async def get_bulkhead_status():
+    """Get resource bulkhead status."""
+    try:
+        bh_status = {
+            name: bh.get_status()
+            for name, bh in production_hardening_manager.bulkheads.items()
+        }
+        
+        return {
+            "status": "success",
+            "bulkheads": bh_status,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get bulkhead status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/resilience/features", tags=["Resilience"])
+async def get_feature_degradation_status():
+    """Get graceful degradation status."""
+    try:
+        degradation_status = production_hardening_manager.graceful_degradation.get_status()
+        
+        return {
+            "status": "success",
+            "degradation": degradation_status,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get degradation status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/resilience/degrade", tags=["Resilience"])
+async def trigger_graceful_degradation(reason: str = Query(...),
+                                      credentials=Depends(verify_api_key)):
+    """Trigger graceful service degradation."""
+    try:
+        production_hardening_manager.handle_service_degradation(reason)
+        
+        degradation_status = production_hardening_manager.graceful_degradation.get_status()
+        
+        logger.warning(f"Graceful degradation triggered: {reason}")
+        
+        return {
+            "status": "success",
+            "message": "Graceful degradation activated",
+            "reason": reason,
+            "features": degradation_status,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to trigger degradation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/resilience/recover", tags=["Resilience"])
+async def trigger_service_recovery(credentials=Depends(verify_api_key)):
+    """Recover all services from degradation."""
+    try:
+        production_hardening_manager.recover_services()
+        
+        degradation_status = production_hardening_manager.graceful_degradation.get_status()
+        
+        logger.info("Service recovery initiated")
+        
+        return {
+            "status": "success",
+            "message": "Service recovery initiated",
+            "features": degradation_status,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to recover services: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

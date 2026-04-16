@@ -432,6 +432,196 @@ act -j model-validation
 
 ---
 
+## 📈 Automated Retraining (Step 3)
+
+**Status:** ✅ Fully implemented with drift detection & rollback
+
+### Overview
+
+Automated monthly retraining pipeline with drift detection, model validation, and automatic rollback capabilities.
+
+```
+Monthly Schedule (1st of month, 00:00 UTC)
+    ↓
+Check for Model Drift
+    ├─ Accuracy drop >2%?
+    ├─ AUC drop >1%?
+    └─ Fraud rate change >30%?
+    ↓
+If Drift Detected:
+    ├─ Backup current models
+    ├─ Prepare latest production data
+    ├─ Retrain new models
+    ├─ Validate new models
+    │  ├─ Accuracy ≥94%?
+    │  ├─ AUC ≥0.99%?
+    │  └─ Precision ≥93%?
+    ├─ If valid → Deploy new models
+    └─ If invalid → Automatic rollback
+    ↓
+Report results & notify team
+```
+
+### CLI Commands
+
+All retraining operations available via CLI:
+
+```bash
+# Check for drift (manual check anytime)
+python training/scripts/retrain.py check
+
+# Trigger full retraining pipeline
+python training/scripts/retrain.py retrain
+
+# Validate current models
+python training/scripts/retrain.py validate
+
+# List all model backups
+python training/scripts/retrain.py list-backups
+
+# Rollback to specific backup
+python training/scripts/retrain.py rollback <backup_name>
+
+# Start background scheduler (if APScheduler installed)
+python training/scripts/retrain.py schedule
+
+# Check system health
+python training/scripts/retrain.py health
+```
+
+### Manual Retraining
+
+```bash
+# 1. Check for drift
+python training/scripts/retrain.py check
+# Output: Drift report with recommendations
+
+# 2. If drift detected, trigger retraining
+python training/scripts/retrain.py retrain
+# Automatically:
+# - Backs up current models
+# - Prepares data
+# - Trains new models
+# - Validates performance
+# - Rolls back if validation fails
+
+# 3. Validate current models
+python training/scripts/retrain.py validate
+# Output: Pass/Fail with detailed metrics
+```
+
+### Automated Retraining (GitHub Actions)
+
+Workflow: `.github/workflows/drift-retraining.yml`
+
+**Trigger:** 1st of each month at 00:00 UTC
+
+**What it does:**
+1. Fetches production metrics from `/metrics` endpoint
+2. Compares with baseline model performance
+3. Detects drift and triggers retraining if needed
+4. Validates new models against thresholds
+5. Notifies Slack if configured
+
+**Performance Thresholds:**
+- Minimum Accuracy: 94%
+- Minimum AUC: 0.99
+- Minimum Precision: 93%
+- Maximum Latency: 200ms
+- Maximum Fraud Rate Change: 30%
+
+### Model Backups
+
+Automatic backups created before each retraining:
+
+```bash
+# List all backups
+python training/scripts/retrain.py list-backups
+
+# Example output:
+# 1. backup_20260401_000000
+#    Created: 2026-04-01T00:00:00.000000
+#
+# 2. pre_rollback
+#    Created: 2026-03-28T18:45:30.123456
+
+# Rollback to specific backup
+python training/scripts/retrain.py rollback backup_20260401_000000
+```
+
+### Rollback Mechanism
+
+Automatic rollback triggered if:
+1. New models fail validation checks
+2. Performance drops below thresholds
+3. Critical errors during retraining
+
+Manual rollback:
+```bash
+python training/scripts/retrain.py rollback <backup_name>
+```
+
+### Configuration
+
+**Retraining thresholds in `training/src/training/retraining.py`:**
+
+```python
+self.min_accuracy = 0.94       # Minimum accuracy threshold
+self.min_auc = 0.99            # Minimum AUC threshold
+self.min_precision = 0.93      # Minimum precision threshold
+self.max_latency_ms = 200      # Maximum inference latency
+self.max_fraud_rate_change = 0.30  # Max fraud rate change (30%)
+```
+
+**Optional APScheduler setup:**
+
+```bash
+pip install apscheduler
+
+# Then use:
+python training/scripts/retrain.py schedule
+```
+
+### Monitoring Retraining
+
+**Via Prometheus metrics:**
+```bash
+# Check if models are loaded
+curl http://localhost:8000/metrics | grep model_loaded
+
+# Check drift metrics
+curl http://localhost:8000/metrics | grep fraud_score
+```
+
+**Via GitHub Actions:**
+```
+GitHub UI → Actions → drift-retraining.yml → View runs
+```
+
+### Troubleshooting Retraining
+
+**Q: Retraining not triggered automatically?**
+- Check GitHub Actions is enabled in your repo
+- Verify workflow file syntax in `.github/workflows/drift-retraining.yml`
+- Check cron schedule uses UTC timezone
+- Manual trigger: `python training/scripts/retrain.py retrain`
+
+**Q: New models fail validation?**
+- Review validation metrics: `python training/scripts/retrain.py validate`
+- Check if training data is fresh (within last 30 days)
+- Verify all features are being computed correctly
+- Manual rollback: `python training/scripts/retrain.py rollback <backup_name>`
+
+**Q: Want to change retraining schedule?**
+- Edit `.github/workflows/drift-retraining.yml`
+- Change: `- cron: '0 0 1 * *'` (current: 1st of month at 00:00 UTC)
+- Examples:
+  - Weekly: `'0 0 * * 0'`
+  - Daily: `'0 0 * * *'`
+  - Every 6 hours: Use interval trigger in scheduler.py
+
+---
+
 ## 🧪 Testing
 
 ### Run All Tests

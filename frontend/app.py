@@ -159,10 +159,7 @@ with st.sidebar:
 
     page = st.radio("Navigation", [
         "🏠 Dashboard", "🔍 Single Claim", "📁 Bulk Upload",
-        "🕸️ Graph Explorer", "📊 Model Analytics", "⚡ Live Feed",
-        "📈 Feature Importance", "🔬 Model Comparison", "⚙️ Thresholds",
-        "📥 Export Data", "⏳ Batch Status", "🔍 Data Quality", "⚡ Performance", 
-        "🔮 Interpretability", "📋 Compliance", "🧠 Explainability", "🛡️ Resilience",
+        "� Model Analytics", "🔍 Data Quality", "⚡ Performance", "🛡️ Resilience",
     ])
 
     st.divider()

@@ -447,7 +447,138 @@ Analyze quality of multiple records at once.
 - **D** - 0-70: Poor
 
 ---
-## �🐳 Deployment
+
+## ⚡ Performance Optimization (Step 6)
+
+**Status:** ✅ Fully implemented with caching & optimization
+
+### 1️⃣ Response Caching
+In-memory LRU cache for API responses with configurable TTL.
+
+**Features:**
+- 1000-entry LRU cache (configurable)
+- 300-second default TTL
+- Cache hit rate tracking
+- Automatic eviction of oldest entries
+
+**Endpoint:** `GET /cache/stats`
+
+Returns cache statistics:
+```json
+{
+  "response_cache": {
+    "size": 245,
+    "max_size": 1000,
+    "hits": 1250,
+    "misses": 345,
+    "hit_rate": 78.4,
+    "utilization": 24.5
+  }
+}
+```
+
+### 2️⃣ Prediction Caching
+Hash-based caching for model predictions to avoid redundant computations.
+
+**Features:**
+- MD5-based input hashing
+- 5000-entry cache
+- 10-minute TTL
+- Automatic deduplication of identical inputs
+
+**Endpoint:** `POST /predict-batch/optimized`
+
+Returns optimized batch results:
+```json
+{
+  "status": "success",
+  "summary": {
+    "total_records": 100,
+    "successful": 95,
+    "total_time_ms": 420.5,
+    "optimal_batch_size": 32,
+    "cache_hit_count": 23
+  }
+}
+```
+
+### 3️⃣ Batch Optimization
+Automatic batch sizing and vectorization.
+
+**Features:**
+- Optimal batch size calculation
+- Latency estimation (`base_ms + records × per_record_ms`)
+- Batch grouping with configurable sizes
+- Performance-aware batching
+
+**Parameters:**
+- Base latency: 50ms
+- Per-record latency: 5ms
+- Max allowed latency: 500ms
+
+Example: For 1000 records with 500ms limit → optimal batch size = 32
+
+### 4️⃣ Query Optimization
+Database and feature query performance tracking.
+
+**Tracking:**
+- Query name, duration, count
+- Min/max/avg times
+- Slow query logs (>100ms threshold)
+- Top 10 slowest queries
+
+**Endpoint:** `GET /performance/summary`
+
+Returns performance metrics:
+```json
+{
+  "performance": {
+    "avg_request_time_ms": 145.3,
+    "p95_request_time_ms": 285.2,
+    "p99_request_time_ms": 425.8,
+    "max_request_time_ms": 892.1,
+    "avg_inference_time_ms": 85.5
+  }
+}
+```
+
+### Performance Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/performance/summary` | GET | Overall latency & throughput metrics |
+| `/performance/bottlenecks` | GET | Identify performance bottlenecks |
+| `/cache/stats` | GET | Cache hit rates & utilization |
+| `/cache/clear` | POST | Clear caches (response/prediction/all) |
+| `/predict-batch/optimized` | POST | Batch predictions with caching |
+
+### Frontend Tab: ⚡ Performance
+
+**📊 Summary Sub-tab:**
+- Average, P95, P99, max request latencies
+- Inference time metrics
+- Latency distribution bar chart
+
+**💾 Caching Sub-tab:**
+- Response cache metrics (size, hit rate, utilization)
+- Prediction cache metrics
+- Cache refresh buttons
+- Clear cache options
+
+**⚙️ Batch Optimization Sub-tab:**
+- Upload CSV for batch processing
+- Optimized batch prediction with caching
+- Display total time, cache hits, optimal batch size
+- Success rate metrics
+
+**🔴 Bottlenecks Sub-tab:**
+- Automatic bottleneck detection
+- Severity levels: critical, warning, info
+- Performance recommendations
+- Actionable insights
+
+---
+## Deployment
 
 ### Docker
 ```bash

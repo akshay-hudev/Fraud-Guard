@@ -161,7 +161,7 @@ with st.sidebar:
         "🏠 Dashboard", "🔍 Single Claim", "📁 Bulk Upload",
         "🕸️ Graph Explorer", "📊 Model Analytics", "⚡ Live Feed",
         "📈 Feature Importance", "🔬 Model Comparison", "⚙️ Thresholds",
-        "📥 Export Data", "⏳ Batch Status", "🔍 Data Quality",
+        "📥 Export Data", "⏳ Batch Status", "🔍 Data Quality", "⚡ Performance",
     ])
 
     st.divider()
@@ -948,3 +948,227 @@ elif page == "🔍 Data Quality":
                 st.error(f"Error processing file: {e}")
         else:
             st.info("Upload a CSV file to begin analysis")
+
+
+# ── Performance Optimization (Step 6) ──────────────────────────────────────────
+elif page == "⚡ Performance":
+    st.title("⚡ Performance Optimization")
+    st.markdown("**Monitor latency, throughput, caching, and identify bottlenecks**")
+    st.divider()
+    
+    perf_tab, cache_tab, batch_tab, bottleneck_tab = st.tabs(
+        ["📊 Summary", "💾 Caching", "⚙️ Batch Optimization", "🔴 Bottlenecks"]
+    )
+    
+    with perf_tab:
+        st.subheader("Performance Metrics")
+        
+        # Refresh button
+        if st.button("🔄 Refresh Metrics", key="refresh_perf"):
+            st.rerun()
+        
+        # Get performance summary
+        summary_response = api_get("/performance/summary")
+        
+        if summary_response and "performance" in summary_response:
+            perf = summary_response["performance"]
+            
+            # Key metrics
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("⏱️ Avg Request", f"{perf.get('avg_request_time_ms', 0):.2f}ms")
+            c2.metric("P95 Latency", f"{perf.get('p95_request_time_ms', 0):.2f}ms")
+            c3.metric("P99 Latency", f"{perf.get('p99_request_time_ms', 0):.2f}ms")
+            c4.metric("Max Latency", f"{perf.get('max_request_time_ms', 0):.2f}ms")
+            
+            st.divider()
+            
+            # Inference time
+            c_inf1, c_inf2, c_inf3 = st.columns(3)
+            c_inf1.metric("🤖 Avg Inference", f"{perf.get('avg_inference_time_ms', 0):.2f}ms")
+            c_inf2.metric("📊 Total Requests", perf.get("total_requests", 0))
+            c_inf3.metric("🔮 Total Inferences", perf.get("total_inferences", 0))
+            
+            # Latency distribution chart
+            st.divider()
+            st.subheader("📈 Latency Analysis")
+            
+            latency_data = {
+                "Metric": ["Average", "P95", "P99", "Max"],
+                "Latency (ms)": [
+                    perf.get("avg_request_time_ms", 0),
+                    perf.get("p95_request_time_ms", 0),
+                    perf.get("p99_request_time_ms", 0),
+                    perf.get("max_request_time_ms", 0),
+                ]
+            }
+            
+            fig = px.bar(latency_data, x="Metric", y="Latency (ms)", 
+                        title="Request Latency Distribution",
+                        color="Latency (ms)",
+                        color_continuous_scale="RdYlGn_r")
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.error("Failed to fetch performance summary")
+    
+    with cache_tab:
+        st.subheader("Cache Performance")
+        
+        cache_response = api_get("/cache/stats")
+        
+        if cache_response and "cache_stats" in cache_response:
+            cache_stats = cache_response["cache_stats"]
+            
+            c1, c2 = st.columns(2)
+            
+            with c1:
+                st.subheader("Response Cache")
+                resp_cache = cache_stats.get("response_cache", {})
+                
+                c_r1, c_r2, c_r3 = st.columns(3)
+                c_r1.metric("Size", f"{resp_cache.get('size', 0)}/{resp_cache.get('max_size', 0)}")
+                c_r2.metric("Hit Rate", f"{resp_cache.get('hit_rate', 0):.1f}%")
+                c_r3.metric("Utilization", f"{resp_cache.get('utilization', 0):.1f}%")
+                
+                st.caption(f"Hits: {resp_cache.get('hits', 0)} | Misses: {resp_cache.get('misses', 0)}")
+            
+            with c2:
+                st.subheader("Prediction Cache")
+                pred_cache = cache_stats.get("prediction_cache", {})
+                
+                c_p1, c_p2 = st.columns(2)
+                c_p1.metric("Size", f"{pred_cache.get('size', 0)}/{pred_cache.get('max_size', 0)}")
+                c_p2.metric("Utilization", f"{(pred_cache.get('size', 0) / max(1, pred_cache.get('max_size', 1)) * 100):.1f}%")
+            
+            st.divider()
+            
+            # Cache recommendations
+            resp_hit_rate = resp_cache.get('hit_rate', 0)
+            if resp_hit_rate < 30:
+                st.warning("⚠️ Low response cache hit rate. Consider increasing TTL or caching more endpoints.")
+            elif resp_hit_rate > 70:
+                st.success("✅ Excellent response cache hit rate!")
+            
+            # Clear cache button
+            st.divider()
+            col1, col2, col3 = st.columns(3)
+            
+            if col1.button("🗑️ Clear Response Cache"):
+                clear_resp = requests.post(
+                    f"{API_BASE}/cache/clear?cache_type=response",
+                    headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                )
+                if clear_resp.status_code == 200:
+                    st.success("Response cache cleared")
+                    st.rerun()
+            
+            if col2.button("🗑️ Clear Prediction Cache"):
+                clear_pred = requests.post(
+                    f"{API_BASE}/cache/clear?cache_type=prediction",
+                    headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                )
+                if clear_pred.status_code == 200:
+                    st.success("Prediction cache cleared")
+                    st.rerun()
+            
+            if col3.button("🗑️ Clear All Caches"):
+                clear_all = requests.post(
+                    f"{API_BASE}/cache/clear?cache_type=all",
+                    headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                )
+                if clear_all.status_code == 200:
+                    st.success("All caches cleared")
+                    st.rerun()
+        else:
+            st.error("Failed to fetch cache stats")
+    
+    with batch_tab:
+        st.subheader("Batch Optimization")
+        st.markdown("Optimized batch predictions with automatic caching")
+        
+        # Upload CSV
+        uploaded_file = st.file_uploader("Upload CSV for batch prediction", type="csv", key="batch_opt")
+        
+        if uploaded_file:
+            try:
+                df = pd.read_csv(uploaded_file)
+                st.info(f"Loaded {len(df)} records")
+                
+                with st.expander("📋 Preview", expanded=False):
+                    st.dataframe(df.head(10), use_container_width=True)
+                
+                if st.button("🚀 Run Optimized Batch", key="run_opt_batch"):
+                    with st.spinner("Processing with optimization..."):
+                        records = [
+                            {
+                                "claim_id": f"claim_{i}",
+                                "patient_id": row.get("patient_id", f"pat_{i}"),
+                                "doctor_id": row.get("doctor_id", f"doc_{i}"),
+                                "hospital_id": row.get("hospital_id", f"hosp_{i}"),
+                                "claim_amount": float(row.get("claim_amount", 1000)),
+                                **{k: v for k, v in row.items() if k not in 
+                                   ["claim_id", "patient_id", "doctor_id", "hospital_id", "claim_amount"]}
+                            }
+                            for i, row in df.iterrows()
+                        ]
+                        
+                        batch_response = requests.post(
+                            f"{API_BASE}/predict-batch/optimized",
+                            json={"claims": records},
+                            headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                        )
+                        
+                        if batch_response.status_code == 200:
+                            result = batch_response.json()
+                            summary = result.get("summary", {})
+                            
+                            st.subheader("✅ Optimization Results")
+                            
+                            s_c1, s_c2, s_c3, s_c4 = st.columns(4)
+                            s_c1.metric("Total Time", f"{summary.get('total_time_ms', 0):.2f}ms")
+                            s_c2.metric("Avg Inference", f"{summary.get('avg_inference_time_ms', 0):.2f}ms")
+                            s_c3.metric("Batch Size", summary.get("optimal_batch_size", "N/A"))
+                            s_c4.metric("Cache Hits", summary.get("cache_hit_count", 0))
+                            
+                            st.success(f"✨ Processed {summary.get('successful', 0)}/{summary.get('total_records', 0)} records")
+                        else:
+                            st.error(f"Batch failed: {batch_response.status_code}")
+            except Exception as e:
+                st.error(f"Error: {e}")
+        else:
+            st.info("Upload a CSV to run optimized batch predictions")
+    
+    with bottleneck_tab:
+        st.subheader("Performance Bottlenecks")
+        
+        bottleneck_response = api_get("/performance/bottlenecks")
+        
+        if bottleneck_response and "analysis" in bottleneck_response:
+            analysis = bottleneck_response["analysis"]
+            bottlenecks = analysis.get("bottlenecks", [])
+            
+            if bottlenecks:
+                st.warning(f"🔴 Found {len(bottlenecks)} potential bottlenecks")
+                
+                for i, bn in enumerate(bottlenecks):
+                    severity = bn.get("severity", "info")
+                    bn_type = bn.get("type", "unknown")
+                    message = bn.get("message", "")
+                    
+                    if severity == "critical":
+                        st.error(f"🔴 [{bn_type.upper()}] {message}")
+                    elif severity == "warning":
+                        st.warning(f"⚠️ [{bn_type.upper()}] {message}")
+                    else:
+                        st.info(f"ℹ️ [{bn_type.upper()}] {message}")
+            else:
+                st.success("✅ No performance bottlenecks detected!")
+            
+            # Recommendations
+            recommendations = bottleneck_response.get("recommendations", [])
+            if recommendations:
+                st.divider()
+                st.subheader("💡 Recommendations")
+                for rec in recommendations:
+                    st.caption(f"• {rec}")
+        else:
+            st.error("Failed to fetch bottleneck analysis")

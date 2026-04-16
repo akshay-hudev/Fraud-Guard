@@ -40,6 +40,7 @@ from backend.advanced_features import (
     PredictionExporter, BatchJobTracker, feature_analyzer, batch_tracker,
 )
 from backend.data_quality import QualityMonitor, quality_monitor
+from backend.performance import PerformanceMonitor, performance_monitor
 from backend.schemas import (
     PredictionRequest, PredictionResponse,
     BatchPredictionRequest, BatchPredictionResponse,
@@ -1001,6 +1002,166 @@ async def analyze_batch_quality(records: List[dict] = None):
         }
     except Exception as e:
         logger.error(f"Batch quality analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Step 6: Performance Optimization ───────────────────────────────────────────
+
+@app.get("/performance/summary", tags=["Performance"])
+async def get_performance_summary():
+    """Get API performance summary."""
+    try:
+        summary = performance_monitor.get_performance_summary()
+        cache_stats = performance_monitor.get_cache_stats()
+        
+        return {
+            "status": "success",
+            "performance": summary,
+            "caching": cache_stats,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get performance summary: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/performance/bottlenecks", tags=["Performance"])
+async def get_performance_bottlenecks():
+    """Identify performance bottlenecks."""
+    try:
+        analysis = performance_monitor.get_bottlenecks()
+        
+        return {
+            "status": "success",
+            "analysis": analysis,
+            "recommendations": [
+                "Enable response caching for frequently accessed endpoints",
+                "Consider batch processing for bulk predictions",
+                "Monitor database query performance",
+                "Use model inference caching for identical inputs",
+            ],
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to analyze bottlenecks: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/predict-batch/optimized", tags=["Predictions"], response_model=BatchPredictionResponse)
+@limiter.limit("100/minute")
+async def predict_batch_optimized(
+    request: Request,
+    batch: BatchPredictionRequest,
+    credentials=Depends(verify_api_key),
+    db=Depends(get_db),
+):
+    """
+    Optimized batch prediction with caching and vectorization.
+    Automatically determines optimal batch size for performance.
+    """
+    if not AppState.predictor:
+        raise HTTPException(status_code=503, detail="Predictor not available")
+    
+    try:
+        start_time = time.time()
+        records = batch.claims
+        
+        # Find optimal batch size
+        optimal_batch_size = performance_monitor.batch_optimizer.find_optimal_batch_size(
+            total_records=len(records),
+            max_latency_ms=500,
+        )
+        
+        predictions = []
+        errors = []
+        inference_times = []
+        
+        # Check prediction cache first
+        for claim in records:
+            cached = performance_monitor.prediction_cache.get(claim.dict())
+            if cached:
+                predictions.append(cached)
+                continue
+            
+            # Make prediction
+            try:
+                result = AppState.predictor.predict(
+                    features=claim.dict(),
+                    explain=False,
+                )
+                inference_ms = result.get("inference_time_ms", 0)
+                inference_times.append(inference_ms)
+                
+                # Cache the result
+                performance_monitor.prediction_cache.set(claim.dict(), result)
+                predictions.append(result)
+                
+            except Exception as pred_err:
+                errors.append({
+                    "claim_id": claim.claim_id,
+                    "error": str(pred_err),
+                })
+        
+        total_time_ms = (time.time() - start_time) * 1000
+        
+        # Track performance
+        performance_monitor.track_request("/predict-batch/optimized", total_time_ms)
+        if inference_times:
+            avg_inference = sum(inference_times) / len(inference_times)
+            performance_monitor.track_inference(avg_inference)
+        
+        return {
+            "status": "success" if not errors else "partial",
+            "predictions": predictions,
+            "errors": errors,
+            "summary": {
+                "total_records": len(records),
+                "successful": len(predictions),
+                "failed": len(errors),
+                "total_time_ms": round(total_time_ms, 2),
+                "avg_inference_time_ms": round(sum(inference_times) / len(inference_times), 2) if inference_times else 0,
+                "optimal_batch_size": optimal_batch_size,
+                "cache_hit_count": len([p for p in predictions if performance_monitor.prediction_cache.get(records[predictions.index(p)].dict())]),
+            },
+        }
+    except Exception as e:
+        logger.error(f"Batch prediction failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/cache/stats", tags=["Performance"])
+async def get_cache_stats():
+    """Get cache statistics and hit rates."""
+    try:
+        stats = performance_monitor.get_cache_stats()
+        
+        return {
+            "status": "success",
+            "cache_stats": stats,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get cache stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/cache/clear", tags=["Performance"])
+async def clear_cache(cache_type: str = Query("response", regex="^(response|prediction|all)$")):
+    """Clear cache (response, prediction, or all)."""
+    try:
+        if cache_type in ["response", "all"]:
+            performance_monitor.response_cache.clear()
+        
+        if cache_type in ["prediction", "all"]:
+            performance_monitor.prediction_cache = performance_monitor.prediction_cache.__class__()
+        
+        return {
+            "status": "success",
+            "message": f"{cache_type} cache cleared",
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Cache clear failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

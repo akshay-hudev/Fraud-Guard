@@ -42,6 +42,7 @@ from backend.advanced_features import (
 from backend.data_quality import QualityMonitor, quality_monitor
 from backend.performance import PerformanceMonitor, performance_monitor
 from backend.interpretability import ModelExplainer, model_explainer
+from backend.compliance import ComplianceManager, compliance_manager
 from backend.schemas import (
     PredictionRequest, PredictionResponse,
     BatchPredictionRequest, BatchPredictionResponse,
@@ -1305,6 +1306,180 @@ async def analyze_feature_interactions(features: Dict[str, Any] = None,
         }
     except Exception as e:
         logger.error(f"Interaction analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Step 8: Compliance & Audit ─────────────────────────────────────────────────
+
+@app.get("/audit/logs", tags=["Compliance"])
+async def get_audit_logs(limit: int = Query(100, ge=10, le=1000),
+                        action: str = Query(None)):
+    """Get audit logs with optional filtering."""
+    try:
+        logs = compliance_manager.audit_logger.get_logs(limit=limit, action_filter=action)
+        
+        return {
+            "status": "success",
+            "total_logs": len(logs),
+            "logs": logs,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to retrieve audit logs: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/audit/verify-integrity", tags=["Compliance"])
+async def verify_audit_integrity():
+    """Verify integrity of audit logs."""
+    try:
+        is_valid, issues = compliance_manager.audit_logger.verify_integrity()
+        
+        return {
+            "status": "success",
+            "integrity_valid": is_valid,
+            "issues": issues,
+            "total_logs": len(compliance_manager.audit_logger.logs),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Audit integrity check failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/compliance/gdpr-status", tags=["Compliance"])
+async def get_gdpr_status():
+    """Get GDPR compliance status."""
+    try:
+        status = compliance_manager.gdpr.get_compliance_status()
+        
+        return {
+            "status": "success",
+            "gdpr": status,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get GDPR status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/compliance/data-subject-request", tags=["Compliance"])
+async def file_data_subject_request(user_id: str = Query(...),
+                                   request_type: str = Query(..., regex="^(access|rectification|erasure|portability)$"),
+                                   details: str = Query(None)):
+    """File a GDPR data subject request."""
+    try:
+        request_id = compliance_manager.gdpr.file_data_subject_request(
+            user_id=user_id,
+            request_type=request_type,
+            details=details,
+        )
+        
+        logger.audit_log(f"Data subject request filed: {request_id}")
+        
+        return {
+            "status": "success",
+            "request_id": request_id,
+            "request_type": request_type,
+            "user_id": user_id,
+            "filed_at": datetime.utcnow().isoformat(),
+            "message": f"Request {request_id} will be processed within 30 days",
+        }
+    except Exception as e:
+        logger.error(f"Failed to file data subject request: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/compliance/data-subject-requests", tags=["Compliance"])
+async def get_data_subject_requests(status: str = Query(None, regex="^(pending|processed)$")):
+    """Get data subject requests."""
+    try:
+        requests = compliance_manager.gdpr.get_data_subject_requests(status=status)
+        
+        return {
+            "status": "success",
+            "requests": requests,
+            "total": len(requests),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to retrieve data subject requests: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/data/delete", tags=["Compliance"])
+async def delete_data_compliant(data_type: str = Query(...),
+                               record_ids: List[str] = None,
+                               reason: str = Query(...),
+                               credentials=Depends(verify_api_key)):
+    """Delete data with compliance audit trail."""
+    try:
+        if not record_ids:
+            record_ids = []
+        
+        result = compliance_manager.handle_data_deletion(
+            data_type=data_type,
+            record_ids=record_ids,
+            user=credentials.get("username", "unknown"),
+            reason=reason,
+        )
+        
+        return {
+            "status": "success",
+            "deleted_count": result["deleted_count"],
+            "audit_logged": result["audit_logged"],
+            "timestamp": result["timestamp"],
+        }
+    except Exception as e:
+        logger.error(f"Data deletion failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/reports/compliance-dashboard", tags=["Compliance"])
+async def get_compliance_dashboard():
+    """Get comprehensive compliance dashboard."""
+    try:
+        dashboard = compliance_manager.get_compliance_dashboard()
+        
+        return {
+            "status": "success",
+            "dashboard": dashboard,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to generate compliance dashboard: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/reports/audit-report", tags=["Compliance"])
+async def get_audit_report(days: int = Query(30, ge=1, le=365)):
+    """Generate audit report."""
+    try:
+        report = compliance_manager.reporter.generate_audit_report(days=days)
+        
+        return {
+            "status": "success",
+            "report": report,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to generate audit report: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/reports/gdpr-report", tags=["Compliance"])
+async def get_gdpr_report():
+    """Generate GDPR compliance report."""
+    try:
+        report = compliance_manager.reporter.generate_gdpr_report()
+        
+        return {
+            "status": "success",
+            "report": report,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to generate GDPR report: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

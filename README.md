@@ -784,6 +784,246 @@ Aggregate interpretability insights across recent predictions.
 
 ---
 
+## 🛡️ Data Compliance & Audit (Step 8)
+
+**Purpose:** Regulatory compliance (GDPR), audit trail immutability, PII protection, data governance
+
+**Key Modules:**
+
+### 1️⃣ PII Masking
+Automated detection and masking of personally identifiable information (PII).
+
+**Patterns Supported:**
+- Email: `user@domain.com` → `u***@domain.com`
+- Phone: `+1-555-1234` → `+1-***-1234`
+- SSN: `123-45-6789` → `***-**-6789`
+- Credit Card: `4532-1234-5678-9012` → `****-1234-5678-****`
+- IP Address: `192.168.1.1` → `192.168.*.*`
+- Date patterns: `2024-01-15` → `****-**-15`
+
+**Sensitive Fields Auto-Detected:**
+- password, token, secret, apikey
+- ssn, credit_card, phone, email
+- address, dob, name, passport
+
+**Endpoint:** `POST /compliance/mask`
+```json
+{
+  "data": {
+    "email": "user@example.com",
+    "ssn": "123-45-6789"
+  }
+}
+```
+Returns masked data with pattern names.
+
+### 2️⃣ Immutable Audit Logging (Hash-Chain)
+Tamper-proof audit trail using SHA256 hash chains. Each log entry includes:
+- Action (PREDICTION_MADE, DATA_ACCESS, DATA_EXPORT, DATA_DELETE)
+- User/system identifier
+- Resource touched
+- Result status
+- Previous hash → new hash (linked chain)
+
+**Hash Chain Verification:**
+- Ensures no logs deleted or reordered
+- Detects tampering attempts
+- Validates chain continuity
+
+**Endpoint:** `POST /audit/verify-integrity`
+```json
+{
+  "integrity_valid": true,
+  "total_logs": 1247,
+  "issues": []
+}
+```
+
+**Get Logs:** `GET /audit/logs?limit=100&action=PREDICTION_MADE`
+
+### 3️⃣ GDPR Compliance Tracking
+Comprehensive GDPR requirement management:
+
+**Consent Management:**
+- Record user consent for data processing
+- Track consent timestamp and version
+- Flag expired or withdrawn consent
+
+**Data Retention Policies:**
+- Define retention period per data type (claims, predictions, logs)
+- Auto-purge expired data
+- Audit retention changes
+
+**Data Subject Requests (DSRs):**
+- **Access:** Full data export (user's claims, predictions, audit logs)
+- **Rectification:** Update incorrect personal data
+- **Erasure:** Right to be forgotten (soft delete with audit)
+- **Portability:** Export data in portable format
+
+**Endpoint:** `POST /compliance/data-subject-request`
+```json
+{
+  "user_id": "user@example.com",
+  "request_type": "access",
+  "details": "Request all my data"
+}
+```
+Returns `request_id` for tracking.
+
+**Check Request Status:** `GET /compliance/data-subject-requests?status=pending`
+
+### 4️⃣ Compliance Reporting
+Generate compliance dashboards and reports.
+
+**Compliance Dashboard:** `GET /reports/compliance-dashboard`
+- Audit summary (events by action)
+- GDPR compliance score
+- Pending DSRs
+- Recommendations
+
+**Audit Report:** `GET /reports/audit-report?days=30`
+- Event timeline
+- Action breakdown
+- User activity summary
+- Integrity status
+
+**GDPR Report:** `GET /reports/gdpr-report`
+- Compliance score (0-100)
+- DSR status breakdown
+- Retention policy compliance
+- Risk areas & recommendations
+
+### Compliance Scoring
+
+**Score Calculation (0-100):**
+- Consent coverage: 25% (% users with active consent)
+- DSR timeliness: 25% (% requests processed ≤30 days)
+- Retention compliance: 25% (% data within retention limits)
+- Integrity verification: 25% (% audit logs tamper-free)
+
+**Score Interpretation:**
+- ✅ **≥ 85:** Full GDPR compliance
+- 🟡 **70-84:** Action recommended
+- 🔴 **< 70:** Critical - immediate remediation
+
+### Compliance Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/audit/logs` | GET | Retrieve audit logs with optional filtering |
+| `/audit/verify-integrity` | POST | Verify hash-chain integrity |
+| `/compliance/gdpr-status` | GET | GDPR compliance status & score |
+| `/compliance/data-subject-request` | POST | File new DSR |
+| `/compliance/data-subject-requests` | GET | List all DSRs |
+| `/data/delete` | POST | Delete data with audit trail |
+| `/reports/compliance-dashboard` | GET | Full compliance dashboard |
+| `/reports/audit-report` | GET | Audit report with timeline |
+| `/reports/gdpr-report` | GET | GDPR compliance report |
+
+### Frontend Tab: 🛡️ Compliance
+
+**✅ Audit Trail Sub-tab:**
+- Verify audit integrity (hash-chain validation)
+- Recent audit events list (timestamp, action, user)
+- Filter by action type
+- Event detail expansion
+
+**🔒 GDPR Sub-tab:**
+- Compliance score gauge (0-100)
+- DSR counter (pending/processed)
+- GDPR status indicators
+- File new data subject request
+- Select request type (access, rectification, erasure, portability)
+
+**📝 Logs Sub-tab:**
+- Complete audit log viewer
+- Action-based filtering
+- Adjustable limit (10-1000 logs)
+- Log details in JSON format
+- Timestamp sorting
+
+**📊 Reports Sub-tab:**
+- Generate compliance dashboard
+- Generate audit report (configurable period)
+- Generate GDPR compliance report
+- Visualizations: event distribution, top users
+- Recommendations display
+
+### Data Protection Flow
+
+```
+Prediction Made
+    ↓
+[Audit Log] → Hash-Chain Entry
+    ↓
+[Compliance Check] → PII Scan
+    ↓
+[If PII Found] → Automatic Masking
+    ↓
+[Stored Data] → Compliant Format
+    ↓
+[DSR Filed] → Encrypted Export
+    ↓
+[Retention Expired] → Soft Delete + Audit
+```
+
+### Configuration
+
+**Retention Policies:**
+```python
+{
+    "claims": 2555,      # 7 years
+    "predictions": 365,  # 1 year
+    "audit_logs": 1825,  # 5 years (legal requirement)
+    "user_data": 0       # Never auto-delete (manual DSR)
+}
+```
+
+**Compliance Manager Usage:**
+```python
+from backend.compliance import compliance_manager
+
+# Check prediction for compliance
+result = compliance_manager.process_prediction_with_compliance(
+    prediction_data={...},
+    user_id="user@example.com"
+)
+
+# File data subject request
+request_id = compliance_manager.gdpr.file_data_subject_request(
+    user_id="user@example.com",
+    request_type="access",
+    details="Request all my claims data"
+)
+
+# Generate compliance report
+report = compliance_manager.reporter.generate_gdpr_report()
+```
+
+### PII Detection Examples
+
+**Input Data:**
+```json
+{
+  "doctor_email": "john.smith@hospital.com",
+  "patient_phone": "555-123-4567",
+  "credit_card": "4532-1111-2222-3333",
+  "claim_date": "2024-01-15"
+}
+```
+
+**Masked Output:**
+```json
+{
+  "doctor_email": "j***@hospital.com",
+  "patient_phone": "***-***-4567",
+  "credit_card": "****-1111-2222-****",
+  "claim_date": "****-01-15"
+}
+```
+
+---
+
 ## Deployment
 
 ### Docker

@@ -161,7 +161,8 @@ with st.sidebar:
         "🏠 Dashboard", "🔍 Single Claim", "📁 Bulk Upload",
         "🕸️ Graph Explorer", "📊 Model Analytics", "⚡ Live Feed",
         "📈 Feature Importance", "🔬 Model Comparison", "⚙️ Thresholds",
-        "📥 Export Data", "⏳ Batch Status", "🔍 Data Quality", "⚡ Performance", "🔮 Interpretability",
+        "📥 Export Data", "⏳ Batch Status", "🔍 Data Quality", "⚡ Performance", 
+        "🔮 Interpretability", "📋 Compliance",
     ])
 
     st.divider()
@@ -1470,3 +1471,268 @@ elif page == "🔮 Interpretability":
                         st.error(f"Error: {e}")
             else:
                 st.warning("Please enter a feature name")
+
+
+# ── Compliance & Audit (Step 8) ────────────────────────────────────────────────
+elif page == "📋 Compliance":
+    st.title("📋 Compliance & Audit")
+    st.markdown("**GDPR compliance, audit logging, and regulatory reporting**")
+    st.divider()
+    
+    audit_tab, gdpr_tab, logs_tab, reports_tab = st.tabs(
+        ["✅ Audit Trail", "🔒 GDPR", "📝 Logs", "📊 Reports"]
+    )
+    
+    with audit_tab:
+        st.subheader("Audit Trail & Integrity")
+        
+        if st.button("🔍 Verify Audit Integrity", key="verify_audit"):
+            with st.spinner("Verifying integrity..."):
+                try:
+                    integrity_response = api_get("/audit/verify-integrity")
+                    
+                    if integrity_response and "integrity_valid" in integrity_response:
+                        is_valid = integrity_response["integrity_valid"]
+                        issues = integrity_response.get("issues", [])
+                        total_logs = integrity_response.get("total_logs", 0)
+                        
+                        if is_valid:
+                            st.success(f"✅ Audit logs are valid | {total_logs} total logs")
+                        else:
+                            st.error(f"⚠️ {len(issues)} integrity issues found:")
+                            for issue in issues:
+                                st.caption(f"• {issue}")
+                    else:
+                        st.error("Failed to verify integrity")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+        
+        st.divider()
+        st.subheader("Recent Audit Events")
+        
+        limit = st.slider("Show last N events", 10, 500, 50)
+        action_filter = st.selectbox("Filter by action", 
+                                     ["All", "PREDICTION_MADE", "DATA_ACCESS", "DATA_EXPORT", "DATA_DELETE"])
+        
+        try:
+            filter_param = None if action_filter == "All" else action_filter
+            logs_response = api_get(f"/audit/logs?limit={limit}" + (f"&action={filter_param}" if filter_param else ""))
+            
+            if logs_response and "logs" in logs_response:
+                logs = logs_response["logs"]
+                
+                st.metric("Total Events", logs_response.get("total_logs", 0))
+                
+                if logs:
+                    for log in logs[:20]:
+                        with st.expander(f"⏱️ {log['timestamp'][:19]} | {log['action']} | {log['user']}", expanded=False):
+                            st.json(log)
+        except Exception as e:
+            st.error(f"Error fetching logs: {e}")
+    
+    with gdpr_tab:
+        st.subheader("GDPR Compliance Status")
+        
+        if st.button("🔄 Refresh GDPR Status", key="refresh_gdpr"):
+            st.rerun()
+        
+        try:
+            gdpr_response = api_get("/compliance/gdpr-status")
+            
+            if gdpr_response and "gdpr" in gdpr_response:
+                gdpr = gdpr_response["gdpr"]
+                
+                # Metrics
+                c1, c2, c3, c4 = st.columns(4)
+                c1.metric("👥 Users with Consent", gdpr.get("total_users_with_consent", 0))
+                c2.metric("📋 Retention Policies", gdpr.get("retention_policies", 0))
+                c3.metric("⏳ Pending Requests", gdpr.get("pending_data_subject_requests", 0))
+                c4.metric("✅ Processed Requests", gdpr.get("processed_data_subject_requests", 0))
+                
+                st.divider()
+                
+                # Compliance score
+                score = gdpr.get("compliance_score", 0)
+                
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    st.progress(score / 100)
+                with col2:
+                    st.metric("Compliance Score", f"{score:.0f}/100")
+                
+                if score < 70:
+                    st.error("🔴 CRITICAL: Below 70% - immediate action required")
+                elif score < 85:
+                    st.warning("🟡 ACTION NEEDED: Compliance score below 85%")
+                else:
+                    st.success("🟢 GOOD: High GDPR compliance")
+        except Exception as e:
+            st.error(f"Error fetching GDPR status: {e}")
+        
+        st.divider()
+        st.subheader("Data Subject Requests")
+        
+        col_type, col_reason = st.columns(2)
+        
+        with col_type:
+            request_type = st.selectbox(
+                "Request Type",
+                ["access", "rectification", "erasure", "portability"]
+            )
+        
+        with col_reason:
+            user_id = st.text_input("User ID", key="dsr_user")
+        
+        details = st.text_area("Details", placeholder="Additional request details...")
+        
+        if st.button("📝 File Request", key="file_dsr"):
+            if user_id:
+                with st.spinner("Filing request..."):
+                    try:
+                        dsr_response = requests.post(
+                            f"{API_BASE}/compliance/data-subject-request",
+                            params={
+                                "user_id": user_id,
+                                "request_type": request_type,
+                                "details": details or None,
+                            },
+                            headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                        )
+                        
+                        if dsr_response.status_code == 200:
+                            result = dsr_response.json()
+                            st.success(f"✅ Request filed: {result['request_id']}")
+                            st.info(result['message'])
+                        else:
+                            st.error(f"Failed: {dsr_response.status_code}")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+            else:
+                st.warning("Please enter user ID")
+    
+    with logs_tab:
+        st.subheader("Complete Audit Logs")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            log_limit = st.slider("Logs to show", 10, 1000, 100)
+        
+        with col2:
+            log_action = st.selectbox(
+                "Filter action",
+                ["All", "PREDICTION_MADE", "DATA_ACCESS", "DATA_EXPORT", "DATA_DELETE"]
+            )
+        
+        try:
+            filter_action = None if log_action == "All" else log_action
+            logs_response = api_get(f"/audit/logs?limit={log_limit}" + (f"&action={filter_action}" if filter_action else ""))
+            
+            if logs_response and "logs" in logs_response:
+                logs = logs_response["logs"]
+                
+                if logs:
+                    # Convert to DataFrame for display
+                    df_logs = pd.DataFrame([
+                        {
+                            "Time": log.get("timestamp", "")[:19],
+                            "Action": log.get("action", ""),
+                            "User": log.get("user", ""),
+                            "Resource": log.get("resource", ""),
+                            "Status": log.get("status", ""),
+                        }
+                        for log in logs
+                    ])
+                    
+                    st.dataframe(df_logs, use_container_width=True, hide_index=True)
+                else:
+                    st.info("No audit logs found")
+        except Exception as e:
+            st.error(f"Error fetching logs: {e}")
+    
+    with reports_tab:
+        st.subheader("Compliance Reports")
+        
+        report_type = st.selectbox(
+            "Report Type",
+            ["Compliance Dashboard", "Audit Report", "GDPR Report"]
+        )
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if report_type == "Audit Report":
+                days = st.slider("Audit period (days)", 1, 365, 30)
+        
+        if st.button(f"📊 Generate {report_type}", key="gen_report"):
+            with st.spinner("Generating report..."):
+                try:
+                    if report_type == "Compliance Dashboard":
+                        report_response = api_get("/reports/compliance-dashboard")
+                    elif report_type == "Audit Report":
+                        report_response = api_get(f"/reports/audit-report?days={days}")
+                    else:  # GDPR Report
+                        report_response = api_get("/reports/gdpr-report")
+                    
+                    if report_response and "report" in report_response:
+                        report = report_response["report"]
+                        
+                        st.success(f"✅ Report Generated: {report.get('report_type', 'Unknown')}")
+                        
+                        if report_type == "Compliance Dashboard":
+                            # Show summary
+                            dashboard = report.get("audit_summary", {})
+                            gdpr_comp = report.get("gdpr_compliance", {})
+                            
+                            st.subheader("📊 Audit Summary")
+                            st.metric("Total Events", dashboard.get("total_events", 0))
+                            
+                            # Events by action
+                            if dashboard.get("events_by_action"):
+                                action_data = dashboard["events_by_action"]
+                                fig = px.bar(
+                                    x=list(action_data.keys()),
+                                    y=list(action_data.values()),
+                                    title="Events by Action",
+                                    labels={"x": "Action", "y": "Count"}
+                                )
+                                st.plotly_chart(fig, use_container_width=True)
+                            
+                            st.subheader("🔒 GDPR Compliance")
+                            gdpr_status = gdpr_comp.get("compliance", {})
+                            st.metric("Compliance Score", f"{gdpr_status.get('compliance_score', 0):.0f}/100")
+                            
+                            # Recommendations
+                            recommendations = report.get("recommendations", [])
+                            if recommendations:
+                                st.warning("⚠️ Recommendations:")
+                                for rec in recommendations:
+                                    st.caption(f"• {rec}")
+                        
+                        elif report_type == "Audit Report":
+                            # Show audit details
+                            st.metric("Events Audited", report.get("total_events", 0))
+                            st.metric("Period", f"{report.get('period_days', 0)} days")
+                            
+                            if report.get("top_users"):
+                                st.subheader("👥 Top Users")
+                                for user, count in report["top_users"]:
+                                    st.caption(f"**{user}**: {count} events")
+                        
+                        else:  # GDPR Report
+                            gdpr_comp = report.get("compliance", {})
+                            
+                            c1, c2, c3 = st.columns(3)
+                            c1.metric("Score", f"{gdpr_comp.get('compliance_score', 0):.0f}/100")
+                            c2.metric("Pending Requests", gdpr_comp.get("pending_data_subject_requests", 0))
+                            c3.metric("Users", gdpr_comp.get("total_users_with_consent", 0))
+                            
+                            recommendations = report.get("recommendations", [])
+                            if recommendations:
+                                st.subheader("💡 Recommendations")
+                                for rec in recommendations:
+                                    st.info(rec)
+                    else:
+                        st.error("Failed to generate report")
+                except Exception as e:
+                    st.error(f"Error: {e}")

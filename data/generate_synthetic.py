@@ -95,30 +95,29 @@ def generate_claims(
     procedure_codes = [f"PC{i:03d}" for i in range(1, 51)]
     diagnosis_codes = [f"DX{i:03d}" for i in range(1, 41)]
 
-    fraud_patients = patients[patients["fraud_prone"]]["patient_id"].tolist()
-    fraud_doctors  = doctors[doctors["fraud_prone"]]["doctor_id"].tolist()
-
     records = []
     for i in range(n):
         # Determine if this claim will be fraudulent
         is_fraud = random.random() < FRAUD_RATE
-
-        if is_fraud and fraud_patients and fraud_doctors:
-            patient = patients[patients["patient_id"] == random.choice(fraud_patients)].iloc[0]
-            doctor  = doctors[doctors["doctor_id"]   == random.choice(fraud_doctors)].iloc[0]
-        else:
-            patient = patients.sample(1).iloc[0]
-            doctor  = doctors.sample(1).iloc[0]
-
+        
+        # Random selection (no fraud_prone flags used — they're removed!)
+        patient = patients.sample(1).iloc[0]
+        doctor  = doctors.sample(1).iloc[0]
         hospital = hospitals[hospitals["hospital_id"] == doctor["hospital_id"]].iloc[0]
 
-        # Fraud patterns in claim amounts and frequencies
+        # Realistic fraud patterns — SUBTLE to avoid leakage
         if is_fraud:
-            claim_amount = random.uniform(5_000, 50_000)   # inflated
-            num_procedures = random.randint(5, 20)          # excessive
+            # Fraudsters don't always bill excessively — make patterns subtle
+            claim_amount = random.uniform(2_000, 15_000)    # Somewhat higher, not 50k
+            num_procedures = random.randint(3, 10)           # Slightly higher, not obviously fraudulent
+            days_in_hospital = random.randint(1, 14)
+            # ~70% of fraud gets caught/flagged, ~30% slips through
+            approved = random.random() < 0.3
         else:
-            claim_amount = random.uniform(200, 8_000)
+            claim_amount = random.uniform(100, 8_000)
             num_procedures = random.randint(1, 5)
+            days_in_hospital = random.randint(0, 5)
+            approved = random.random() < 0.95  # Most legit claims approved
 
         claim_date = _date_range(730)
         records.append({
@@ -131,8 +130,8 @@ def generate_claims(
             "num_procedures":  num_procedures,
             "procedure_code":  random.choice(procedure_codes),
             "diagnosis_code":  random.choice(diagnosis_codes),
-            "days_in_hospital": random.randint(0, 30) if is_fraud else random.randint(0, 7),
-            "approved":        not is_fraud or random.random() < 0.6,  # some fraud slips through
+            "days_in_hospital": days_in_hospital,
+            "approved":        approved,  # DO NOT use this as target — it's correlated
             "fraud_label":     int(is_fraud),
         })
 

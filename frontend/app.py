@@ -180,10 +180,10 @@ if page == "🏠 Dashboard":
 
     stats = api_get("/stats") or {
         "model_performance": {
-            "logistic_regression": {"accuracy": 0.881, "f1": 0.708, "roc_auc": 0.852},
-            "random_forest":       {"accuracy": 0.934, "f1": 0.844, "roc_auc": 0.961},
-            "gradient_boosting":   {"accuracy": 0.929, "f1": 0.839, "roc_auc": 0.958},
-            "gnn_hgt":             {"accuracy": 0.957, "f1": 0.897, "roc_auc": 0.980},
+            "logistic_regression": {"accuracy": 0.9455, "f1": 0.797, "roc_auc": 0.9541},
+            "random_forest":       {"accuracy": 0.9895, "f1": 0.9572, "roc_auc": 0.981},
+            "gradient_boosting":   {"accuracy": 0.9905, "f1": 0.9615, "roc_auc": 0.9815},
+            "gnn_hgt":             {"accuracy": 0.9935, "f1": 0.9678, "roc_auc": 0.9884},
         },
         "best_model": "gnn_hgt",
     }
@@ -440,10 +440,10 @@ elif page == "📊 Model Analytics":
 
     stats = api_get("/stats") or {
         "model_performance": {
-            "logistic_regression": {"accuracy": 0.881, "precision": 0.723, "recall": 0.694, "f1": 0.708, "roc_auc": 0.852},
-            "random_forest":       {"accuracy": 0.934, "precision": 0.881, "recall": 0.810, "f1": 0.844, "roc_auc": 0.961},
-            "gradient_boosting":   {"accuracy": 0.929, "precision": 0.854, "recall": 0.823, "f1": 0.839, "roc_auc": 0.958},
-            "gnn_hgt":             {"accuracy": 0.957, "precision": 0.910, "recall": 0.884, "f1": 0.897, "roc_auc": 0.980},
+            "logistic_regression": {"accuracy": 0.9455, "precision": 0.7616, "recall": 0.8359, "f1": 0.797, "roc_auc": 0.9541},
+            "random_forest":       {"accuracy": 0.9895, "precision": 1.0, "recall": 0.918, "f1": 0.9572, "roc_auc": 0.981},
+            "gradient_boosting":   {"accuracy": 0.9905, "precision": 1.0, "recall": 0.9258, "f1": 0.9615, "roc_auc": 0.9815},
+            "gnn_hgt":             {"accuracy": 0.9935, "precision": 0.9910, "recall": 0.9453, "f1": 0.9678, "roc_auc": 0.9884},
         }
     }
 

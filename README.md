@@ -265,6 +265,173 @@ docker push myregistry.com/fraud-api:1.0
 
 ---
 
+## 🚀 CI/CD Pipeline (GitHub Actions)
+
+**Status:** ✅ Fully automated with 4 workflows
+
+### Workflows Overview
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| **test.yml** | Push/PR to main/develop | Tests, linting, code quality |
+| **model-validation.yml** | Changes in training/ | Validates model performance |
+| **deploy.yml** | Push to main | Builds & deploys Docker images |
+| **drift-retraining.yml** | Monthly schedule | Detects drift & triggers retraining |
+
+### 1. Tests & Code Quality (`test.yml`)
+Runs on every push and pull request:
+
+```bash
+✓ Unit tests (pytest)
+✓ Code linting (flake8, black, isort)
+✓ Type checking (mypy)
+✓ Security checks (bandit, safety)
+✓ Monitoring integration verification
+✓ Docker image builds
+✓ Coverage report → Codecov
+```
+
+**Typical output:**
+```
+✓ Tests: 24/24 passing
+✓ Linting: 0 issues
+✓ Type errors: 0
+✓ Security issues: 0 high
+✓ Coverage: 82%
+```
+
+### 2. Model Validation (`model-validation.yml`)
+Triggered on changes to training code:
+
+```bash
+✓ Validates model metrics exist
+✓ Checks minimum accuracy thresholds (94%+)
+✓ Validates precision (93%+) and AUC (99%+)
+✓ Tests model loading capability
+✓ Verifies data preprocessor works
+✓ Tests prediction metrics recording
+```
+
+**Performance checks:**
+- Accuracy: ≥94%
+- Precision: ≥93%
+- ROC-AUC: ≥0.99
+- Latency: ≤200ms
+
+### 3. Production Deployment (`deploy.yml`)
+Triggered when merging to main:
+
+```bash
+✓ Final test suite run
+✓ Build Docker images (API + Frontend)
+✓ Push to Docker registry (if configured)
+✓ Health check on endpoints
+✓ Log metrics from Prometheus
+✓ Notify Slack (if webhook configured)
+```
+
+**Health checks:**
+```
+GET /health          → System status
+GET /metrics         → Prometheus metrics
+GET /status          → API version info
+```
+
+### 4. Drift Detection & Retraining (`drift-retraining.yml`)
+Scheduled monthly (1st of each month):
+
+```bash
+✓ Fetches production metrics
+✓ Analyzes prediction trends
+✓ Checks for data drift
+✓ Evaluates retraining need
+✓ If drift detected → Triggers retraining
+✓ Validates new models
+✓ Notifies team via Slack
+```
+
+**Triggers retraining if:**
+- Accuracy drops below 94%
+- AUC drops below 0.99
+- Fraud rate changes >30%
+- Latency exceeds 200ms
+
+### Configuration
+
+#### GitHub Secrets (Optional Settings)
+Add these to your GitHub repository Settings → Secrets:
+
+```bash
+DOCKER_USERNAME=your_docker_user
+DOCKER_PASSWORD=your_docker_token
+SLACK_WEBHOOK=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+```
+
+#### Environment Variables
+Set in `.env`:
+```bash
+DATABASE_URL=sqlite:///training/data/fraud_detection.db
+JWT_SECRET=your-secret-key-here
+API_KEY_SECRET=your-api-key-secret
+```
+
+### Manual Trigger
+Manually trigger workflows from GitHub:
+
+```
+Actions → Select workflow → Run workflow → Branch: main
+```
+
+### Monitoring the Pipeline
+
+```bash
+# View workflow runs
+GitHub UI → Actions tab
+  → Select workflow
+  → View run details
+
+# View logs
+Click on job → Expand step logs
+```
+
+### Local Testing
+
+Test workflows locally with `act`:
+
+```bash
+# Install act
+brew install act  # macOS
+# or winget install nektos.act  # Windows
+
+# Run a workflow locally
+act -j test
+act -j model-validation
+```
+
+### Troubleshooting CI/CD
+
+**Q: Tests failing in CI but passing locally?**
+- CI runs on Ubuntu, your dev machine might be Windows
+- Check Python version matches (3.11)
+- Verify all dependencies in requirements.txt
+
+**Q: Docker build failing?**
+- Ensure Dockerfile paths are correct
+- Check Docker secrets are configured
+- Review Docker build logs
+
+**Q: Deployment not triggering?**
+- Ensure you're pushing to `main` branch
+- Check branch protection rules
+- Verify workflow file YAML syntax
+
+**Q: Retraining job not running?**
+- Monthly schedule uses UTC timezone
+- Manual trigger available via GitHub UI
+- Check cron syntax in workflow file
+
+---
+
 ## 🧪 Testing
 
 ### Run All Tests

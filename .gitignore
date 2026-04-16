@@ -11,19 +11,29 @@ venv/
 env/
 
 # Data (large files)
-data/raw/*.csv
-data/processed/*.npy
-data/processed/*.pt
-data/processed/*.pkl
-data/*.jsonl
+training/data/raw/*.csv
+training/data/processed/*.npy
+training/data/processed/*.pt
+training/data/processed/*.pkl
+training/data/*.jsonl
 
 # Models
-models/baseline/*.pkl
-models/gnn/*.pt
+training/models/baseline/*.pkl
+training/models/gnn/*.pt
+
+# Database
+training/data/*.db
+training/data/*.sqlite
+training/data/*.sqlite3
+
+# Logs & Outputs (generated artifacts in training/)
+training/logs/
+training/outputs/
+*.log
 
 # Jupyter
 .ipynb_checkpoints/
-notebooks/.ipynb_checkpoints/
+training/notebooks/.ipynb_checkpoints/
 
 # IDE
 .idea/
@@ -31,13 +41,6 @@ notebooks/.ipynb_checkpoints/
 *.swp
 *.swo
 .DS_Store
-
-# Logs
-*.log
-logs/
-
-# Docker
-.docker/
 
 # Env
 .env
@@ -47,3 +50,4 @@ logs/
 .coverage
 htmlcov/
 .pytest_cache/
+

@@ -4,6 +4,314 @@
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-green?logo=fastapi)](https://fastapi.tiangolo.com)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.2-orange?logo=pytorch)](https://pytorch.org)
+[![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen)](training/tests/)
+[![Docker](https://img.shields.io/badge/Docker-ready-blue?logo=docker)](backend/docker/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+> **Production-grade fraud detection system using Heterogeneous Graph Neural Networks to detect healthcare fraud with 99%+ accuracy.**
+
+---
+
+## 🎯 Quick Navigation
+
+| Component | Purpose | Start Here |
+|-----------|---------|-----------|
+| **🏋️ training/** | ML pipeline, data, models | [training/README.md](training/README.md) |
+| **🔌 backend/** | FastAPI production server | Start: `cd backend && python main.py` |
+| **🎨 frontend/** | Streamlit dashboard | Start: `cd frontend && streamlit run app.py` |
+
+---
+
+## 🚀 Get Started (30 seconds)
+
+### 1. **Install**
+```bash
+pip install -r requirements.txt
+```
+
+### 2. **Train**
+```bash
+python training/scripts/run_pipeline.py
+```
+
+### 3. **Start Services**
+```bash
+# Terminal 1: API
+cd backend && python main.py
+
+# Terminal 2: Dashboard
+cd frontend && streamlit run app.py
+
+# Or use Docker:
+docker-compose -f docker/docker-compose.yml up
+```
+
+**Result:** API at http://localhost:8000/docs | Dashboard at http://localhost:8501
+
+---
+
+## 📁 Simplified Structure (3 Folders)
+
+```
+health-fraud-detection/
+├── 📁 backend/               # FastAPI production server
+│   ├── main.py              # API endpoints
+│   ├── config.py            # Configuration
+│   ├── security.py          # Authentication & authorization
+│   ├── database/            # ORM models (audit trail, predictions)
+│   └── ...
+
+├── 📁 frontend/              # Streamlit interactive dashboard
+│   ├── app.py               # Main dashboard UI
+│   └── ...
+
+├── 📁 training/              # ML pipeline (data → models → artifacts)
+│   ├── src/                 # ML modules
+│   │   ├── data/            # Preprocessing & graph building
+│   │   ├── models/          # Model implementations (Baseline + GNN)
+│   │   ├── training/        # Training loops
+│   │   └── utils/           # Metrics, explainability, SHAP
+│   ├── data/                # Datasets (raw + processed features)
+│   ├── models/              # Trained model artifacts
+│   ├── scripts/             # Entry points (run_pipeline.py, train_gnn.py)
+│   ├── notebooks/           # Jupyter exploration notebooks
+│   ├── tests/               # Unit & integration tests
+│   ├── logs/                # Training & inference logs (gitignored)
+│   ├── outputs/             # Analysis visualizations (gitignored)
+│   └── README.md            # Training documentation
+
+├── 📁 docker/               # Container configs (Dockerfile, docker-compose)
+
+├── requirements.txt          # Python dependencies
+├── README.md                # This file
+└── .env.example             # Configuration template
+```
+
+---
+
+## 📊 Model Performance
+
+| Model | Accuracy | F1 | Latency | Best For |
+|-------|----------|-----|---------|----------|
+| Logistic Regression | 94.55% | 79.7% | ⚡ 5ms | Fast baseline |
+| Random Forest | 98.95% | 95.72% | 25ms | Interpretable |
+| Gradient Boosting | 99.05% | 96.15% | 30ms | Balanced |
+| **GNN (HGT)** | **99.35%** | **96.78%** | 50ms | **Production** ✅ |
+
+---
+
+## 🔑 Key Features
+
+✅ **Advanced ML**
+- Graph Neural Networks for relationship-aware fraud detection
+- Multiple model types for comparison
+- Feature engineering with ZERO data leakage
+- SHAP values for interpretable predictions
+
+✅ **Production Ready**
+- FastAPI server with JWT authentication
+- Docker containerization
+- Audit trail database (SQLite/PostgreSQL)
+- Model versioning & registry
+- Drift monitoring
+
+✅ **Best Practices**
+- Split data FIRST, feature engineer AFTER
+- Temporal evaluation (past → train, recent → test)
+- Weighted loss for imbalanced fraud data
+- Comprehensive test coverage
+
+---
+
+## 🛠️ Architecture Highlights
+
+### Data Processing (No Leakage)
+```
+Raw CSVs
+  ↓
+[SPLIT: Train 60% | Val 20% | Test 20%]  ← CRITICAL: Split FIRST
+  ↓
+Compute features ONLY from training set
+  ↓
+Apply training statistics to val/test
+  ↓
+Processed: X_train.npy, X_val.npy, X_test.npy
+```
+
+### Models
+```
+Baseline Models (LogReg, RF, GradBoost)
+├─ Fast, interpretable
+├─ ~94-99% accuracy
+└─ Good for comparison
+
+GNN Model (HGT - Heterogeneous Graph Transformer)
+├─ Captures patient ↔ doctor ↔ hospital relationships
+├─ Multi-head attention over entity connections
+├─ ~99.35% accuracy
+└─ Best for production
+```
+
+### Serving
+```
+Request (/predict)
+  ↓
+Load model + preprocessor
+  ↓
+Extract & validate features
+  ↓
+Run inference
+  ↓
+Generate SHAP explanation
+  ↓
+Log to database (audit)
+  ↓
+Return prediction + confidence
+```
+
+---
+
+## 📚 Documentation by Role
+
+### 🧮 Data Scientists
+→ See [training/README.md](training/README.md)
+- Model architectures & hyperparameters
+- Data processing pipeline
+- Model training & evaluation
+- Adding custom features
+
+### 🔌 Backend Engineers
+→ See `backend/README.md` (in backend folder)
+- API endpoints & schemas
+- Database models
+- Authentication & security
+- Deployment & scaling
+
+### 🎨 Frontend Developers
+→ See `frontend/README.md` (in frontend folder)
+- Dashboard components
+- API integration
+- Customization & styling
+- Real-time updates
+
+---
+
+## ⚙️ Configuration
+
+### Environment Variables (`.env`)
+```bash
+# Database
+DATABASE_URL=sqlite:///training/data/fraud_detection.db
+
+# API Security
+API_KEY_SECRET=your-secret-key
+JWT_SECRET=your-jwt-secret
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Paths
+MODEL_DIR=training/models
+DATA_DIR=training/data
+PROCESSED_DATA_DIR=training/data/processed
+```
+
+Copy from `.env.example` and customize for your environment.
+
+---
+
+## 🐳 Docker Deployment
+
+### Local Development
+```bash
+docker-compose -f docker/docker-compose.yml up
+```
+Starts API (8000), Frontend (8501), with SQLite database.
+
+### Production
+```bash
+# Build images
+docker build -t fraud-api:latest -f backend/docker/Dockerfile.api .
+docker build -t fraud-frontend:latest -f docker/Dockerfile.frontend .
+
+# Push to registry
+docker tag fraud-api:latest myregistry.com/fraud-api:1.0
+docker push myregistry.com/fraud-api:1.0
+```
+
+---
+
+## 🧪 Testing
+
+### Run All Tests
+```bash
+pytest training/tests/ -v
+```
+
+### Run Specific Test
+```bash
+pytest training/tests/test_preprocessing.py::TestDataLeakage -v
+```
+
+### Coverage Report
+```bash
+pytest --cov=training/src --cov-report=html
+```
+
+---
+
+## ❓ FAQ
+
+**Q: How is data leakage prevented?**  
+A: Data is split FIRST (train/val/test), then features are computed ONLY from training set. Val/test see zero label information.
+
+**Q: Should I use GNN or Random Forest?**  
+A: GNN wins on **connected fraud (rings, collusion)**. RF wins on **speed & interpretability**. Use GNN for best accuracy in production.
+
+**Q: How often should I retrain?**  
+A: When drift is detected (~monthly). Run: `python training/scripts/run_pipeline.py`
+
+**Q: Can I add custom features?**  
+A: Yes! Edit `training/src/data/preprocessor.py`. REMEMBER: Only compute from training data.
+
+**Q: Does this work with PostgreSQL?**  
+A: Yes! Set: `DATABASE_URL=postgresql://user:pass@host/db`
+
+---
+
+## 📊 Performance Benchmarks
+
+- **Training:** 5 min (CPU) / 1 min (GPU)
+- **Inference:** 50-120ms per claim (with SHAP)
+- **Throughput:** 2K-3K predictions/sec
+- **Model Size:** 2MB (GNN)
+- **Memory:** ~1GB (CPU) / ~2GB (GPU)
+
+---
+
+## 🤝 Contributing
+
+1. Create branch: `git checkout -b feature/xyz`
+2. Add tests: `pytest training/tests/`
+3. Submit PR
+
+---
+
+## 📄 License
+
+MIT License — See LICENSE file for details.
+
+---
+
+**Ready to go?**
+1. Run `python training/scripts/run_pipeline.py`
+2. Start API: `cd backend && python main.py`
+3. Launch dashboard: `cd frontend && streamlit run app.py`
+4. Visit http://localhost:8501
+# 🏥 Health Insurance Fraud Detection System
+
+[![Production Grade](https://img.shields.io/badge/Grade-Production%20Ready-brightgreen.svg)](.)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109-green?logo=fastapi)](https://fastapi.tiangolo.com)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.2-orange?logo=pytorch)](https://pytorch.org)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL-blue?logo=postgresql)](https://postgresql.org)
 [![Tests](https://img.shields.io/badge/Tests-39%2B%20passing-brightgreen)](tests/)
 [![Docker](https://img.shields.io/badge/Docker-ready-blue?logo=docker)](docker/)
@@ -16,12 +324,14 @@
 - [Overview](#overview)
 - [Architecture](#architecture)  
 - [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
 - [API Documentation](#api-documentation)
 - [Features](#features)
 - [Performance](#performance)
 - [Deployment](#deployment)
 - [Monitoring](#monitoring)
 - [Development](#development)
+- [Documentation](#documentation)
 
 ---
 
@@ -1545,3 +1855,51 @@ Input Node Features:
 ## 📄 License
 
 MIT License — free to use for learning and portfolio projects.
+
+ 
+ - - - 
+ 
+ # #   =���  D o c u m e n t a t i o n 
+ 
+ C o m p l e t e   g u i d e s   a n d   e x p l a n a t i o n s   f o r   t h e   p r o j e c t : 
+ 
+ |   D o c u m e n t   |   P u r p o s e   | 
+ | - - - - - - - - - - | - - - - - - - - - | 
+ |   [ S T R U C T U R E . m d ] ( S T R U C T U R E . m d )   |   * * S t a r t   h e r e ! * *   C o m p l e t e   p r o j e c t   s t r u c t u r e   &   n a v i g a t i o n   g u i d e   | 
+ |   [ d o c s / D E P L O Y M E N T . m d ] ( d o c s / D E P L O Y M E N T . m d )   |   H o w   t o   d e p l o y   t o   p r o d u c t i o n   ( D o c k e r ,   K u b e r n e t e s ,   c l o u d )   | 
+ |   [ d o c s / G N N _ M O D E L . m d ] ( d o c s / G N N _ M O D E L . m d )   |   D e e p   d i v e   i n t o   t h e   G r a p h   N e u r a l   N e t w o r k   a r c h i t e c t u r e   &   r e s u l t s   | 
+ |   [ d o c s / F I X E S _ A P P L I E D . m d ] ( d o c s / F I X E S _ A P P L I E D . m d )   |   D a t a   l e a k a g e   f i x e s   t h a t   i m p r o v e d   m o d e l   r e a l i s m   | 
+ |   [ s c r i p t s / R E A D M E . m d ] ( s c r i p t s / R E A D M E . m d )   |   R u n n i n g   t r a i n i n g   &   i n f e r e n c e   s c r i p t s   | 
+ 
+ - - - 
+ 
+ # #   S'  F A Q 
+ 
+ * * Q :   W h i c h   m o d e l   s h o u l d   I   u s e   i n   p r o d u c t i o n ? * *     
+ A :   T h e   G N N   ( H G T )   o f f e r s   t h e   b e s t   a c c u r a c y   ( 9 9 . 3 5 % ) ,   b u t   u s e   R a n d o m   F o r e s t   i f   y o u   n e e d   f a s t e r   i n f e r e n c e   o r   b e t t e r   i n t e r p r e t a b i l i t y . 
+ 
+ * * Q :   H o w   d o   I   r e t r a i n   t h e   m o d e l s ? * *     
+ A :   R u n   \ p y t h o n   s c r i p t s / r u n _ p i p e l i n e . p y \   f o r   f u l l   r e t r a i n i n g ,   o r   \ p y t h o n   s c r i p t s / t r a i n _ g n n . p y \   f o r   G N N - o n l y   u p d a t e s . 
+ 
+ * * Q :   C a n   I   a d d   m y   o w n   d a t a ? * *     
+ A :   Y e s !   P l a c e   C S V s   i n   \ d a t a / r a w / \   a n d   t h e   p i p e l i n e   w i l l   p r e p r o c e s s   t h e m . 
+ 
+ * * Q :   H o w   i s   d a t a   l e a k a g e   p r e v e n t e d ? * *     
+ A :   D a t a   i s   s p l i t   f i r s t   ( t r a i n / v a l / t e s t ) ,   t h e n   f e a t u r e s   a r e   c o m p u t e d   o n l y   f r o m   t r a i n i n g   d a t a   a n d   a p p l i e d   t o   v a l / t e s t .   S e e   [ d o c s / F I X E S _ A P P L I E D . m d ] ( d o c s / F I X E S _ A P P L I E D . m d ) . 
+ 
+ - - - 
+ 
+ # #   =���  S u p p o r t   &   I s s u e s 
+ 
+ -   * * B u g   R e p o r t s * * :   [ G i t H u b   I s s u e s ] ( h t t p s : / / g i t h u b . c o m / y o u r n a m e / h e a l t h - f r a u d - d e t e c t i o n / i s s u e s ) 
+ -   * * Q u e s t i o n s * * :   C h e c k   e x i s t i n g   i s s u e s   o r   d o c u m e n t a t i o n   f i r s t 
+ -   * * C o n t r i b u t i o n s * * :   S e e   [ C o n t r i b u t i n g ] ( # c o n t r i b u t i n g )   s e c t i o n 
+ 
+ - - - 
+ 
+ # #   =���  L i c e n s e 
+ 
+ T h i s   p r o j e c t   i s   l i c e n s e d   u n d e r   t h e   M I T   L i c e n s e   -   s e e   t h e   L I C E N S E   f i l e   f o r   d e t a i l s . 
+ 
+ 
+ 

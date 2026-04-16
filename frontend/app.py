@@ -162,7 +162,7 @@ with st.sidebar:
         "🕸️ Graph Explorer", "📊 Model Analytics", "⚡ Live Feed",
         "📈 Feature Importance", "🔬 Model Comparison", "⚙️ Thresholds",
         "📥 Export Data", "⏳ Batch Status", "🔍 Data Quality", "⚡ Performance", 
-        "🔮 Interpretability", "📋 Compliance",
+        "🔮 Interpretability", "📋 Compliance", "🧠 Explainability",
     ])
 
     st.divider()
@@ -1734,5 +1734,371 @@ elif page == "📋 Compliance":
                                     st.info(rec)
                     else:
                         st.error("Failed to generate report")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+
+
+# ── Explainability (Step 9) ────────────────────────────────────────────────────
+elif page == "🧠 Explainability":
+    st.title("🧠 Explainability & Understanding")
+    st.markdown("**Advanced explanations: LIME anchors, counterfactuals, what-if analysis**")
+    st.divider()
+    
+    anchors_tab, counterfactual_tab, whatif_tab, sensitivity_tab, compare_tab, boundaries_tab = st.tabs([
+        "🎯 Anchors", "🔄 Counterfactuals", "❓ What-If", "📊 Sensitivity", "⚖️ Compare", "🔀 Boundaries"
+    ])
+    
+    with anchors_tab:
+        st.subheader("LIME-Style Anchors")
+        st.info("Anchors are simple rules that explain why the model made a prediction in the local region.")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            pred_score = st.slider("Prediction Score", 0.0, 1.0, 0.75)
+        
+        with col2:
+            num_features = st.number_input("Number of features", 5, 15, 9)
+        
+        if st.button("🎯 Generate Anchor", key="gen_anchor"):
+            with st.spinner("Generating anchor..."):
+                try:
+                    # Create dummy features
+                    features = [0.5 + (i % 3) * 0.2 for i in range(int(num_features))]
+                    
+                    anchor_response = requests.post(
+                        f"{API_BASE}/explain/anchors",
+                        params={
+                            "prediction_score": pred_score,
+                            "features": features
+                        },
+                        headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                    )
+                    
+                    if anchor_response.status_code == 200:
+                        result = anchor_response.json()["anchor"]
+                        
+                        st.success("✅ Anchor Generated")
+                        
+                        c1, c2, c3 = st.columns(3)
+                        c1.metric("Precision", f"{result['precision']:.2%}")
+                        c2.metric("Coverage", f"{result['coverage']:.2%}")
+                        c3.metric("Features", len(result['important_features']))
+                        
+                        st.markdown("**Important Features:**")
+                        for feat in result['important_features']:
+                            st.caption(f"• {feat}: {result['feature_values'].get(feat, 'N/A'):.3f}")
+                        
+                        st.info(f"**Interpretation:** {result['interpretation']}")
+                    else:
+                        st.error(f"Failed: {anchor_response.status_code}")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+    
+    with counterfactual_tab:
+        st.subheader("Counterfactual Explanations")
+        st.info("Find minimum feature changes needed to flip the prediction.")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            current_pred = st.slider("Current Prediction", 0.0, 1.0, 0.8)
+        
+        with col2:
+            target_pred = st.slider("Target Prediction", 0.0, 1.0, 0.2)
+        
+        with col3:
+            cf_features = st.number_input("Features count", 5, 15, 9)
+        
+        if st.button("🔄 Generate Counterfactual", key="gen_cf"):
+            with st.spinner("Generating counterfactual..."):
+                try:
+                    features = [0.6 + (i % 4) * 0.15 for i in range(int(cf_features))]
+                    
+                    cf_response = requests.post(
+                        f"{API_BASE}/explain/counterfactual",
+                        params={
+                            "current_prediction": current_pred,
+                            "target_prediction": target_pred,
+                            "features": features
+                        },
+                        headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                    )
+                    
+                    if cf_response.status_code == 200:
+                        result = cf_response.json()["counterfactual"]
+                        
+                        st.success("✅ Counterfactual Found")
+                        
+                        c1, c2, c3 = st.columns(3)
+                        c1.metric("# Changes", result['num_changes'])
+                        c2.metric("Distance", f"{result['change_distance']:.3f}")
+                        c3.metric("Confidence", f"{result['confidence']:.2%}")
+                        
+                        if result['changed_features']:
+                            st.markdown("**Feature Changes Required:**")
+                            for feat, (old, new) in result['changed_features'].items():
+                                st.caption(f"• {feat}: {old:.3f} → {new:.3f} (Δ {new-old:+.3f})")
+                        
+                        st.info(f"**Action:** {result['interpretation']}")
+                    else:
+                        st.error(f"Failed: {cf_response.status_code}")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+    
+    with whatif_tab:
+        st.subheader("What-If Analysis")
+        st.info("Simulate predictions with different feature values.")
+        
+        scenario_name = st.text_input("Scenario Name", value="Reduce High-Risk Features")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            base_pred = st.slider("Base Prediction", 0.0, 1.0, 0.7)
+        
+        with col2:
+            whatif_features = st.number_input("# Features", 5, 15, 9)
+        
+        # Feature modifications
+        st.markdown("**Feature Modifications:**")
+        
+        modifications = {}
+        feature_names = ["doctor_frequency", "claim_frequency", "claim_amount", 
+                        "approval_rate", "avg_claim_cost"]
+        
+        for feat in feature_names[:3]:
+            new_val = st.slider(f"Modify {feat}", 0.0, 100.0, 50.0, key=f"whatif_{feat}")
+            modifications[feat] = new_val
+        
+        if st.button("❓ Analyze What-If", key="analyze_whatif"):
+            with st.spinner("Analyzing scenario..."):
+                try:
+                    features = [0.55 + (i % 4) * 0.12 for i in range(int(whatif_features))]
+                    
+                    whatif_response = requests.post(
+                        f"{API_BASE}/explain/what-if",
+                        params={
+                            "scenario_name": scenario_name,
+                            "current_prediction": base_pred,
+                            "features": features,
+                            "modifications": modifications
+                        },
+                        headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                    )
+                    
+                    if whatif_response.status_code == 200:
+                        result = whatif_response.json()["scenario"]
+                        
+                        st.success(f"✅ Scenario: {result['name']}")
+                        
+                        # Prediction change visualization
+                        c1, c2, c3 = st.columns(3)
+                        c1.metric("Original", f"{result['original_prediction']:.3f}")
+                        c2.metric("Modified", f"{result['modified_prediction']:.3f}")
+                        c3.metric("Change", f"{result['change']:+.3f}")
+                        
+                        # Display direction
+                        st.markdown(f"**{result['direction']}**")
+                        st.info(result['recommendation'])
+                        
+                        if result.get('modifications'):
+                            st.markdown("**Changes Applied:**")
+                            for feat, (old, new) in result['modifications'].items():
+                                st.caption(f"• {feat}: {old:.2f} → {new:.2f}")
+                    else:
+                        st.error(f"Failed: {whatif_response.status_code}")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+    
+    with sensitivity_tab:
+        st.subheader("Sensitivity Analysis")
+        st.info("Understand how each feature impacts the prediction.")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            sens_feature = st.selectbox("Feature to analyze", 
+                                       ["doctor_frequency", "claim_frequency", "claim_amount", 
+                                        "approval_rate", "avg_claim_cost"])
+        
+        with col2:
+            sens_pred = st.slider("Base Prediction", 0.0, 1.0, 0.6)
+        
+        steps = st.slider("Analysis steps", 3, 10, 5)
+        
+        if st.button("📊 Analyze Sensitivity", key="analyze_sens"):
+            with st.spinner("Calculating sensitivity..."):
+                try:
+                    sens_features = [0.5 + (i % 4) * 0.15 for i in range(9)]
+                    
+                    sens_response = requests.post(
+                        f"{API_BASE}/explain/sensitivity",
+                        params={
+                            "feature_name": sens_feature,
+                            "current_prediction": sens_pred,
+                            "features": sens_features,
+                            "steps": steps
+                        },
+                        headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                    )
+                    
+                    if sens_response.status_code == 200:
+                        result = sens_response.json()["sensitivity"]
+                        
+                        st.success(f"✅ Sensitivity for {sens_feature}")
+                        
+                        # Create sensitivity plot
+                        sens_df = pd.DataFrame(result)
+                        
+                        fig = px.line(
+                            sens_df,
+                            x="value",
+                            y="prediction",
+                            markers=True,
+                            title=f"Prediction vs {sens_feature}",
+                            labels={"value": sens_feature, "prediction": "Fraud Score"}
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                        
+                        # Show data
+                        st.dataframe(sens_df, use_container_width=True, hide_index=True)
+                    else:
+                        st.error(f"Failed: {sens_response.status_code}")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+    
+    with compare_tab:
+        st.subheader("Compare Two Predictions")
+        st.info("Side-by-side comparison of explanations.")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**Prediction 1**")
+            pred1_id = st.text_input("ID 1", value="pred_001")
+            pred1_score = st.slider("Score 1", 0.0, 1.0, 0.8, key="pred1_score")
+        
+        with col2:
+            st.markdown("**Prediction 2**")
+            pred2_id = st.text_input("ID 2", value="pred_002")
+            pred2_score = st.slider("Score 2", 0.0, 1.0, 0.3, key="pred2_score")
+        
+        if st.button("⚖️ Compare Predictions", key="compare_preds"):
+            with st.spinner("Comparing explanations..."):
+                try:
+                    features1 = [0.6 + (i % 3) * 0.15 for i in range(9)]
+                    features2 = [0.4 + (i % 3) * 0.12 for i in range(9)]
+                    
+                    comp_response = requests.post(
+                        f"{API_BASE}/explain/compare-predictions",
+                        params={
+                            "pred1_id": pred1_id,
+                            "pred1_score": pred1_score,
+                            "pred1_features": features1,
+                            "pred2_id": pred2_id,
+                            "pred2_score": pred2_score,
+                            "pred2_features": features2
+                        },
+                        headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                    )
+                    
+                    if comp_response.status_code == 200:
+                        result = comp_response.json()["comparison"]
+                        
+                        st.success("✅ Comparison Generated")
+                        
+                        # Show comparison metrics
+                        c1, c2, c3, c4 = st.columns(4)
+                        
+                        c1.metric("Pred 1 Score", f"{result['prediction_1']['score']:.3f}")
+                        c2.metric("Pred 2 Score", f"{result['prediction_2']['score']:.3f}")
+                        c3.metric("Score Diff", f"{result['score_difference']:.3f}")
+                        c4.metric("Similarity", f"{result['similarity']:.2%}")
+                        
+                        st.divider()
+                        
+                        # Shared vs unique features
+                        col1, col2, col3 = st.columns(3)
+                        
+                        with col1:
+                            st.markdown("**Shared Risk Factors:**")
+                            if result['shared_risk_factors']:
+                                for feat in result['shared_risk_factors']:
+                                    st.caption(f"• {feat}")
+                            else:
+                                st.caption("(None)")
+                        
+                        with col2:
+                            st.markdown("**Unique to Pred 1:**")
+                            if result['unique_to_1']:
+                                for feat in result['unique_to_1']:
+                                    st.caption(f"• {feat}")
+                            else:
+                                st.caption("(None)")
+                        
+                        with col3:
+                            st.markdown("**Unique to Pred 2:**")
+                            if result['unique_to_2']:
+                                for feat in result['unique_to_2']:
+                                    st.caption(f"• {feat}")
+                            else:
+                                st.caption("(None)")
+                    else:
+                        st.error(f"Failed: {comp_response.status_code}")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+    
+    with boundaries_tab:
+        st.subheader("Decision Boundaries")
+        st.info("Analyze where the model switches between fraud/legitimate predictions.")
+        
+        boundary_feature = st.selectbox(
+            "Feature to analyze",
+            ["doctor_frequency", "claim_frequency", "claim_amount", 
+             "approval_rate", "avg_claim_cost"]
+        )
+        
+        if st.button("🔀 Analyze Boundaries", key="analyze_boundaries"):
+            with st.spinner("Analyzing decision boundaries..."):
+                try:
+                    boundary_response = requests.get(
+                        f"{API_BASE}/explain/decision-boundaries",
+                        params={"feature_name": boundary_feature},
+                        headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                    )
+                    
+                    if boundary_response.status_code == 200:
+                        result = boundary_response.json()["boundaries"]
+                        
+                        st.success(f"✅ Decision Boundaries for {boundary_feature}")
+                        
+                        # Create boundary plot
+                        boundary_df = pd.DataFrame(result["boundaries"])
+                        
+                        fig = px.scatter(
+                            boundary_df,
+                            x="value",
+                            y="fraud_likelihood",
+                            color="region",
+                            color_discrete_map={
+                                "Low Risk": "🟢",
+                                "Medium Risk": "🟡",
+                                "High Risk": "🔴"
+                            },
+                            title=f"Decision Boundary: {boundary_feature}",
+                            labels={"value": boundary_feature, "fraud_likelihood": "Fraud Likelihood"}
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                        
+                        # Show regions
+                        st.markdown("**Risk Regions:**")
+                        for boundary in result["boundaries"]:
+                            val = boundary["value"]
+                            likelihood = boundary["fraud_likelihood"]
+                            region = boundary["region"]
+                            st.caption(f"{region}: {val:.2f} → {likelihood:.2%}")
+                    else:
+                        st.error(f"Failed: {boundary_response.status_code}")
                 except Exception as e:
                     st.error(f"Error: {e}")

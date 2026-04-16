@@ -43,6 +43,7 @@ from backend.data_quality import QualityMonitor, quality_monitor
 from backend.performance import PerformanceMonitor, performance_monitor
 from backend.interpretability import ModelExplainer, model_explainer
 from backend.compliance import ComplianceManager, compliance_manager
+from backend.explainable_ai import ExplainableAIManager, explainable_ai_manager
 from backend.schemas import (
     PredictionRequest, PredictionResponse,
     BatchPredictionRequest, BatchPredictionResponse,
@@ -1480,6 +1481,215 @@ async def get_gdpr_report():
         }
     except Exception as e:
         logger.error(f"Failed to generate GDPR report: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Step 9: Explainable AI ─────────────────────────────────────────────────────
+
+@app.post("/explain/comprehensive", tags=["Explainability"])
+async def explain_prediction_comprehensive(prediction_id: str = Query(...),
+                                          prediction_score: float = Query(..., ge=0, le=1),
+                                          features: List[float] = Query(...)):
+    """Generate comprehensive explanation: anchors, counterfactuals, what-if."""
+    try:
+        explanation = explainable_ai_manager.explain_prediction_comprehensive(
+            prediction_id=prediction_id,
+            prediction=prediction_score,
+            feature_values=features
+        )
+        
+        return {
+            "status": "success",
+            "explanation": explanation,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Comprehensive explanation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/explain/anchors", tags=["Explainability"])
+async def explain_with_anchors(prediction_score: float = Query(..., ge=0, le=1),
+                              features: List[float] = Query(...)):
+    """Generate LIME-style anchors explaining prediction."""
+    try:
+        anchor = explainable_ai_manager.anchors_gen.generate_anchor(
+            prediction=prediction_score,
+            feature_values=features
+        )
+        
+        return {
+            "status": "success",
+            "anchor": {
+                "important_features": anchor.features,
+                "feature_values": anchor.feature_values,
+                "precision": round(anchor.precision, 3),
+                "coverage": round(anchor.coverage, 3),
+                "interpretation": anchor.interpretation
+            },
+            "message": "Anchor explains why model made this prediction in local region",
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Anchor generation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/explain/counterfactual", tags=["Explainability"])
+async def explain_with_counterfactual(current_prediction: float = Query(..., ge=0, le=1),
+                                      features: List[float] = Query(...),
+                                      target_prediction: float = Query(0.2, ge=0, le=1)):
+    """Generate counterfactual: minimum changes to flip prediction."""
+    try:
+        counterfactual = explainable_ai_manager.counterfactual_gen.generate_counterfactual(
+            current_prediction=current_prediction,
+            feature_values=features,
+            target_prediction=target_prediction
+        )
+        
+        return {
+            "status": "success",
+            "counterfactual": {
+                "changed_features": {
+                    k: {"from": round(v[0], 3), "to": round(v[1], 3)}
+                    for k, v in counterfactual.changed_features.items()
+                },
+                "num_changes": counterfactual.num_changes,
+                "change_distance": round(counterfactual.change_distance, 3),
+                "confidence": round(counterfactual.confidence, 3),
+                "interpretation": f"To change prediction: modify {counterfactual.num_changes} features"
+            },
+            "message": "Counterfactual shows minimum changes needed to flip decision",
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Counterfactual generation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/explain/what-if", tags=["Explainability"])
+async def explain_what_if(scenario_name: str = Query(...),
+                         current_prediction: float = Query(..., ge=0, le=1),
+                         features: List[float] = Query(...),
+                         modifications: Dict[str, float] = None):
+    """Analyze: what if we modify these features?"""
+    try:
+        if modifications is None:
+            modifications = {}
+        
+        scenario = explainable_ai_manager.whatif_analyzer.analyze_modification(
+            scenario_name=scenario_name,
+            base_prediction=current_prediction,
+            feature_values=features,
+            modifications=modifications
+        )
+        
+        return {
+            "status": "success",
+            "scenario": {
+                "name": scenario.scenario_name,
+                "original_prediction": round(scenario.original_prediction, 3),
+                "modified_prediction": round(scenario.modified_prediction, 3),
+                "change": round(scenario.change, 3),
+                "direction": scenario.change_direction,
+                "feasibility": round(scenario.feasibility, 3),
+                "recommendation": scenario.recommendation,
+                "modifications": {k: {"from": round(v[0], 3), "to": round(v[1], 3)}
+                                for k, v in scenario.modifications.items()}
+            },
+            "message": "What-if analysis shows impact of feature changes",
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"What-if analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/explain/sensitivity", tags=["Explainability"])
+async def analyze_sensitivity(feature_name: str = Query(...),
+                             current_prediction: float = Query(..., ge=0, le=1),
+                             features: List[float] = Query(...),
+                             steps: int = Query(5, ge=3, le=10)):
+    """Sensitivity analysis: how does changing one feature affect prediction?"""
+    try:
+        sensitivity = explainable_ai_manager.whatif_analyzer.get_sensitivity_analysis(
+            feature_name=feature_name,
+            base_prediction=current_prediction,
+            current_features=features,
+            steps=steps
+        )
+        
+        return {
+            "status": "success",
+            "feature": feature_name,
+            "sensitivity": [
+                {
+                    "value": round(s["value"], 3),
+                    "prediction": round(s["prediction"], 3),
+                    "change": round(s["change"], 3)
+                }
+                for s in sensitivity
+            ],
+            "message": "Sensitivity shows linear relationship between feature and prediction",
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Sensitivity analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/explain/compare-predictions", tags=["Explainability"])
+async def compare_predictions(pred1_id: str = Query(...),
+                             pred1_score: float = Query(..., ge=0, le=1),
+                             pred1_features: List[float] = Query(...),
+                             pred2_id: str = Query(...),
+                             pred2_score: float = Query(..., ge=0, le=1),
+                             pred2_features: List[float] = Query(...)):
+    """Compare explanations of two predictions side-by-side."""
+    try:
+        comparison = explainable_ai_manager.compare_explanations(
+            pred1_id=pred1_id,
+            pred1_score=pred1_score,
+            pred1_features=pred1_features,
+            pred2_id=pred2_id,
+            pred2_score=pred2_score,
+            pred2_features=pred2_features
+        )
+        
+        return {
+            "status": "success",
+            "comparison": {
+                "prediction_1": comparison["comparison"]["prediction_1"],
+                "prediction_2": comparison["comparison"]["prediction_2"],
+                "score_difference": comparison["comparison"]["score_difference"],
+                "shared_risk_factors": comparison["comparison"]["shared_risk_factors"],
+                "unique_to_1": comparison["comparison"]["unique_to_prediction_1"],
+                "unique_to_2": comparison["comparison"]["unique_to_prediction_2"],
+                "similarity": comparison["comparison"]["similarity"]
+            },
+            "explanation_1": comparison["explanation_1"],
+            "explanation_2": comparison["explanation_2"],
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Prediction comparison failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/explain/decision-boundaries", tags=["Explainability"])
+async def analyze_decision_boundaries(feature_name: str = Query(...)):
+    """Analyze decision boundaries for a feature."""
+    try:
+        boundaries = explainable_ai_manager.get_decision_boundaries(feature_name)
+        
+        return {
+            "status": "success",
+            "boundaries": boundaries,
+            "message": f"Decision boundary analysis for {feature_name}",
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Decision boundary analysis failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

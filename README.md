@@ -1024,6 +1024,192 @@ report = compliance_manager.reporter.generate_gdpr_report()
 
 ---
 
+## 🧠 Explainability & Understanding (Step 9)
+
+**Purpose:** Advanced model explanations to understand fraud predictions, generate counterfactuals, and simulate scenarios
+
+**Key Modules:**
+
+### 1️⃣ LIME-Style Anchors
+Local Interpretable Model-Agnostic Explanations (LIME) for fraud prediction explanations.
+
+**Anchors explain:** Why did the model make THIS prediction in THIS region?
+
+**Example Anchor:**
+```
+IF doctor_frequency > 50 AND claim_amount > 5000 THEN FRAUD (precision: 87%)
+```
+
+**Metrics:**
+- **Precision:** How accurate is this rule in local neighborhood? (0-100%)
+- **Coverage:** What % of dataset does this rule explain? (0-100%)
+
+**Endpoint:** `POST /explain/anchors`
+
+### 2️⃣ Counterfactual Explanations
+Find MINIMUM changes to flip prediction (fraud→legitimate).
+
+**Example:**
+```
+Current: FRAUD (score: 0.92)
+Changes needed:
+- doctor_frequency: 85 → 40
+- approval_rate: 0.3 → 0.8
+Result: 2 changes, distance: 0.234, confidence: 0.85
+```
+
+**Use Cases:**
+- Show patients path to legitimate status
+- Identify actionable interventions
+- Understand critical features
+
+**Endpoint:** `POST /explain/counterfactual`
+
+### 3️⃣ What-If Analysis
+Simulate predictions with hypothetical feature modifications.
+
+**Example Scenario:**
+```
+Reduce High-Risk Features
+Original: 0.78 FRAUD
+Modified: 0.42 LEGITIMATE (↓ Decreases risk)
+Feasibility: 85%
+Recommendation: "This change significantly reduces fraud risk"
+```
+
+**Features:** doctor_frequency, claim_frequency, claim_amount, approval_rate, avg_claim_cost
+
+**Endpoint:** `POST /explain/what-if`
+
+### 4️⃣ Sensitivity Analysis
+Understand LINEAR feature-to-prediction relationship.
+
+**Example Output:**
+```
+doctor_frequency analysis:
+Value  Prediction  Change
+30     0.15        -0.45
+60     0.60        +0.00
+90     0.95        +0.35
+```
+
+**Interpretation:** Identifies if feature increases/decreases fraud risk and by how much.
+
+**Endpoint:** `POST /explain/sensitivity`
+
+### 5️⃣ Prediction Comparison
+Compare explanations of two predictions side-by-side.
+
+**Metrics:**
+- Score difference
+- Shared risk factors (common features)
+- Unique factors (only in one prediction)
+- Similarity score (0-100%)
+
+**Endpoint:** `POST /explain/compare-predictions`
+
+### 6️⃣ Decision Boundaries
+Analyze where model switches between fraud/legitimate for each feature.
+
+**Example:**
+```
+doctor_frequency boundaries:
+< 40: Low Risk (10-25%)
+40-65: Medium Risk (45%)
+> 65: High Risk (75-95%)
+```
+
+**Endpoint:** `GET /explain/decision-boundaries`
+
+### Explainability Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/explain/comprehensive` | POST | Full explanation (anchors + counterfactuals + what-if) |
+| `/explain/anchors` | POST | LIME-style anchor for prediction |
+| `/explain/counterfactual` | POST | Minimum changes to flip prediction |
+| `/explain/what-if` | POST | Simulate prediction with modifications |
+| `/explain/sensitivity` | POST | Feature sensitivity analysis |
+| `/explain/compare-predictions` | POST | Compare two predictions |
+| `/explain/decision-boundaries` | GET | Analyze decision boundary for feature |
+
+### Frontend Tab: 🧠 Explainability
+
+**🎯 Anchors Sub-tab:**
+- Prediction score & feature inputs
+- Generate LIME-style anchor
+- Important features list
+- Precision & coverage metrics
+- Human-readable rule (IF feature > X AND feature > Y THEN FRAUD)
+
+**🔄 Counterfactuals Sub-tab:**
+- Current & target prediction sliders
+- Feature count selector
+- Generate counterfactual
+- Display changed features with old→new values
+- Change distance & confidence scores
+
+**❓ What-If Sub-tab:**
+- Scenario name input
+- Base prediction slider
+- Feature modification sliders
+- Original vs modified prediction comparison
+- Direction (↑/↓) & recommendation text
+
+**📊 Sensitivity Sub-tab:**
+- Feature selection dropdown
+- Base prediction input
+- Analysis steps (3-10)
+- Line plot with sensitivity curve
+- Data table showing value→prediction mapping
+
+**⚖️ Compare Sub-tab:**
+- Two prediction ID & score inputs
+- Shared risk factors display
+- Unique factors for each prediction
+- Similarity score percentage
+- Risk factor comparison visualization
+
+**🔀 Boundaries Sub-tab:**
+- Feature selector
+- Analyze decision boundary button
+- Scatter plot with risk regions (Low/Medium/High)
+- Threshold values for each region
+
+### ExplainableAI Manager Usage
+
+```python
+from backend.explainable_ai import explainable_ai_manager
+
+# Comprehensive explanation
+exp = explainable_ai_manager.explain_prediction_comprehensive(
+    prediction_id="claim_001",
+    prediction=0.92,
+    feature_values=[...]
+)
+
+# What-if scenario
+scenario = explainable_ai_manager.whatif_analyzer.analyze_modification(
+    scenario_name="Reduce doctor_frequency",
+    base_prediction=0.92,
+    feature_values=[...],
+    modifications={"doctor_frequency": 40}
+)
+```
+
+### Key Benefits
+
+| Feature | Benefit |
+|---------|---------|
+| **Anchors** | Understand local decision logic |
+| **Counterfactuals** | Actionable fraud prevention steps |
+| **What-If** | Test intervention strategies |
+| **Sensitivity** | Identify high-impact features |
+| **Comparison** | Benchmark similar cases |
+| **Boundaries** | Know threshold for each feature |
+
+---
+
 ## Deployment
 
 ### Docker

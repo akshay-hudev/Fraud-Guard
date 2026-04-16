@@ -161,7 +161,7 @@ with st.sidebar:
         "🏠 Dashboard", "🔍 Single Claim", "📁 Bulk Upload",
         "🕸️ Graph Explorer", "📊 Model Analytics", "⚡ Live Feed",
         "📈 Feature Importance", "🔬 Model Comparison", "⚙️ Thresholds",
-        "📥 Export Data", "⏳ Batch Status", "🔍 Data Quality", "⚡ Performance",
+        "📥 Export Data", "⏳ Batch Status", "🔍 Data Quality", "⚡ Performance", "🔮 Interpretability",
     ])
 
     st.divider()
@@ -1172,3 +1172,301 @@ elif page == "⚡ Performance":
                     st.caption(f"• {rec}")
         else:
             st.error("Failed to fetch bottleneck analysis")
+
+
+# ── Model Interpretability (Step 7) ────────────────────────────────────────────
+elif page == "🔮 Interpretability":
+    st.title("🔮 Model Interpretability")
+    st.markdown("**Understand why the model makes predictions with SHAP values, interactions, and explanations**")
+    st.divider()
+    
+    explain_tab, compare_tab, summary_tab, pd_tab = st.tabs(
+        ["📖 Explain Prediction", "⚖️ Compare", "📊 Summary", "📈 Partial Dependence"]
+    )
+    
+    with explain_tab:
+        st.subheader("Prediction Explanation")
+        st.markdown("Get detailed explanations for any prediction")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            pred_id = st.text_input("Prediction ID", key="explain_pred_id")
+        
+        with col2:
+            fraud_score = st.slider("Fraud Risk Score", 0.0, 1.0, 0.5)
+        
+        if st.button("🔍 Generate Explanation", key="gen_explain"):
+            if pred_id:
+                with st.spinner("Generating explanation..."):
+                    try:
+                        explain_response = requests.post(
+                            f"{API_BASE}/explain/prediction",
+                            params={
+                                "prediction_id": pred_id,
+                                "prediction_score": fraud_score,
+                            },
+                            json={
+                                "features": {"claim_amount": 5000},
+                                "feature_importance": {"claim_amount": 0.3}
+                            },
+                            headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                        )
+                        
+                        if explain_response.status_code == 200:
+                            result = explain_response.json()
+                            exp = result.get("explanation", {})
+                            
+                            # Main metrics
+                            c1, c2, c3 = st.columns(3)
+                            c1.metric("🎯 Risk Level", exp.get("prediction_label", "N/A"))
+                            c2.metric("📊 Score", f"{exp.get('prediction_score', 0):.2%}")
+                            c3.metric("🎓 Confidence", f"{exp.get('confidence', 0):.2%}")
+                            
+                            st.divider()
+                            
+                            # Explanation text
+                            st.subheader("📖 Explanation")
+                            st.info(exp.get("explanation", "No explanation available"))
+                            
+                            # Contributions
+                            st.divider()
+                            st.subheader("🔴 Contributing Factors")
+                            
+                            contributions = exp.get("contributions", [])
+                            if contributions:
+                                for i, contrib in enumerate(contributions[:5]):
+                                    col_l, col_r = st.columns([3, 1])
+                                    with col_l:
+                                        st.caption(f"**{i+1}. {contrib['feature']}**")
+                                        st.caption(f"Value: {contrib['value']} | Impact: {contrib['direction']}")
+                                    with col_r:
+                                        st.metric(f"SHAP", f"{contrib['shap_value']:.3f}")
+                            
+                            # Interactions
+                            st.divider()
+                            st.subheader("🔗 Feature Interactions")
+                            
+                            interactions = exp.get("interactions", [])
+                            if interactions:
+                                for inter in interactions[:3]:
+                                    st.info(f"⚡ {inter['feature1']} × {inter['feature2']}: {inter['interpretation']}")
+                            else:
+                                st.caption("No significant interactions detected")
+                        else:
+                            st.error(f"Explanation failed: {explain_response.status_code}")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+            else:
+                st.warning("Please enter a prediction ID")
+    
+    with compare_tab:
+        st.subheader("Compare Predictions")
+        st.markdown("Compare explanations of two different predictions")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            pred_id_1 = st.text_input("First Prediction ID", key="compare_1")
+        
+        with col2:
+            pred_id_2 = st.text_input("Second Prediction ID", key="compare_2")
+        
+        if st.button("⚖️ Compare Explanations", key="compare_btn"):
+            if pred_id_1 and pred_id_2:
+                with st.spinner("Comparing..."):
+                    try:
+                        compare_response = requests.post(
+                            f"{API_BASE}/explain/compare",
+                            params={"pred_id_1": pred_id_1, "pred_id_2": pred_id_2},
+                            headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                        )
+                        
+                        if compare_response.status_code == 200:
+                            result = compare_response.json()
+                            comp = result.get("comparison", {})
+                            
+                            # Side-by-side comparison
+                            c1, c2, c3 = st.columns(3)
+                            
+                            with c1:
+                                st.subheader("📋 Prediction 1")
+                                p1 = comp.get("prediction_1", {})
+                                st.metric("Score", f"{p1.get('score', 0):.2%}")
+                                st.caption(f"Label: {p1.get('label', 'N/A')}")
+                            
+                            with c2:
+                                st.subheader("📏 Difference")
+                                diff = comp.get("score_difference", 0)
+                                st.metric("Score Diff", f"{diff:.2%}")
+                                st.caption(f"ID 1: {p1.get('id', 'N/A')[:8]}...")
+                            
+                            with c3:
+                                st.subheader("📋 Prediction 2")
+                                p2 = comp.get("prediction_2", {})
+                                st.metric("Score", f"{p2.get('score', 0):.2%}")
+                                st.caption(f"Label: {p2.get('label', 'N/A')}")
+                            
+                            st.divider()
+                            
+                            # Similar factors
+                            similar = comp.get("similar_risk_factors", [])
+                            if similar:
+                                st.subheader("🔄 Shared Risk Factors")
+                                for factor in similar:
+                                    st.caption(f"• {factor}")
+                            
+                            # Different factors
+                            st.divider()
+                            st.subheader("🔀 Different Risk Factors")
+                            
+                            diff_factors = comp.get("different_risk_factors", {})
+                            col_l, col_r = st.columns(2)
+                            
+                            with col_l:
+                                st.caption("**Unique to Prediction 1:**")
+                                for factor in diff_factors.get("unique_to_1", []):
+                                    st.caption(f"• {factor}")
+                            
+                            with col_r:
+                                st.caption("**Unique to Prediction 2:**")
+                                for factor in diff_factors.get("unique_to_2", []):
+                                    st.caption(f"• {factor}")
+                        else:
+                            st.error(f"Comparison failed: {compare_response.status_code}")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+            else:
+                st.warning("Please enter both prediction IDs")
+    
+    with summary_tab:
+        st.subheader("Interpretation Summary")
+        st.markdown("Overall patterns across recent predictions")
+        
+        if st.button("📊 Generate Summary", key="gen_summary"):
+            with st.spinner("Analyzing..."):
+                try:
+                    summary_response = api_get("/interpret/summary?n_predictions=100")
+                    
+                    if summary_response and "summary" in summary_response:
+                        summary = summary_response["summary"]
+                        
+                        # Key metrics
+                        c1, c2, c3, c4 = st.columns(4)
+                        c1.metric("📊 Total Predictions", summary.get("total_predictions", 0))
+                        c2.metric("📈 Avg Fraud Score", f"{summary.get('avg_fraud_score', 0):.2%}")
+                        c3.metric("🔴 High Risk", summary.get("high_risk_count", 0))
+                        c4.metric("🟢 Low Risk", summary.get("low_risk_count", 0))
+                        
+                        st.divider()
+                        
+                        # Risk distribution
+                        st.subheader("📊 Risk Distribution")
+                        risk_data = {
+                            "Risk Level": ["High", "Medium", "Low"],
+                            "Count": [
+                                summary.get("high_risk_count", 0),
+                                summary.get("medium_risk_count", 0),
+                                summary.get("low_risk_count", 0),
+                            ]
+                        }
+                        
+                        fig = px.pie(
+                            pd.DataFrame(risk_data),
+                            values="Count",
+                            names="Risk Level",
+                            color_discrete_map={"High": "#FF6B6B", "Medium": "#FFC93C", "Low": "#51CF66"},
+                            title="Fraud Risk Distribution"
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                        
+                        # Most impactful features
+                        st.divider()
+                        st.subheader("🔴 Most Impactful Features")
+                        
+                        features = summary.get("most_impactful_features", [])
+                        impact_scores = summary.get("feature_impact_scores", {})
+                        
+                        if features:
+                            impact_data = {
+                                "Feature": features[:5],
+                                "Impact Score": [impact_scores.get(f, 0) for f in features[:5]],
+                            }
+                            
+                            fig = px.bar(
+                                pd.DataFrame(impact_data),
+                                x="Feature",
+                                y="Impact Score",
+                                title="Feature Importance Across All Predictions",
+                                color="Impact Score",
+                                color_continuous_scale="Reds"
+                            )
+                            st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.error("Failed to generate summary")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+    
+    with pd_tab:
+        st.subheader("Partial Dependence Analysis")
+        st.markdown("Analyze how individual features affect fraud predictions")
+        
+        feature_name = st.text_input("Feature Name", key="pd_feature")
+        
+        st.caption("For demonstration, we'll analyze the feature's impact pattern")
+        
+        if st.button("📈 Analyze Feature Impact", key="analyze_pd"):
+            if feature_name:
+                with st.spinner("Analyzing partial dependence..."):
+                    try:
+                        # Create simulated feature values and predictions
+                        import numpy as np
+                        values = [float(i)/10 for i in range(101)]
+                        predictions = [0.3 + 0.004*v for v in values]  # Simulated correlation
+                        
+                        pd_response = requests.post(
+                            f"{API_BASE}/interpret/partial-dependence",
+                            params={"feature_name": feature_name},
+                            json={"values": values, "predictions": predictions},
+                            headers={"Authorization": f"Bearer {st.session_state.auth_token}"},
+                        )
+                        
+                        if pd_response.status_code == 200:
+                            result = pd_response.json()
+                            
+                            # Impact metrics
+                            range_impact = result.get("range_impact", {})
+                            
+                            c1, c2, c3 = st.columns(3)
+                            c1.metric("Low Range Avg", f"{range_impact.get('low_range_avg_prediction', 0):.2%}")
+                            c2.metric("High Range Avg", f"{range_impact.get('high_range_avg_prediction', 0):.2%}")
+                            c3.metric("Impact", f"{range_impact.get('impact', 0):.2%}")
+                            
+                            st.divider()
+                            
+                            # Interpretation
+                            st.subheader("📖 Interpretation")
+                            st.info(result.get("interpretation", "No interpretation available"))
+                            
+                            # PD Plot
+                            st.divider()
+                            st.subheader("📊 Partial Dependence Plot")
+                            
+                            pd_plot = result.get("partial_dependence_plot", [])
+                            if pd_plot:
+                                df_pd = pd.DataFrame(pd_plot)
+                                fig = px.line(
+                                    df_pd,
+                                    x="feature_value",
+                                    y="avg_prediction",
+                                    title=f"How {feature_name} affects fraud predictions",
+                                    markers=True,
+                                    labels={"feature_value": feature_name, "avg_prediction": "Avg Fraud Risk"}
+                                )
+                                st.plotly_chart(fig, use_container_width=True)
+                        else:
+                            st.error(f"Analysis failed: {pd_response.status_code}")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+            else:
+                st.warning("Please enter a feature name")

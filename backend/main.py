@@ -41,6 +41,7 @@ from backend.advanced_features import (
 )
 from backend.data_quality import QualityMonitor, quality_monitor
 from backend.performance import PerformanceMonitor, performance_monitor
+from backend.interpretability import ModelExplainer, model_explainer
 from backend.schemas import (
     PredictionRequest, PredictionResponse,
     BatchPredictionRequest, BatchPredictionResponse,
@@ -1162,6 +1163,148 @@ async def clear_cache(cache_type: str = Query("response", regex="^(response|pred
         }
     except Exception as e:
         logger.error(f"Cache clear failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Step 7: Model Interpretability ────────────────────────────────────────────
+
+@app.post("/explain/prediction", tags=["Interpretability"])
+async def explain_prediction(prediction_id: str = Query(...),
+                            features: Dict[str, Any] = None,
+                            prediction_score: float = Query(..., ge=0, le=1),
+                            feature_importance: Dict[str, float] = None):
+    """Generate comprehensive explanation for a prediction."""
+    try:
+        if not features:
+            features = {}
+        if not feature_importance:
+            feature_importance = {}
+        
+        explanation = model_explainer.explain_prediction(
+            prediction_id=prediction_id,
+            features=features,
+            prediction_score=prediction_score,
+            feature_importance=feature_importance,
+        )
+        
+        return {
+            "status": "success",
+            "explanation": explanation,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Explanation generation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/explain/{prediction_id}", tags=["Interpretability"])
+async def get_explanation(prediction_id: str):
+    """Retrieve a stored explanation."""
+    try:
+        explanation = model_explainer.get_explanation(prediction_id)
+        
+        if not explanation:
+            raise HTTPException(status_code=404, detail="Explanation not found")
+        
+        return {
+            "status": "success",
+            "explanation": explanation,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to retrieve explanation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/explain/compare", tags=["Interpretability"])
+async def compare_predictions(pred_id_1: str = Query(...),
+                              pred_id_2: str = Query(...)):
+    """Compare explanations of two predictions."""
+    try:
+        comparison = model_explainer.compare_explanations(pred_id_1, pred_id_2)
+        
+        return {
+            "status": "success",
+            "comparison": comparison,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Explanation comparison failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/interpret/summary", tags=["Interpretability"])
+async def get_interpretation_summary(n_predictions: int = Query(100, ge=10, le=1000)):
+    """Get interpretation summary across recent predictions."""
+    try:
+        summary = model_explainer.get_interpretation_summary(n_explanations=n_predictions)
+        
+        return {
+            "status": "success",
+            "summary": summary,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get interpretation summary: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/interpret/partial-dependence", tags=["Interpretability"])
+async def analyze_partial_dependence(feature_name: str = Query(...),
+                                    values: List[float] = None,
+                                    predictions: List[float] = None):
+    """Analyze partial dependence for a feature."""
+    try:
+        if not values or not predictions:
+            raise HTTPException(status_code=400, detail="Values and predictions required")
+        
+        pd_plot = model_explainer.pd_plotter.estimate_partial_dependence(
+            feature_name, values, predictions
+        )
+        
+        range_impact = model_explainer.pd_plotter.get_feature_range_impact(
+            feature_name, values, predictions
+        )
+        
+        return {
+            "status": "success",
+            "feature": feature_name,
+            "partial_dependence_plot": pd_plot,
+            "range_impact": range_impact,
+            "interpretation": f"As {feature_name} increases, fraud risk {'increases' if range_impact.get('impact', 0) > 0 else 'decreases'}",
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Partial dependence analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/interpret/interactions", tags=["Interpretability"])
+async def analyze_feature_interactions(features: Dict[str, Any] = None,
+                                      feature_importance: Dict[str, float] = None,
+                                      prediction_score: float = Query(..., ge=0, le=1)):
+    """Analyze feature interactions in a prediction."""
+    try:
+        if not features:
+            features = {}
+        if not feature_importance:
+            feature_importance = {}
+        
+        interactions = model_explainer.interaction_analyzer.find_feature_interactions(
+            features, feature_importance, prediction_score
+        )
+        
+        return {
+            "status": "success",
+            "interactions": interactions,
+            "interaction_count": len(interactions),
+            "interpretation": "Feature interactions that amplify fraud signals have been identified",
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Interaction analysis failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

@@ -578,6 +578,212 @@ Returns performance metrics:
 - Actionable insights
 
 ---
+
+## 🔮 Model Interpretability (Step 7)
+
+**Status:** ✅ Fully implemented with SHAP approximation & explanations
+
+### 1️⃣ SHAP Value Approximation
+Approximate SHAP values to show feature contributions to predictions.
+
+**Features:**
+- Permutation-based importance weighting
+- Feature contribution breakdown
+- Direction analysis (increases/decreases fraud)
+- Cumulative contribution tracking
+
+**How It Works:**
+- Baseline prediction: 0.5 (neutral)
+- Each feature's SHAP = (importance / total_importance) × prediction_diff
+- Positive SHAP = increases fraud risk
+- Negative SHAP = decreases fraud risk
+
+**Endpoint:** `POST /explain/prediction`
+
+Returns explanation:
+```json
+{
+  "prediction_id": "pred_12345",
+  "prediction_score": 0.85,
+  "prediction_label": "HIGH FRAUD RISK",
+  "confidence": 0.7,
+  "shap_values": {
+    "claim_amount": 0.15,
+    "claim_frequency": 0.12,
+    "doctor_fraud_history": 0.08
+  },
+  "contributions": [
+    {
+      "feature": "claim_amount",
+      "value": 5000,
+      "shap_value": 0.15,
+      "direction": "increases fraud"
+    }
+  ]
+}
+```
+
+### 2️⃣ Partial Dependence Plots
+Analyze how individual features affect predictions in isolation.
+
+**Features:**
+- Feature range binning (10 bins default)
+- Average prediction per bin
+- Low vs. high range impact
+- Feature correlation with fraud
+
+**What They Show:**
+- How feature values map to fraud risk
+- Non-linear relationships
+- Feature importance ranking
+
+**Endpoint:** `POST /interpret/partial-dependence`
+
+Returns analysis:
+```json
+{
+  "feature": "claim_amount",
+  "partial_dependence_plot": [
+    {
+      "feature_value": 500,
+      "avg_prediction": 0.35,
+      "sample_count": 120
+    },
+    {
+      "feature_value": 7500,
+      "avg_prediction": 0.72,
+      "sample_count": 95
+    }
+  ],
+  "range_impact": {
+    "low_range_avg_prediction": 0.38,
+    "high_range_avg_prediction": 0.68,
+    "impact": 0.30
+  }
+}
+```
+
+### 3️⃣ Feature Interactions
+Identify when features jointly influence predictions.
+
+**Features:**
+- Pairwise interaction analysis (top 5 features)
+- Interaction strength scoring
+- Joint risk factor identification
+- Pattern detection
+
+**When Features Interact:**
+- Combined effect > sum of individual effects
+- Both features must contribute meaningfully
+- Multiplicative impact on prediction
+
+**Endpoint:** `POST /interpret/interactions`
+
+Returns interactions:
+```json
+{
+  "interactions": [
+    {
+      "feature1": "doctor_id",
+      "feature2": "claim_frequency",
+      "interaction_strength": 0.24,
+      "interpretation": "This doctor and these claim patterns jointly amplify fraud signals"
+    }
+  ]
+}
+```
+
+### 4️⃣ Prediction Explanation
+Generate human-readable explanations for any prediction.
+
+**Explanation Components:**
+1. Risk level assessment
+2. Top 3 contributing factors
+3. Notable feature interactions
+4. Model confidence statement
+5. Interpretable language
+
+**Example Explanation:**
+> "This claim has a HIGH FRAUD RISK. The most influential factor is claim_amount which increases fraud risk. Notable interaction: doctor_id and claim_frequency together amplify fraud signals. The model is highly confident in this assessment."
+
+### 5️⃣ Comparison Analysis
+Compare explanations of two predictions to find similarities/differences.
+
+**Comparison Output:**
+- Risk score difference
+- Shared contributing factors
+- Unique risk factors per prediction
+- Interpretation patterns
+
+**Endpoint:** `POST /explain/compare`
+
+Returns comparison:
+```json
+{
+  "prediction_1": {"id": "pred_1", "score": 0.85, "label": "HIGH FRAUD RISK"},
+  "prediction_2": {"id": "pred_2", "score": 0.42, "label": "MEDIUM FRAUD RISK"},
+  "similar_risk_factors": ["claim_amount", "doctor_history"],
+  "different_risk_factors": {
+    "unique_to_1": ["patient_region"],
+    "unique_to_2": []
+  }
+}
+```
+
+### 6️⃣ Interpretation Summary
+Aggregate interpretability insights across recent predictions.
+
+**Metrics:**
+- Average fraud score  
+- Risk distribution (high/medium/low)
+- Most impactful features
+- Interpretation trends
+
+**Endpoint:** `GET /interpret/summary?n_predictions=100`
+
+### Interpretability Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/explain/prediction` | POST | Generate explanation for a prediction |
+| `/explain/{prediction_id}` | GET | Retrieve stored explanation |
+| `/explain/compare` | POST | Compare two predictions |
+| `/interpret/summary` | GET | Aggregate interpretation insights |
+| `/interpret/partial-dependence` | POST | Analyze feature impact |
+| `/interpret/interactions` | POST | Identify feature interactions |
+
+### Frontend Tab: 🔮 Interpretability
+
+**📖 Explain Prediction Sub-tab:**
+- Prediction ID input
+- Fraud score slider
+- Risk level indicator
+- Contributing factors with SHAP values
+- Feature interactions display
+- Human-readable explanation
+
+**⚖️ Compare Sub-tab:**
+- Two prediction ID inputs
+- Side-by-side metrics
+- Shared vs. unique risk factors
+- Risk factor comparison visualization
+
+**📊 Summary Sub-tab:**
+- Total predictions analyzed
+- Average fraud score
+- Risk distribution pie chart
+- Most impactful features bar chart
+- Feature importance ranking
+
+**📈 Partial Dependence Sub-tab:**
+- Feature name input
+- Low vs. high range impact metrics
+- Partial dependence line plot
+- Feature-risk relationship visualization
+- Interpretation text
+
+---
+
 ## Deployment
 
 ### Docker

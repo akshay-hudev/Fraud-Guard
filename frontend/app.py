@@ -160,6 +160,8 @@ with st.sidebar:
     page = st.radio("Navigation", [
         "🏠 Dashboard", "🔍 Single Claim", "📁 Bulk Upload",
         "🕸️ Graph Explorer", "📊 Model Analytics", "⚡ Live Feed",
+        "📈 Feature Importance", "🔬 Model Comparison", "⚙️ Thresholds",
+        "📥 Export Data", "⏳ Batch Status",
     ])
 
     st.divider()
@@ -520,3 +522,273 @@ elif page == "⚡ Live Feed":
         for _ in range(200):
             time.sleep(3)
             render_feed()
+
+
+# ── Feature Importance (Step 4) ────────────────────────────────────────────────
+elif page == "📈 Feature Importance":
+    st.title("📈 Feature Importance Ranking")
+    st.markdown("**SHAP-based feature importance across all predictions**")
+    st.divider()
+    
+    with st.spinner("Loading feature importance..."):
+        importance_data = api_get("/features/importance", {"top_n": 20})
+    
+    if importance_data:
+        top_features = importance_data.get("top_features", [])
+        total_preds = importance_data.get("total_predictions_analyzed", 0)
+        
+        st.metric("Predictions Analyzed", total_preds)
+        st.divider()
+        
+        if top_features:
+            df_features = pd.DataFrame(top_features)
+            
+            c1, c2 = st.columns(2)
+            with c1:
+                st.subheader("🎯 Top 10 Most Important Features")
+                fig = px.bar(
+                    df_features.head(10),
+                    x="avg_importance",
+                    y="feature",
+                    orientation="h",
+                    color="avg_importance",
+                    color_continuous_scale="Viridis",
+                )
+                fig.update_layout(height=400)
+                st.plotly_chart(fig, use_container_width=True)
+            
+            with c2:
+                st.subheader("📊 Occurrence Count")
+                fig = px.bar(
+                    df_features.head(10),
+                    x="occurrences",
+                    y="feature",
+                    orientation="h",
+                    color="occurrences",
+                    color_continuous_scale="Blues",
+                )
+                fig.update_layout(height=400)
+                st.plotly_chart(fig, use_container_width=True)
+            
+            st.subheader("📋 Full Feature Rankings")
+            st.dataframe(df_features, use_container_width=True)
+        else:
+            st.info("No features analyzed yet. Process some predictions first.")
+    else:
+        st.error("Failed to load feature importance data.")
+
+
+# ── Model Comparison (Step 4) ──────────────────────────────────────────────────
+elif page == "🔬 Model Comparison":
+    st.title("🔬 Advanced Model Comparison")
+    st.markdown("**Side-by-side metrics comparison of all models**")
+    st.divider()
+    
+    with st.spinner("Comparing models..."):
+        comparison_data = api_get("/models/compare")
+    
+    if comparison_data:
+        comparison = comparison_data.get("comparison", {})
+        models_compared = comparison_data.get("models_compared", 0)
+        
+        st.success(f"✅ Compared {models_compared} models")
+        st.divider()
+        
+        summary = comparison.get("summary", {})
+        best_overall = summary.get("best_overall", "N/A")
+        best_by_metric = summary.get("best_by_metric", {})
+        
+        c1, c2 = st.columns(2)
+        c1.metric("🏆 Best Overall Model", best_overall.replace("_", " ").title())
+        c2.metric("Metrics Evaluated", len(best_by_metric))
+        
+        st.divider()
+        st.subheader("🥇 Best Model by Metric")
+        if best_by_metric:
+            metric_cols = st.columns(min(3, len(best_by_metric)))
+            for idx, (metric, info) in enumerate(list(best_by_metric.items())[:3]):
+                with metric_cols[idx % 3]:
+                    st.metric(
+                        metric.replace("_", " ").title(),
+                        f"{info['value']:.4f}",
+                        f"({info['model'].replace('_', ' ').title()})"
+                    )
+        
+        st.divider()
+        st.subheader("📊 Model Metrics Table")
+        models = comparison.get("models", {})
+        if models:
+            df_models = pd.DataFrame([
+                {
+                    "Model": m.replace("_", " ").title(),
+                    "Weighted Score": v["weighted_score"],
+                    **v.get("metrics", {})
+                }
+                for m, v in models.items()
+            ])
+            st.dataframe(df_models, use_container_width=True, hide_index=True)
+    else:
+        st.error("Failed to load model comparison data.")
+
+
+# ── Threshold Tuning (Step 4) ──────────────────────────────────────────────────
+elif page == "⚙️ Thresholds":
+    st.title("⚙️ Custom Fraud Detection Thresholds")
+    st.markdown("**Optimize thresholds for different use cases**")
+    st.divider()
+    
+    use_case = st.radio("Select Use Case", ["Balanced (F1)", "Conservative (Precision)", "Aggressive (Recall)"],
+                        captions=["Maximize overall F1", "Minimize false positives", "Minimize false negatives"])
+    use_case_map = {"Balanced (F1)": "balanced", "Conservative (Precision)": "conservative", "Aggressive (Recall)": "aggressive"}
+    
+    if st.button("🔍 Optimize Thresholds", use_container_width=True):
+        with st.spinner("Optimizing thresholds..."):
+            threshold_data = api_get("/settings/thresholds", {"use_case": use_case_map[use_case]})
+        
+        if threshold_data:
+            recommended = threshold_data.get("recommended_threshold", 0.5)
+            recommendations = threshold_data.get("recommendations", {})
+            analysis = threshold_data.get("analysis", [])
+            
+            st.success(f"✅ Recommended Threshold: **{recommended}**")
+            st.divider()
+            
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Conservative (↓ FP)", recommendations.get("conservative", 0.75))
+            c2.metric("Balanced (📊)", recommendations.get("balanced", 0.5))
+            c3.metric("Aggressive (↓ FN)", recommendations.get("aggressive", 0.25))
+            
+            if analysis:
+                st.subheader("📈 Threshold Analysis Across All Values")
+                df_analysis = pd.DataFrame(analysis)
+                
+                fig = px.line(
+                    df_analysis,
+                    x="threshold",
+                    y="positive_rate",
+                    markers=True,
+                    title="Fraud Detection Rate by Threshold"
+                )
+                st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.error("Failed to optimize thresholds.")
+    else:
+        st.info("Click 'Optimize Thresholds' to analyze your data and get recommendations.")
+
+
+# ── Export Predictions (Step 4) ────────────────────────────────────────────────
+elif page == "📥 Export Data":
+    st.title("📥 Export Predictions & Analytics")
+    st.markdown("**Download predictions in CSV/JSON format or view summary statistics**")
+    st.divider()
+    
+    export_format = st.radio("Export Format", ["Summary", "JSON", "CSV"])
+    limit = st.slider("Records to export", 100, 10000, 1000, step=100)
+    
+    if st.button("📊 Generate Export", use_container_width=True):
+        with st.spinner(f"Exporting {limit} predictions as {export_format}..."):
+            response = requests.get(
+                f"{API_BASE}/export/predictions",
+                params={"format": export_format.lower(), "limit": limit},
+                timeout=30
+            )
+        
+        if response.status_code == 200:
+            if export_format == "Summary":
+                summary = response.json().get("summary", {})
+                
+                c1, c2, c3, c4, c5 = st.columns(5)
+                c1.metric("📊 Total", summary.get("total", 0))
+                c2.metric("🚫 Fraud", summary.get("fraud_count", 0))
+                c3.metric("✅ Legitimate", summary.get("legitimate_count", 0))
+                c4.metric("📈 Avg Score", f"{summary.get('avg_fraud_score', 0):.2%}")
+                c5.metric("⏱️ Avg Latency", f"{summary.get('avg_inference_time_ms', 0):.1f}ms")
+                
+                st.divider()
+                st.success("Export Summary Generated Successfully")
+                
+            else:
+                filename = f"predictions_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                if export_format == "JSON":
+                    st.download_button(
+                        label="📥 Download JSON",
+                        data=response.content,
+                        file_name=f"{filename}.json",
+                        mime="application/json"
+                    )
+                else:
+                    st.download_button(
+                        label="📥 Download CSV",
+                        data=response.content,
+                        file_name=f"{filename}.csv",
+                        mime="text/csv"
+                    )
+        else:
+            st.error("Failed to export predictions.")
+
+
+# ── Batch Status (Step 4) ──────────────────────────────────────────────────────
+elif page == "⏳ Batch Status":
+    st.title("⏳ Batch Job Status & Results")
+    st.markdown("**Monitor and retrieve results of batch uploads**")
+    st.divider()
+    
+    job_id = st.text_input("Enter Batch Job ID")
+    
+    if job_id:
+        with st.spinner("Fetching job status..."):
+            status_response = api_get(f"/batch/status/{job_id}")
+            results_response = api_get(f"/batch/results/{job_id}")
+        
+        if status_response and "job" in status_response:
+            job = status_response["job"]
+            
+            # Status metrics
+            c1, c2, c3, c4, c5 = st.columns(5)
+            c1.metric("Status", job.get("status", "unknown").upper())
+            c2.metric("Progress", f"{job.get('progress', 0):.1f}%")
+            c3.metric("Processed", f"{job.get('processed', 0)}/{job.get('total', 0)}")
+            c4.metric("Successful", job.get("successful", 0))
+            c5.metric("Failed", job.get("failed", 0))
+            
+            st.divider()
+            
+            # Progress bar
+            progress_pct = job.get("progress", 0) / 100.0
+            st.progress(progress_pct)
+            
+            # Timing info
+            st.caption(f"Started: {job.get('started_at', 'N/A')}")
+            if job.get("completed_at"):
+                st.caption(f"Completed: {job.get('completed_at')}")
+            
+            # Detailed results
+            if results_response and "job_results" in results_response:
+                results = results_response["job_results"]
+                summary = results.get("summary", {})
+                
+                st.divider()
+                st.subheader("📊 Batch Summary")
+                s_c1, s_c2, s_c3, s_c4 = st.columns(4)
+                s_c1.metric("🚫 Fraud Count", summary.get("fraud_count", 0))
+                s_c2.metric("✅ Legitimate", summary.get("legitimate_count", 0))
+                s_c3.metric("📈 Avg Score", f"{summary.get('avg_fraud_score', 0):.2%}")
+                s_c4.metric("⏱️ Avg Latency", f"{summary.get('avg_inference_time_ms', 0):.1f}ms")
+                
+                predictions = results.get("predictions", [])
+                if predictions:
+                    st.divider()
+                    st.subheader("📋 First 20 Predictions")
+                    df_preds = pd.DataFrame(predictions[:20])
+                    st.dataframe(df_preds, use_container_width=True)
+                
+                errors = results.get("errors", [])
+                if errors:
+                    st.divider()
+                    st.subheader("❌ Errors")
+                    for error in errors:
+                        st.error(f"{error.get('timestamp')}: {error.get('error')}")
+        else:
+            st.error("Job not found or error retrieving status.")
+    else:
+        st.info("Enter a Job ID to view batch status and results.")

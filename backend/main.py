@@ -35,6 +35,10 @@ from backend.production_predictor import ProductionFraudPredictor
 from backend.model_registry import ModelRegistry
 from backend.drift_detector import DriftDetector
 from backend.monitoring import MetricsCollector, registry
+from backend.advanced_features import (
+    FeatureImportanceAnalyzer, ModelComparator, ThresholdOptimizer,
+    PredictionExporter, BatchJobTracker, feature_analyzer, batch_tracker,
+)
 from backend.schemas import (
     PredictionRequest, PredictionResponse,
     BatchPredictionRequest, BatchPredictionResponse,
@@ -713,6 +717,194 @@ async def get_retraining_report():
     except Exception as e:
         logger.error(f"Failed to get retraining report: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get retraining report: {e}")
+
+
+# ── Step 4: Advanced ML Features ──────────────────────────────────────────────────
+
+@app.get("/features/importance", tags=["Analytics"])
+async def get_feature_importance(top_n: int = Query(15, ge=1, le=50)):
+    """Get ranked feature importance from SHAP analysis."""
+    try:
+        importance = feature_analyzer.get_feature_importance_rank(top_n)
+        stats_by_score = feature_analyzer.feature_stats_by_fraud_score()
+        
+        return {
+            "status": "success",
+            "top_features": importance,
+            "feature_stats_by_fraud_score": stats_by_score,
+            "total_predictions_analyzed": len(feature_analyzer.prediction_history),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Feature importance calculation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/models/compare", tags=["Analytics"])
+async def compare_models():
+    """Compare all available models across metrics."""
+    try:
+        model_reg = ModelRegistry()
+        models_metrics = {}
+        
+        # Gather metrics from all registered models
+        for model in model_reg.list_models():
+            if "metrics" in model:
+                models_metrics[model["version"]] = model["metrics"]
+        
+        if not models_metrics:
+            return {"error": "No models with metrics available"}
+        
+        comparison = ModelComparator.compare_models(models_metrics)
+        
+        return {
+            "status": "success",
+            "comparison": comparison,
+            "models_compared": len(comparison["models"]),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Model comparison failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/settings/thresholds", tags=["Configuration"])
+async def optimize_thresholds(
+    use_case: str = Query("balanced", regex="^(balanced|conservative|aggressive)$")
+):
+    """Optimize fraud detection thresholds for different use cases."""
+    try:
+        # Simulate predictions from recent database records
+        db = next(get_db())
+        recent_predictions = db.query(PredictionRecord).order_by(
+            PredictionRecord.created_at.desc()
+        ).limit(100).all()
+        
+        if not recent_predictions:
+            return {
+                "error": "Not enough prediction history to optimize thresholds",
+                "recommendations": {
+                    "conservative": 0.75,
+                    "balanced": 0.5,
+                    "aggressive": 0.25,
+                },
+            }
+        
+        scores = [float(p.fraud_score) for p in recent_predictions]
+        optimization = ThresholdOptimizer.find_optimal_thresholds(
+            scores, use_case=use_case
+        )
+        
+        return {
+            "status": "success",
+            "use_case": use_case,
+            "recommended_threshold": optimization["recommended_threshold"],
+            "recommendations": {
+                "conservative": 0.75,
+                "balanced": optimization["recommended_threshold"],
+                "aggressive": 0.25,
+            },
+            "analysis": optimization["all_thresholds"][:11],
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Threshold optimization failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/export/predictions", tags=["Export"])
+async def export_predictions(
+    format: str = Query("json", regex="^(json|csv|summary)$"),
+    limit: int = Query(1000, ge=1, le=10000),
+):
+    """Export recent predictions in various formats."""
+    try:
+        db = next(get_db())
+        recent_predictions = db.query(PredictionRecord).order_by(
+            PredictionRecord.created_at.desc()
+        ).limit(limit).all()
+        
+        pred_dicts = [
+            {
+                "prediction_id": str(p.id),
+                "claim_id": p.claim_id,
+                "fraud_score": float(p.fraud_score),
+                "fraud_prediction": p.is_fraud,
+                "confidence": float(p.confidence) if p.confidence else 0.0,
+                "inference_time_ms": float(p.latency_ms) if p.latency_ms else 0.0,
+                "model_version": p.model_version,
+                "created_at": p.created_at.isoformat() if p.created_at else None,
+            }
+            for p in recent_predictions
+        ]
+        
+        if format == "json":
+            content = PredictionExporter.export_to_json(pred_dicts)
+            return Response(
+                content=content,
+                media_type="application/json",
+                headers={"Content-Disposition": "attachment; filename=predictions.json"},
+            )
+        elif format == "csv":
+            content = PredictionExporter.export_to_csv(pred_dicts)
+            return Response(
+                content=content,
+                media_type="text/csv",
+                headers={"Content-Disposition": "attachment; filename=predictions.csv"},
+            )
+        else:  # summary
+            summary = PredictionExporter.export_summary(pred_dicts)
+            return {
+                "status": "success",
+                "summary": summary,
+                "export_formats": ["json", "csv"],
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+    except Exception as e:
+        logger.error(f"Export failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/batch/status/{job_id}", tags=["Batch"])
+async def get_batch_status(job_id: str):
+    """Get status of batch upload/processing job."""
+    try:
+        status_info = batch_tracker.get_job_status(job_id)
+        
+        if "error" in status_info:
+            raise HTTPException(status_code=404, detail=status_info["error"])
+        
+        return {
+            "status": "success",
+            "job": status_info,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get batch status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/batch/results/{job_id}", tags=["Batch"])
+async def get_batch_results(job_id: str):
+    """Get detailed results of batch processing job."""
+    try:
+        results = batch_tracker.get_job_results(job_id)
+        
+        if "error" in results:
+            raise HTTPException(status_code=404, detail=results["error"])
+        
+        return {
+            "status": "success",
+            "job_results": results,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get batch results: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ── Error Handlers ─────────────────────────────────────────────────────────────

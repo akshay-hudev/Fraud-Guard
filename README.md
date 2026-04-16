@@ -272,7 +272,80 @@ python training/scripts/retrain.py validate       # Validate models
 
 ---
 
-## 🐳 Deployment
+## � Advanced ML Features (Step 4)
+
+**Status:** ✅ Fully implemented with 5 new features
+
+### 1️⃣ Feature Importance Ranking
+Analyze SHAP importance across all predictions.
+
+**Endpoint:** `GET /features/importance?top_n=15`
+
+**Frontend:** 📈 Feature Importance tab
+- Top features bar chart
+- Occurrence count analysis  
+- Full rankings with total impact
+
+### 2️⃣ Model Comparison
+Side-by-side comparison of all models.
+
+**Endpoint:** `GET /models/compare`
+
+**Frontend:** 🔬 Model Comparison tab
+- Best overall model highlight
+- Per-metric rankings
+- Metrics comparison table
+
+### 3️⃣ Threshold Tuning
+Optimize fraud cutoffs for your use case.
+
+**Endpoint:** `POST /settings/thresholds?use_case=balanced`
+
+**Use Cases:**
+- `balanced` - Maximize F1 score (recommended default)
+- `conservative` - Minimize false positives (↓ FP)
+- `aggressive` - Minimize false negatives (↓ FN)
+
+**Frontend:** ⚙️ Thresholds tab
+- Use case selector
+- Threshold analysis chart
+- Recommended value display
+
+### 4️⃣ Prediction Export
+Export in JSON, CSV, or summary format.
+
+**Endpoint:** `POST /export/predictions?format=json&limit=1000`
+
+**Formats:**
+```bash
+json    # Full predictions in JSON
+csv     # Predictions as CSV download
+summary # Statistics only
+```
+
+**Frontend:** 📥 Export Data tab
+- Format selector
+- Record limit slider
+- Download buttons
+
+### 5️⃣ Batch Status Tracking
+Monitor batch upload progress in real-time.
+
+**Endpoints:**
+```bash
+GET /batch/status/{job_id}      # Get progress
+GET /batch/results/{job_id}     # Get results + errors
+```
+
+**Frontend:** ⏳ Batch Status tab
+- Job ID lookup
+- Progress bar with percentage
+- Detailed results table
+- Error log
+
+---
+
+## �🐳 Deployment
 
 ### Docker
 ```bash

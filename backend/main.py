@@ -1,6 +1,7 @@
 """
 Production FastAPI Application — Fixed
 Adds missing endpoints: /stats, /alerts, /graph/data, /simulate, /upload
+Includes Prometheus monitoring for observability.
 """
 
 import io
@@ -19,9 +20,10 @@ from fastapi import (
     Request, File, UploadFile, Query,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 import logging
 
 # Internal imports
@@ -32,6 +34,7 @@ from backend.security import verify_api_key, SecurityHeaders, create_access_toke
 from backend.production_predictor import ProductionFraudPredictor
 from backend.model_registry import ModelRegistry
 from backend.drift_detector import DriftDetector
+from backend.monitoring import MetricsCollector, registry
 from backend.schemas import (
     PredictionRequest, PredictionResponse,
     BatchPredictionRequest, BatchPredictionResponse,
@@ -106,6 +109,18 @@ async def add_request_context(request: Request, call_next):
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     response = await call_next(request)
+    
+    process_time = time.time() - request.state.start_time
+    process_time_ms = process_time * 1000
+    
+    # Record API metrics
+    MetricsCollector.record_api_request(
+        endpoint=request.url.path,
+        method=request.method,
+        status_code=response.status_code,
+        latency_ms=process_time_ms
+    )
+    
     logger.info(
         "HTTP request",
         extra={
@@ -123,12 +138,27 @@ async def log_requests(request: Request, call_next):
 
 @app.get("/health", tags=["Health"], response_model=HealthCheckResponse)
 async def health_check():
+    # Update health metrics
+    MetricsCollector.set_health_status(
+        model_loaded_=AppState.predictor is not None,
+        db_connected=True
+    )
+    
     return HealthCheckResponse(
         status="healthy",
         models_available=AppState.predictor is not None,
         database_available=True,
         active_model_version="rf_v1.0.0",
         uptime_seconds=(datetime.utcnow() - AppState.start_time).total_seconds(),
+    )
+
+
+@app.get("/metrics", tags=["Monitoring"])
+async def metrics():
+    """Prometheus metrics endpoint for scraping."""
+    return Response(
+        content=generate_latest(registry),
+        media_type=CONTENT_TYPE_LATEST
     )
 
 
@@ -183,6 +213,14 @@ async def predict_single(
         inference_time_ms = (time.time() - start_time) * 1000
         result["inference_time_ms"] = round(inference_time_ms, 2)
 
+        # Record prediction metrics
+        MetricsCollector.record_prediction(
+            model_name="gnn",
+            fraud_score=result["fraud_score"],
+            predicted_fraud=result["fraud_prediction"],
+            latency_ms=inference_time_ms
+        )
+
         # Audit log to DB
         try:
             record = PredictionRecord(
@@ -220,6 +258,7 @@ async def predict_single(
         return PredictionResponse(**result)
 
     except Exception as e:
+        MetricsCollector.record_error("prediction_error", "prediction")
         logger.error("Prediction error", exception=e, extra={"claim_id": claim.claim_id})
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
@@ -236,18 +275,34 @@ async def predict_batch(
         raise HTTPException(status_code=503, detail="Predictor not available")
 
     predictions, fraud_scores, fraud_count, failed_count = [], [], 0, 0
+    batch_start = time.time()
+    
     for claim in batch.claims:
         try:
+            result_start = time.time()
             result = AppState.predictor.predict(features=claim.dict(), explain=batch.explain)
+            result_latency = (time.time() - result_start) * 1000
+            
+            # Record metrics for each prediction
+            MetricsCollector.record_prediction(
+                model_name="gnn",
+                fraud_score=result["fraud_score"],
+                predicted_fraud=result["fraud_prediction"],
+                latency_ms=result_latency
+            )
+            
             predictions.append(PredictionResponse(**result))
             fraud_scores.append(result["fraud_score"])
             if result["fraud_prediction"]:
                 fraud_count += 1
         except Exception:
+            MetricsCollector.record_error("batch_prediction_error", "prediction")
             failed_count += 1
 
+    batch_latency = (time.time() - batch_start) * 1000
+    
     avg_score = sum(fraud_scores) / len(fraud_scores) if fraud_scores else 0.0
-    return BatchPredictionResponse(
+    response = BatchPredictionResponse(
         predictions=predictions,
         total_processed=len(batch.claims),
         successful=len(predictions),
@@ -255,6 +310,11 @@ async def predict_batch(
         average_fraud_score=avg_score,
         fraud_count=fraud_count,
     )
+    
+    # Log batch processing
+    logger.info(f"Batch prediction: {len(batch.claims)} claims, {len(predictions)} successful, {batch_latency:.2f}ms")
+    
+    return response
 
 
 # ── Analytics ──────────────────────────────────────────────────────────────────
@@ -502,7 +562,20 @@ async def drift_status(db=Depends(get_db)):
     current  = detector.get_recent_predictions(days=7)
     if not baseline or not current:
         return {"status": "insufficient_data"}
-    return detector.check_prediction_drift(baseline, current)
+    
+    drift_result = detector.check_prediction_drift(baseline, current)
+    
+    # Record drift metrics
+    if "current_stats" in drift_result:
+        stats = drift_result["current_stats"]
+        MetricsCollector.set_drift_metrics(
+            model_name="gnn",
+            mean=stats.get("mean", 0.0),
+            std=stats.get("std", 0.0),
+            fraud_rate_pct=stats.get("fraud_rate_percent", 0.0)
+        )
+    
+    return drift_result
 
 
 # ── Error Handlers ─────────────────────────────────────────────────────────────
@@ -523,6 +596,13 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     logger.error("Unhandled exception", exception=exc)
+    
+    # Record error metric
+    MetricsCollector.record_error(
+        error_type=type(exc).__name__,
+        context="unhandled_exception"
+    )
+    
     return JSONResponse(
         status_code=500,
         content={

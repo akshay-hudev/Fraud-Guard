@@ -166,7 +166,33 @@ Generate SHAP explanation
   ↓
 Log to database (audit)
   ↓
+Record metrics (Prometheus)  ← NEW: Monitoring
+  ↓
 Return prediction + confidence
+```
+
+### 📊 Monitoring & Observability (NEW)
+```
+API Endpoints:
+├─ GET  /health              → System health status
+├─ GET  /metrics             → Prometheus metrics endpoint
+├─ GET  /drift/status        → Model drift detection
+└─ POST /predict             → Records latency + accuracy metrics
+
+Prometheus Metrics (15 total):
+├─ Predictions: fraud_predictions_total, fraud_prediction_latency_ms, fraud_scores
+├─ API: fraud_api_requests_total, fraud_api_request_latency_ms
+├─ Models: fraud_model_accuracy, precision, recall, roc_auc
+├─ Errors: fraud_prediction_errors_total, fraud_api_errors_total
+├─ Health: fraud_model_loaded, fraud_database_connected
+└─ Drift: fraud_score_mean, fraud_score_std, fraud_rate
+
+Integration:
+├─ Prometheus scrapes /metrics every 15s
+├─ Grafana visualizes dashboards
+└─ Alerting on anomalies (high error rate, model drift, etc)
+
+See: docs/MONITORING.md for setup & queries
 ```
 
 ---
@@ -254,6 +280,43 @@ pytest training/tests/test_preprocessing.py::TestDataLeakage -v
 ### Coverage Report
 ```bash
 pytest --cov=training/src --cov-report=html
+```
+
+### Monitoring Integration Tests ✅
+**Status:** All tests passing
+
+```bash
+# Start API server first
+python -m uvicorn backend.main:app --reload
+
+# In another terminal, test monitoring endpoints
+python tests/test_monitoring.py
+python tests/test_prediction_metrics.py
+```
+
+**What's tested:**
+- ✅ `/health` endpoint returns system status + updates metrics
+- ✅ `/metrics` endpoint exports Prometheus format
+- ✅ `/predict` records prediction metrics (fraud_score, latency)
+- ✅ `/predict/batch` records batch metrics
+- ✅ HTTP middleware records all API requests by endpoint/method/status
+- ✅ Error handler records errors and exceptions
+- ✅ Metrics accessible for Prometheus scraping
+- ✅ Real-time metric updates after predictions
+
+**Sample output:**
+```
+✓ Got token: eyJhbGciOiJIUzI1NiIs...
+✓ Prediction Status: 200
+  Prediction: False
+  Score: 0.5000
+  Confidence: 0.0000
+  Latency: 3.17ms
+
+✓ Prediction recorded with metrics!
+Total predictions recorded: 1
+Fraud predictions recorded: 1
+/predict API calls recorded: 1
 ```
 
 ---

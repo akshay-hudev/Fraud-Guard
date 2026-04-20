@@ -776,7 +776,7 @@ async def compare_models():
 
 @app.post("/settings/thresholds", tags=["Configuration"])
 async def optimize_thresholds(
-    use_case: str = Query("balanced", regex="^(balanced|conservative|aggressive)$")
+    use_case: str = Query("balanced", pattern="^(balanced|conservative|aggressive)$")
 ):
     """Optimize fraud detection thresholds for different use cases."""
     try:
@@ -820,7 +820,7 @@ async def optimize_thresholds(
 
 @app.post("/export/predictions", tags=["Export"])
 async def export_predictions(
-    format: str = Query("json", regex="^(json|csv|summary)$"),
+    format: str = Query("json", pattern="^(json|csv|summary)$"),
     limit: int = Query(1000, ge=1, le=10000),
 ):
     """Export recent predictions in various formats."""
@@ -1150,7 +1150,7 @@ async def get_cache_stats():
 
 
 @app.post("/cache/clear", tags=["Performance"])
-async def clear_cache(cache_type: str = Query("response", regex="^(response|prediction|all)$")):
+async def clear_cache(cache_type: str = Query("response", pattern="^(response|prediction|all)$")):
     """Clear cache (response, prediction, or all)."""
     try:
         if cache_type in ["response", "all"]:
@@ -1367,7 +1367,7 @@ async def get_gdpr_status():
 
 @app.post("/compliance/data-subject-request", tags=["Compliance"])
 async def file_data_subject_request(user_id: str = Query(...),
-                                   request_type: str = Query(..., regex="^(access|rectification|erasure|portability)$"),
+                                   request_type: str = Query(..., pattern="^(access|rectification|erasure|portability)$"),
                                    details: str = Query(None)):
     """File a GDPR data subject request."""
     try:
@@ -1393,7 +1393,7 @@ async def file_data_subject_request(user_id: str = Query(...),
 
 
 @app.get("/compliance/data-subject-requests", tags=["Compliance"])
-async def get_data_subject_requests(status: str = Query(None, regex="^(pending|processed)$")):
+async def get_data_subject_requests(status: str = Query(None, pattern="^(pending|processed)$")):
     """Get data subject requests."""
     try:
         requests = compliance_manager.gdpr.get_data_subject_requests(status=status)

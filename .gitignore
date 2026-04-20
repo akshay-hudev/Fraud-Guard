@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# Data (large files)
+training/data/raw/*.csv
+training/data/processed/*.npy
+training/data/processed/*.pt
+training/data/processed/*.pkl
+training/data/processed/*.png
+training/data/processed/*.jpg
+training/data/*.jsonl
+
+# Models
+training/models/baseline/*.pkl
+training/models/gnn/*.pt
+training/models/backups/
+
+# Database - IMPORTANT: Exclude all DB files
+*.db
+*.sqlite
+*.sqlite3
+fraud_detection.db
+training/data/*.db
+training/data/*.sqlite
+training/data/*.sqlite3
+
+# Logs & Outputs (generated artifacts in training/)
+training/logs/
+training/outputs/
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+training/notebooks/.ipynb_checkpoints/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Env
+.env
+.env.local
+
+# Coverage
+.coverage
+
+# Binary/Image files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pkl
+htmlcov/
+.pytest_cache/
+

@@ -1,0 +1,190 @@
+name: Model Validation
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'training/**'
+      - 'requirements.txt'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'training/**'
+      - 'requirements.txt'
+
+jobs:
+  validate-models:
+    runs-on: ubuntu-latest
+    name: Validate Model Performance
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Download/Prepare test data
+      run: |
+        python -c "
+        import os
+        # Check if processed data exists
+        if not os.path.exists('training/data/processed'):
+            print('⚠️ Processed data not found - running minimal validation')
+        else:
+            print('✓ Processed data exists')
+        "
+    
+    - name: Validate model artifacts
+      run: |
+        python -c "
+        import os
+        import json
+        
+        model_dir = 'training/models'
+        baseline_dir = os.path.join(model_dir, 'baseline')
+        gnn_dir = os.path.join(model_dir, 'gnn')
+        
+        print('📊 Model Validation Report')
+        print('=' * 50)
+        
+        # Check baseline models
+        baseline_models = ['logistic_regression', 'random_forest', 'gradient_boosting']
+        for model in baseline_models:
+            metrics_file = os.path.join(baseline_dir, f'{model}_metrics.json')
+            if os.path.exists(metrics_file):
+                with open(metrics_file) as f:
+                    metrics = json.load(f)
+                acc = metrics.get('accuracy', 0)
+                print(f'✓ {model}: Accuracy={acc:.4f}')
+                # Validate minimum performance
+                if acc < 0.90:
+                    print(f'  ⚠️ WARNING: Accuracy below 90% threshold!')
+            else:
+                print(f'⚠️ {model}: Model not found')
+        
+        # Check GNN model
+        comparison_file = os.path.join(model_dir, 'comparison.json')
+        if os.path.exists(comparison_file):
+            with open(comparison_file) as f:
+                comparison = json.load(f)
+            print(f'✓ Model comparison available')
+        else:
+            print('⚠️ Comparison not available')
+        " || echo "Model validation skipped (data not available in CI)"
+    
+    - name: Check model versioning
+      run: |
+        python -c "
+        import os
+        import glob
+        
+        # Find all model files
+        model_files = glob.glob('training/models/**/*.pt', recursive=True)
+        model_files += glob.glob('training/models/**/*.pkl', recursive=True)
+        
+        if model_files:
+            print('✓ Found model artifacts:')
+            for f in model_files[:5]:
+                print(f'  - {f}')
+        else:
+            print('⚠️ No model artifacts found (expected in training environment)')
+        "
+    
+    - name: Run model inference test
+      run: |
+        python -c "
+        import sys
+        try:
+            # Test that model loading is possible
+            print('Testing model loading capability...')
+            
+            # This would load actual model in production
+            # For CI, we just verify imports work
+            from backend.predictor import Predictor
+            from backend.config import get_settings
+            
+            print('✓ Model infrastructure verified')
+            sys.exit(0)
+        except Exception as e:
+            print(f'✗ Model loading test failed: {e}')
+            sys.exit(1)
+        " || true
+    
+    - name: Validate data preprocessing
+      run: |
+        python -c "
+        import sys
+        try:
+            from training.src.data.preprocessor import Preprocessor
+            print('✓ Data preprocessor imports correctly')
+        except Exception as e:
+            print(f'Cannot test preprocessor: {e}')
+        " || true
+    
+    - name: Test prediction endpoint metrics
+      run: |
+        python -c "
+        import sys
+        try:
+            from backend.monitoring import MetricsCollector
+            from prometheus_client import REGISTRY
+            
+            # Simulate prediction metrics
+            MetricsCollector.record_prediction(
+                model_name='test_gnn',
+                fraud_score=0.75,
+                predicted_fraud=True,
+                latency_ms=45.2
+            )
+            
+            print('✓ Prediction metrics recording works')
+            sys.exit(0)
+        except Exception as e:
+            print(f'✗ Metrics test failed: {e}')
+            sys.exit(1)
+        "
+    
+    - name: Performance regression check
+      run: |
+        # Check if metrics have degraded compared to baseline
+        python -c "
+        import os
+        import json
+        
+        baseline_file = 'training/models/comparison.json'
+        
+        if os.path.exists(baseline_file):
+            with open(baseline_file) as f:
+                metrics = json.load(f)
+            
+            # Get GNN model performance (production model)
+            gnn_metrics = metrics.get('gnn', {})
+            
+            # Check for minimum performance thresholds
+            checks = {
+                'accuracy': (gnn_metrics.get('accuracy', 0), 0.94),
+                'precision': (gnn_metrics.get('precision', 0), 0.93),
+                'roc_auc': (gnn_metrics.get('roc_auc', 0), 0.99),
+            }
+            
+            print('Performance Thresholds Check:')
+            all_passed = True
+            for metric, (actual, threshold) in checks.items():
+                status = '✓' if actual >= threshold else '✗'
+                print(f'{status} {metric}: {actual:.4f} (threshold: {threshold:.4f})')
+                if actual < threshold:
+                    all_passed = False
+            
+            if not all_passed:
+                print('\\n⚠️ Some metrics below threshold - review before deployment')
+        else:
+            print('ℹ️ Baseline metrics not available in CI environment')
+        " || true

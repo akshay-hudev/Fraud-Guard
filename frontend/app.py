@@ -30,12 +30,28 @@ API_BASE = "http://localhost:8000"
 API_KEY  = "test_key_123"
 
 
+# ── Health Check (cached, non-blocking startup) ────────────────────────────────
+@st.cache_resource(show_spinner=False)
+def check_backend_health():
+    """Check if backend is healthy. Returns True/False without blocking."""
+    try:
+        r = requests.get(f"{API_BASE}/health", timeout=3)
+        return r.status_code == 200
+    except:
+        return False
+
+
+backend_ok = check_backend_health()
+
+
 # ── Session State (must be initialised before any widget) ─────────────────────
 if "auth_token" not in st.session_state:
     st.session_state.auth_token = None
 if "auth_token_expires" not in st.session_state:
     # ── FIX: initialise as datetime, not None, to prevent comparison crash ──
     st.session_state.auth_token_expires = datetime.now() - timedelta(seconds=1)
+if "backend_available" not in st.session_state:
+    st.session_state.backend_available = backend_ok
 
 
 # ── Auth helpers ───────────────────────────────────────────────────────────────
@@ -43,6 +59,9 @@ if "auth_token_expires" not in st.session_state:
 def get_auth_token() -> str | None:
     """Get (or refresh) a JWT token from the API."""
     # ── FIX: safe datetime comparison ─────────────────────────────────────────
+    if not backend_ok:
+        return None  # Backend unavailable, skip auth
+    
     token_expired = (
         st.session_state.auth_token is None
         or datetime.now() >= st.session_state.auth_token_expires
@@ -51,7 +70,7 @@ def get_auth_token() -> str | None:
         return st.session_state.auth_token
 
     try:
-        r = requests.post(f"{API_BASE}/token", params={"api_key": API_KEY}, timeout=5)
+        r = requests.post(f"{API_BASE}/token", params={"api_key": API_KEY}, timeout=3)
         if r.status_code == 200:
             data = r.json()
             st.session_state.auth_token = data["access_token"]
@@ -61,23 +80,22 @@ def get_auth_token() -> str | None:
             )
             return st.session_state.auth_token
         else:
-            st.error(f"Auth failed ({r.status_code}): {r.text}")
             return None
-    except Exception as e:
-        st.error(f"Auth request failed: {e}")
+    except Exception:
         return None
 
 
 def api_get(path: str, params: dict = None, require_auth: bool = False) -> dict | None:
+    if not backend_ok:
+        return None
     try:
         headers = {}
         if require_auth:
             token = get_auth_token()
-            if not token:
-                return None
-            headers["Authorization"] = f"Bearer {token}"
+            if token:
+                headers["Authorization"] = f"Bearer {token}"
 
-        r = requests.get(f"{API_BASE}{path}", params=params, headers=headers, timeout=5)
+        r = requests.get(f"{API_BASE}{path}", params=params, headers=headers, timeout=3)
         if r.status_code == 200:
             return r.json()
         return None
@@ -86,16 +104,16 @@ def api_get(path: str, params: dict = None, require_auth: bool = False) -> dict 
 
 
 def api_post(path: str, payload: dict, require_auth: bool = True) -> dict | None:
+    if not backend_ok:
+        return None
     try:
         headers = {}
         if require_auth:
             token = get_auth_token()
-            if not token:
-                st.error("Authentication failed.")
-                return None
-            headers["Authorization"] = f"Bearer {token}"
+            if token:
+                headers["Authorization"] = f"Bearer {token}"
 
-        r = requests.post(f"{API_BASE}{path}", json=payload, headers=headers, timeout=15)
+        r = requests.post(f"{API_BASE}{path}", json=payload, headers=headers, timeout=5)
         if r.status_code == 200:
             return r.json()
         else:
@@ -177,6 +195,12 @@ if page == "🏠 Dashboard":
     st.title("🏥 Health Insurance Fraud Detection")
     st.markdown("**AI-powered real-time fraud detection using Graph Neural Networks**")
     st.divider()
+
+    # Backend status
+    if not backend_ok:
+        st.warning("⚠️ **Backend unavailable** — Running in offline demo mode. Live predictions disabled.")
+    else:
+        st.success("✅ Backend connected")
 
     stats = api_get("/stats") or {
         "model_performance": {

@@ -1,3 +1,12 @@
+---
+title: Fraud-Guard
+emoji: 🏥
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
+
 # 🏥 Health Insurance Fraud Detection
 
 [![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)](.)

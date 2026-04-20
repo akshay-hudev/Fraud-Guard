@@ -2401,3 +2401,4 @@ elif page == "🛡️ Resilience":
                         st.warning(insight)
         except Exception as e:
             st.error(f"Error: {e}")
+

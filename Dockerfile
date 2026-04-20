@@ -69,15 +69,22 @@ echo "🚀 Fraud-Guard: Full-Stack Startup"\n\
 echo "========================================"\n\
 echo ""\n\
 echo "Starting FastAPI Backend on :8000..."\n\
-uvicorn backend.main:app --host 0.0.0.0 --port 8000 --log-level info &\n\
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --log-level info --workers 1 &\n\
 BACKEND_PID=$!\n\
 echo "✓ Backend PID: $BACKEND_PID"\n\
 \n\
-# Wait for backend to be ready\n\
-sleep 3\n\
+# Wait for backend to be ready (with timeout)\n\
+echo "Waiting for backend health check..."\n\
+for i in {1..30}; do\n\
+  if curl -sf http://localhost:8000/health > /dev/null 2>&1; then\n\
+    echo "✓ Backend healthy"\n\
+    break\n\
+  fi\n\
+  [ $i -lt 30 ] && sleep 1\n\
+done\n\
 \n\
 echo "Starting Streamlit Frontend on :8501..."\n\
-streamlit run frontend/app.py --server.port 8501 --server.address 0.0.0.0 --logger.level=info &\n\
+streamlit run frontend/app.py --server.port 8501 --server.address 0.0.0.0 --logger.level=info --client.showErrorDetails=false &\n\
 FRONTEND_PID=$!\n\
 echo "✓ Frontend PID: $FRONTEND_PID"\n\
 \n\
@@ -88,15 +95,10 @@ echo "========================================"\n\
 echo "📊 Frontend (Streamlit):  http://localhost:8501"\n\
 echo "🔌 Backend API (FastAPI):  http://localhost:8000"\n\
 echo "📖 API Docs (Swagger):    http://localhost:8000/docs"\n\
-echo "📚 API Docs (ReDoc):      http://localhost:8000/redoc"\n\
-echo "❤️ Health Check:          http://localhost:8000/health"\n\
-echo ""\n\
 echo "========================================"\n\
-echo "Waiting for services..."\n\
-echo "========================================"\n\
-echo ""\n\
 \n\
-wait\n\
+# Keep container alive - systemd-style process manager\n\
+exec tail -f /dev/null\n\
 ' > /app/start.sh && chmod +x /app/start.sh
 
 # ── Run Both Services ───────────────────────────────────────────────────────

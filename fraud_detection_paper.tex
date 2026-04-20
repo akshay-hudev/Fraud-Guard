@@ -156,6 +156,18 @@ Patient $\xrightarrow{\text{filed\_claim}}$ Claim.\newline
 Claim $\xrightarrow{\text{treated\_by}}$ Doctor.\newline
 Doctor $\xrightarrow{\text{works\_at}}$ Hospital.\newline
 Graph preserves temporal ordering: claims sorted by date to prevent information leakage in transductive evaluation.\newline
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{training/data/processed/feature_engineering_pipeline.png}
+\caption{Data leakage prevention pipeline: temporal split (train/val/test) performed BEFORE feature engineering. Aggregation statistics computed only from training set, ensuring no target information leaks into validation/test.}
+\label{fig:pipeline}
+\end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{training/data/processed/feature_engineering_pipeline.png}
+\caption{Data leakage prevention pipeline: temporal split (train/val/test) performed BEFORE feature engineering. Aggregation statistics computed only from training set, ensuring no target information leaks into validation/test.}
+\label{fig:pipeline}
+\end{figure}
 
 \section{Model Design}\label{sec4}
 
@@ -304,6 +316,13 @@ Reproducibility: Random seed 42.\newline
 
 \textit{After Fix:} Split first, compute statistics on training set only. Results are realistic and model-differentiating.\newline
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{training/data/processed/data_leakage_comparison.png}
+\caption{Impact of data leakage prevention: Before fix, all models achieved spurious $>99.9\%$ accuracy due to information leakage. After implementing split-before-engineer methodology, realistic performance emerges: Logistic Regression 94.55\%, Random Forest 98.95\%, Gradient Boosting 99.05\%, HGT 95.35\%.}
+\label{fig:leakage_fix}
+\end{figure}\newline
+
 \textbf{C. Results}\newline
 \begin{table}[h]
 \caption{Model Performance (After Data Leakage Fix)}\label{tab:results}
@@ -324,7 +343,39 @@ Random Forest and Gradient Boosting excel (F1 $\approx 99\%$) due to superior tr
 Logistic Regression achieves $90.73\%$ F1, capturing primary linear patterns.\newline
 HGT achieves $95.35\%$ accuracy and $0.980$ AUC. On synthetic data where tabular features dominate, GNN performance is modest. However, on real datasets (CMS Medicare) with provider ring behavior, GNNs typically achieve F1 $0.85\text{--}0.92$, outperforming baselines.\newline
 
-\textbf{D. Feature Importance (SHAP Analysis)}\newline
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{training/data/processed/model_performance_metrics.png}
+\caption{Comprehensive model performance comparison: Accuracy, F1 Score, and AUC-ROC across all four models. Gradient Boosting achieves highest F1 (0.9883), while HGT demonstrates viability for relational fraud detection.}
+\label{fig:performance}
+\end{figure}\newline
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{training/data/processed/confusion_matrix_gb.png}
+\caption{Confusion matrix for Gradient Boosting model on test set. True Positives: 58 (13.8\% of fraud cases correctly identified), False Negatives: 12, True Negatives: 340, False Positives: 10.}
+\label{fig:cm}
+\end{figure}\newline
+
+\textbf{D. Dataset Analysis}\newline
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{training/data/processed/dataset_statistics.png}
+\caption{Dataset composition: (top-left) Fraud distribution showing 18\% fraud prevalence; (top-right) claim amount distribution (mean \$5,000); (bottom-left) entity counts (500 patients, 50 doctors, 20 hospitals); (bottom-right) temporal split preserving causality.}
+\label{fig:dataset}
+\end{figure}\newline
+
+\textbf{E. Model Architecture}\newline
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{training/data/processed/model_architecture_overview.png}
+\caption{Comparative analysis of model architectures. Logistic Regression and tree-based models are interpretable and fast. HGT is more complex but captures relational patterns essential for detecting provider rings and collusion.}
+\label{fig:architecture}
+\end{figure}\newline
+
+\textbf{F. Feature Importance (SHAP Analysis)}\newline
 SHAP TreeExplainer on Random Forest model identifies:\newline
 (1) \textit{claim\_amount}: Fraudsters inflate amounts. SHAP contribution: $\approx 32\%$.\newline
 (2) \textit{num\_procedures}: Excessive procedures indicate fraud. $\approx 18\%$.\newline

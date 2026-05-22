@@ -1,0 +1,51 @@
+doctor_id,doctor_name,specialty,hospital_id,years_experience,avg_claims_per_month,license_valid,fraud_prone,ring_id
+D0000,Dr_Doctor_0,Cardiologist,H0014,12,35,True,True,1
+D0001,Dr_Doctor_1,Cardiologist,H0007,33,9,True,True,1
+D0002,Dr_Doctor_2,Orthopedic Surgeon,H0018,18,54,True,True,1
+D0003,Dr_Doctor_3,Pediatrician,H0009,40,54,True,True,1
+D0004,Dr_Doctor_4,Pediatrician,H0007,13,17,False,True,2
+D0005,Dr_Doctor_5,General Practitioner,H0019,31,59,True,True,2
+D0006,Dr_Doctor_6,Cardiologist,H0014,37,42,True,True,2
+D0007,Dr_Doctor_7,Oncologist,H0003,20,38,True,True,2
+D0008,Dr_Doctor_8,Orthopedic Surgeon,H0005,28,52,True,True,3
+D0009,Dr_Doctor_9,General Practitioner,H0004,14,13,True,True,3
+D0010,Dr_Doctor_10,Radiologist,H0018,20,57,True,True,3
+D0011,Dr_Doctor_11,Radiologist,H0003,11,63,True,True,3
+D0012,Dr_Doctor_12,Neurologist,H0016,30,25,True,True,4
+D0013,Dr_Doctor_13,Radiologist,H0012,6,39,True,True,4
+D0014,Dr_Doctor_14,Orthopedic Surgeon,H0003,33,48,True,True,4
+D0015,Dr_Doctor_15,Pediatrician,H0009,1,61,True,True,4
+D0016,Dr_Doctor_16,Neurologist,H0013,13,52,True,True,5
+D0017,Dr_Doctor_17,Oncologist,H0009,26,11,True,True,5
+D0018,Dr_Doctor_18,General Practitioner,H0016,8,42,True,True,5
+D0019,Dr_Doctor_19,Cardiologist,H0006,28,12,True,True,5
+D0020,Dr_Doctor_20,Cardiologist,H0017,12,74,True,False,0
+D0021,Dr_Doctor_21,Oncologist,H0007,12,6,True,False,0
+D0022,Dr_Doctor_22,Pediatrician,H0006,3,11,True,False,0
+D0023,Dr_Doctor_23,Radiologist,H0001,7,47,True,False,0
+D0024,Dr_Doctor_24,Orthopedic Surgeon,H0017,22,44,True,True,0
+D0025,Dr_Doctor_25,Pediatrician,H0001,1,72,True,False,0
+D0026,Dr_Doctor_26,General Practitioner,H0018,27,55,True,False,0
+D0027,Dr_Doctor_27,Pediatrician,H0007,38,62,True,False,0
+D0028,Dr_Doctor_28,Cardiologist,H0014,10,7,True,False,0
+D0029,Dr_Doctor_29,Pediatrician,H0006,19,65,True,False,0
+D0030,Dr_Doctor_30,Orthopedic Surgeon,H0000,25,43,True,False,0
+D0031,Dr_Doctor_31,Cardiologist,H0015,22,8,True,False,0
+D0032,Dr_Doctor_32,Radiologist,H0010,4,61,True,False,0
+D0033,Dr_Doctor_33,Neurologist,H0001,19,28,True,False,0
+D0034,Dr_Doctor_34,Orthopedic Surgeon,H0005,36,12,True,False,0
+D0035,Dr_Doctor_35,Radiologist,H0016,38,23,True,False,0
+D0036,Dr_Doctor_36,Cardiologist,H0002,30,18,True,False,0
+D0037,Dr_Doctor_37,Cardiologist,H0016,12,28,True,False,0
+D0038,Dr_Doctor_38,Neurologist,H0006,18,15,False,False,0
+D0039,Dr_Doctor_39,General Practitioner,H0013,1,55,True,False,0
+D0040,Dr_Doctor_40,Oncologist,H0011,31,48,True,False,0
+D0041,Dr_Doctor_41,Pediatrician,H0000,4,60,True,False,0
+D0042,Dr_Doctor_42,Radiologist,H0017,4,34,True,False,0
+D0043,Dr_Doctor_43,Oncologist,H0007,13,76,True,False,0
+D0044,Dr_Doctor_44,General Practitioner,H0016,24,46,True,False,0
+D0045,Dr_Doctor_45,General Practitioner,H0001,30,36,True,False,0
+D0046,Dr_Doctor_46,Radiologist,H0012,30,65,True,False,0
+D0047,Dr_Doctor_47,General Practitioner,H0000,27,13,True,False,0
+D0048,Dr_Doctor_48,Cardiologist,H0015,14,44,True,False,0
+D0049,Dr_Doctor_49,Oncologist,H0005,12,35,True,False,0

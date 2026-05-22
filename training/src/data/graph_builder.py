@@ -81,6 +81,9 @@ class GraphBuilder:
             claims = pd.read_csv(claims_path)
         else:
             claims = pd.read_csv(f"{self.processed_dir}/../../data/raw/claims.csv")
+        if "claim_date" in claims.columns:
+            claims["claim_date"] = pd.to_datetime(claims["claim_date"])
+            claims = claims.sort_values("claim_date").reset_index(drop=True)
 
         # Ensure fraud_label exists
         if "fraud_label" not in claims.columns:
@@ -152,17 +155,16 @@ class GraphBuilder:
 
         # ── Train / val / test masks on claims ────────────────────────────────
         n_claims = len(claims)
-        perm     = torch.randperm(n_claims, generator=torch.Generator().manual_seed(42))
-        n_train  = int(0.70 * n_claims)
-        n_val    = int(0.15 * n_claims)
+        n_train  = int(0.60 * n_claims)
+        n_val    = int(0.20 * n_claims)
 
         train_mask = torch.zeros(n_claims, dtype=torch.bool)
         val_mask   = torch.zeros(n_claims, dtype=torch.bool)
         test_mask  = torch.zeros(n_claims, dtype=torch.bool)
 
-        train_mask[perm[:n_train]]            = True
-        val_mask  [perm[n_train:n_train+n_val]] = True
-        test_mask [perm[n_train+n_val:]]      = True
+        train_mask[:n_train] = True
+        val_mask[n_train:n_train+n_val] = True
+        test_mask[n_train+n_val:] = True
 
         data["claim"].train_mask = train_mask
         data["claim"].val_mask   = val_mask
@@ -183,13 +185,25 @@ class GraphBuilder:
         with open(f"{self.processed_dir}/graph_mappings.json", "w") as f:
             json.dump(mappings, f)
 
+        if "ring_id" in claims.columns:
+            ring_claims = claims[claims["ring_id"].fillna(0).astype(int) > 0]
+            ring_labels = {
+                str(int(ring_id)): group.index.astype(int).tolist()
+                for ring_id, group in ring_claims.groupby("ring_id")
+            }
+            with open(f"{self.processed_dir}/ring_labels.json", "w") as f:
+                json.dump(ring_labels, f, indent=2)
+
         return data
 
     def load(self) -> HeteroData:
         path = f"{self.processed_dir}/hetero_graph.pt"
         if not os.path.exists(path):
             raise FileNotFoundError(f"Graph not found at {path}. Run build() first.")
-        return torch.load(path)
+        try:
+            return torch.load(path, weights_only=False)
+        except TypeError:
+            return torch.load(path)
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────────

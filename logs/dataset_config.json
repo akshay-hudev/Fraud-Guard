@@ -1,0 +1,14 @@
+{
+  "n_claims": 2100,
+  "n_patients": 500,
+  "n_doctors": 50,
+  "n_hospitals": 20,
+  "n_rings": 5,
+  "ring_size": 4,
+  "patients_per_ring": 10,
+  "isolated_fraud_n": 200,
+  "ring_fraud_n": 178,
+  "temporal_span_months": 24,
+  "seed": 42,
+  "dataset_sha256": "a3268d725ae46ee3d414bc890c9d0f934c5115ee94b9ad59ffd79846bb949d45"
+}

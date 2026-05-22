@@ -5,6 +5,7 @@ Only compute statistics from TRAINING set, then apply to val/test
 """
 
 import os
+import json
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, StandardScaler
@@ -271,6 +272,19 @@ class FraudDataPreprocessor:
         log.info("\n📊 Engineering features for TEST set (using train stats)...")
         features_test = self._engineer_features_no_leakage(claims_test, doctors, patients, hospitals, "test")
 
+        def _attach_metadata(claim_split: pd.DataFrame, feature_df: pd.DataFrame) -> pd.DataFrame:
+            duplicate_cols = [c for c in feature_df.columns if c in claim_split.columns]
+            engineered = feature_df.drop(columns=duplicate_cols, errors="ignore").reset_index(drop=True)
+            return pd.concat([claim_split.reset_index(drop=True), engineered], axis=1)
+
+        features_raw = pd.concat([
+            _attach_metadata(claims_train, features_train),
+            _attach_metadata(claims_val, features_val),
+            _attach_metadata(claims_test, features_test),
+        ], ignore_index=True)
+        features_raw.to_csv(f"{self.processed_dir}/features_raw.csv", index=False)
+        features_raw.to_csv(f"{self.processed_dir}/claims_engineered.csv", index=False)
+
         # Step 4: Encode categoricals (fit only on train)
         log.info("\n🔤 Encoding categorical features...")
         features_train = self._encode_categoricals(features_train, fit=True)
@@ -304,6 +318,18 @@ class FraudDataPreprocessor:
 
         joblib.dump(self.scaler, f"{self.processed_dir}/scaler.pkl")
         joblib.dump(self.label_encoders, f"{self.processed_dir}/label_encoders.pkl")
+        stats_out = {
+            "mean_claim": float(claims_train["claim_amount"].mean()),
+            "p50_claim": float(claims_train["claim_amount"].quantile(0.50)),
+            "p75_claim": float(claims_train["claim_amount"].quantile(0.75)),
+            "p95_claim": float(claims_train["claim_amount"].quantile(0.95)),
+            "p99_claim": float(claims_train["claim_amount"].quantile(0.99)),
+            "p95_procedures": float(claims_train["num_procedures"].quantile(0.95)),
+            "p95_days": float(claims_train["days_in_hospital"].quantile(0.95)),
+            "patient_avg_claim": float(claims_train["claim_amount"].mean()),
+        }
+        with open(f"{self.processed_dir}/train_stats.json", "w") as f:
+            json.dump(stats_out, f, indent=2)
 
         log.info("\n✅ PREPROCESSING COMPLETE - NO DATA LEAKAGE")
         log.info(f"Train: {len(X_train_scaled)} samples, {y_train.mean():.2%} fraud")

@@ -1,0 +1,16 @@
+{
+  "test": "paired_ttest_hgt_vs_gb_ring_recall",
+  "hgt_ring_recall_per_seed": [],
+  "gb_ring_recall_per_seed": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "mean_difference": null,
+  "t_statistic": null,
+  "p_value": null,
+  "cohens_d": null,
+  "significant_at_0.05": false
+}

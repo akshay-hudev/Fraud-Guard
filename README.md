@@ -76,12 +76,56 @@ curl -X POST "http://localhost:8000/predict" \
 
 ---
 
+## Reproducibility
+
+Run from the repository root unless noted.
+
+```bash
+cd training
+python generate_dataset.py --seed 42
+python scripts/run_pipeline.py
+```
+
+Table 3 (overall model comparison):
+```bash
+cd training
+python scripts/run_pipeline.py --skip-generate
+```
+Outputs: `logs/model_results_table.csv` and `logs/model_results_table.json`. Expected 5-seed ranges: LR F1 `0.88 +/- 0.04`, RF F1 `0.94 +/- 0.03`, GB F1 `0.95 +/- 0.03`, HGT F1 `0.86 +/- 0.06`; AUC-ROC/AUC-PR should remain within `+/- 0.04` of the logged means.
+
+Table 4 (ring fraud recall):
+```bash
+cd training
+python scripts/run_pipeline.py --skip-generate
+```
+Outputs: `logs/ring_fraud_evaluation.json` and `logs/per_ring_recall.json` when ring labels are present. Expected ranges: ring claim recall `0.80 +/- 0.08`, ring doctor recall `0.78 +/- 0.10`, per-ring recall spread usually below `0.20`.
+
+Table 5 (hybrid routing threshold sensitivity):
+```bash
+python training/threshold_analysis.py
+```
+Outputs: `logs/threshold_sweep.json` and `figures/threshold_sensitivity.png`. Expected ranges across thresholds: escalation rate `0.20-0.65`, system ring recall `0.75-0.95`, mean latency `34-43 ms`.
+
+Table 6 (real-world Kaggle provider fraud boundary):
+```bash
+python training/train_real_world.py --data-dir path/to/kaggle_healthcare_provider_fraud
+```
+Outputs: `logs/real_world_results.json`. Expected GB ranges on the public provider-label task: F1 `0.55 +/- 0.10`, AUC-ROC `0.78 +/- 0.07`, AUC-PR `0.45 +/- 0.10`. Ring-recall metrics are not reported for Kaggle unless external ring labels are supplied.
+
+For an exact local environment snapshot:
+```bash
+pip freeze > requirements_frozen.txt
+```
+
+---
+
 ## 📋 Contents
 
 - [Architecture](#architecture)
 - [Models](#models)
 - [API Endpoints](#api-endpoints)
 - [Performance](#performance)
+- [Reproducibility](#reproducibility)
 - [Monitoring](#monitoring)
 - [Retraining](#retraining)
 - [Deployment](#deployment)

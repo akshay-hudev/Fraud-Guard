@@ -11,6 +11,7 @@ import requests
 import pandas as pd
 import numpy as np
 import json
+import os
 import time
 from datetime import datetime, timedelta
 import plotly.express as px
@@ -28,6 +29,7 @@ st.set_page_config(
 
 API_BASE = "http://localhost:8000"
 API_KEY  = "test_key_123"
+USE_INDUCTIVE_MODE = os.getenv("USE_INDUCTIVE_MODE", "true").lower() in {"1", "true", "yes"}
 
 
 # ── Session State (must be initialised before any widget) ─────────────────────
@@ -36,6 +38,8 @@ if "auth_token" not in st.session_state:
 if "auth_token_expires" not in st.session_state:
     # ── FIX: initialise as datetime, not None, to prevent comparison crash ──
     st.session_state.auth_token_expires = datetime.now() - timedelta(seconds=1)
+if "use_inductive_mode" not in st.session_state:
+    st.session_state.use_inductive_mode = USE_INDUCTIVE_MODE
 
 
 # ── Auth helpers ───────────────────────────────────────────────────────────────
@@ -155,6 +159,16 @@ with st.sidebar:
     st.image("https://img.icons8.com/color/96/000000/hospital.png", width=60)
     st.title("FraudGuard AI")
     st.caption("Healthcare Fraud Detection System")
+    st.session_state.use_inductive_mode = st.toggle(
+        "Inductive scoring",
+        value=st.session_state.use_inductive_mode,
+        help="Use a 2-hop inference subgraph for single-claim scoring.",
+    )
+    deployment_mode = (
+        "real-time scoring"
+        if st.session_state.use_inductive_mode else "batch audit mode"
+    )
+    st.caption(f"Deployment mode: {deployment_mode}")
     st.divider()
 
     page = st.radio("Navigation", [
@@ -175,7 +189,8 @@ with st.sidebar:
 # ── Dashboard ──────────────────────────────────────────────────────────────────
 if page == "🏠 Dashboard":
     st.title("🏥 Health Insurance Fraud Detection")
-    st.markdown("**AI-powered real-time fraud detection using Graph Neural Networks**")
+    dashboard_mode = "real-time scoring" if st.session_state.use_inductive_mode else "batch audit mode"
+    st.markdown(f"**AI-powered {dashboard_mode} using Graph Neural Networks**")
     st.divider()
 
     stats = api_get("/stats") or {

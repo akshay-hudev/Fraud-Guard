@@ -1,0 +1,501 @@
+patient_id,age,gender,chronic_condition,insurance_type,state,member_since_years,fraud_prone,ring_id
+P00000,25,F,None,Self-Pay,TX,9,True,1
+P00001,54,M,Hypertension,Medicare,IL,15,True,1
+P00002,75,F,None,Medicare,IL,1,True,1
+P00003,50,F,Asthma,Medicare,CA,17,True,1
+P00004,39,M,None,Medicare,IL,19,True,1
+P00005,58,M,Hypertension,Medicaid,NY,3,True,1
+P00006,48,M,Cancer,Medicare,FL,1,True,1
+P00007,31,M,Arthritis,Medicare,NY,12,True,1
+P00008,53,F,Arthritis,Medicaid,IL,6,True,1
+P00009,84,F,Arthritis,Self-Pay,FL,17,True,1
+P00010,54,M,Cancer,Medicare,IL,4,True,2
+P00011,33,M,Heart Disease,Private,IL,8,True,2
+P00012,37,M,Diabetes,Medicaid,IL,10,True,2
+P00013,78,M,Diabetes,Self-Pay,CA,1,True,2
+P00014,45,F,Heart Disease,Medicare,IL,17,True,2
+P00015,72,F,Hypertension,Self-Pay,TX,16,True,2
+P00016,57,F,Heart Disease,Private,FL,16,True,2
+P00017,68,M,Arthritis,Private,TX,10,True,2
+P00018,83,F,Arthritis,Medicaid,FL,8,True,2
+P00019,64,F,Hypertension,Medicaid,CA,2,True,2
+P00020,47,M,Hypertension,Medicaid,FL,4,True,3
+P00021,41,M,Cancer,Medicaid,FL,6,True,3
+P00022,47,M,Hypertension,Private,TX,6,True,3
+P00023,71,F,Heart Disease,Self-Pay,IL,10,True,3
+P00024,70,M,Cancer,Private,IL,17,True,3
+P00025,51,F,Hypertension,Self-Pay,NY,11,True,3
+P00026,70,F,Diabetes,Medicaid,CA,15,True,3
+P00027,20,M,Heart Disease,Private,NY,18,True,3
+P00028,80,M,None,Private,FL,1,True,3
+P00029,60,F,Heart Disease,Medicare,NY,19,True,3
+P00030,67,M,None,Self-Pay,CA,16,True,4
+P00031,45,F,Cancer,Self-Pay,IL,16,True,4
+P00032,81,F,Diabetes,Medicaid,FL,12,True,4
+P00033,21,M,Cancer,Private,CA,3,True,4
+P00034,26,F,Diabetes,Private,NY,9,True,4
+P00035,64,F,Arthritis,Self-Pay,IL,16,True,4
+P00036,53,M,Hypertension,Private,CA,19,True,4
+P00037,75,M,Arthritis,Medicare,FL,1,True,4
+P00038,51,F,Arthritis,Medicaid,IL,16,True,4
+P00039,32,F,Arthritis,Medicaid,FL,18,True,4
+P00040,73,F,Heart Disease,Medicaid,FL,7,True,5
+P00041,54,M,Asthma,Medicare,IL,3,True,5
+P00042,23,F,Cancer,Medicaid,FL,8,True,5
+P00043,26,F,Hypertension,Private,IL,19,True,5
+P00044,42,F,Heart Disease,Medicaid,CA,7,True,5
+P00045,62,F,Diabetes,Private,IL,19,True,5
+P00046,46,M,Hypertension,Self-Pay,IL,13,True,5
+P00047,26,M,Cancer,Private,CA,14,True,5
+P00048,55,M,Diabetes,Medicaid,FL,17,True,5
+P00049,47,M,None,Medicaid,TX,9,True,5
+P00050,18,M,Cancer,Self-Pay,FL,16,False,0
+P00051,44,F,Diabetes,Self-Pay,FL,5,False,0
+P00052,20,M,Heart Disease,Self-Pay,CA,13,False,0
+P00053,60,M,Heart Disease,Self-Pay,IL,0,False,0
+P00054,48,M,Arthritis,Self-Pay,IL,4,False,0
+P00055,37,F,None,Medicare,CA,0,True,0
+P00056,73,F,None,Self-Pay,IL,5,False,0
+P00057,34,M,Heart Disease,Self-Pay,IL,19,False,0
+P00058,75,F,Arthritis,Self-Pay,NY,0,False,0
+P00059,25,M,Heart Disease,Private,NY,15,False,0
+P00060,23,F,Cancer,Medicare,IL,15,False,0
+P00061,19,M,Diabetes,Private,NY,20,False,0
+P00062,52,M,Diabetes,Private,CA,0,False,0
+P00063,49,F,Asthma,Medicare,TX,1,False,0
+P00064,43,F,Heart Disease,Medicaid,NY,16,False,0
+P00065,77,F,Cancer,Medicare,TX,19,False,0
+P00066,46,F,Cancer,Private,TX,13,False,0
+P00067,28,M,Cancer,Private,FL,8,False,0
+P00068,26,M,None,Medicare,IL,5,False,0
+P00069,59,M,Arthritis,Private,NY,13,False,0
+P00070,28,M,Arthritis,Medicare,IL,12,False,0
+P00071,80,M,Asthma,Medicaid,NY,9,False,0
+P00072,24,F,Asthma,Private,NY,14,False,0
+P00073,57,F,Heart Disease,Medicaid,TX,16,False,0
+P00074,31,M,Cancer,Private,NY,7,False,0
+P00075,72,F,Cancer,Self-Pay,CA,19,False,0
+P00076,67,F,Hypertension,Self-Pay,TX,6,False,0
+P00077,44,M,Diabetes,Medicare,CA,1,False,0
+P00078,73,M,Diabetes,Medicaid,NY,7,False,0
+P00079,67,M,Diabetes,Private,IL,0,False,0
+P00080,66,F,Asthma,Medicaid,FL,3,False,0
+P00081,63,M,Cancer,Medicaid,NY,20,False,0
+P00082,48,F,Asthma,Medicaid,FL,14,False,0
+P00083,69,M,None,Private,TX,0,False,0
+P00084,69,F,Cancer,Medicare,FL,3,False,0
+P00085,80,F,None,Private,TX,17,False,0
+P00086,62,M,Cancer,Medicaid,IL,8,False,0
+P00087,74,F,Diabetes,Medicaid,NY,9,False,0
+P00088,38,M,Hypertension,Self-Pay,IL,0,False,0
+P00089,31,M,Hypertension,Medicaid,IL,12,False,0
+P00090,18,M,Hypertension,Medicare,IL,17,False,0
+P00091,55,F,Asthma,Private,FL,16,True,0
+P00092,67,M,Arthritis,Private,IL,7,False,0
+P00093,40,M,Cancer,Self-Pay,FL,17,False,0
+P00094,47,F,Asthma,Private,CA,17,False,0
+P00095,57,M,Arthritis,Private,NY,2,False,0
+P00096,85,F,Heart Disease,Private,TX,3,False,0
+P00097,39,M,Hypertension,Medicare,FL,19,False,0
+P00098,46,M,Diabetes,Private,NY,0,False,0
+P00099,29,F,Cancer,Private,FL,20,False,0
+P00100,77,M,None,Self-Pay,FL,18,False,0
+P00101,37,F,Heart Disease,Self-Pay,NY,18,False,0
+P00102,52,F,Arthritis,Medicaid,FL,11,False,0
+P00103,46,F,Diabetes,Self-Pay,CA,6,False,0
+P00104,83,F,Heart Disease,Medicaid,CA,2,True,0
+P00105,52,F,None,Medicaid,IL,20,False,0
+P00106,40,F,Hypertension,Medicaid,CA,16,False,0
+P00107,33,F,Cancer,Self-Pay,TX,19,False,0
+P00108,34,M,Diabetes,Medicaid,IL,1,False,0
+P00109,81,F,Arthritis,Private,FL,16,False,0
+P00110,68,F,Asthma,Self-Pay,TX,1,False,0
+P00111,24,F,Hypertension,Self-Pay,NY,0,False,0
+P00112,35,F,Cancer,Medicare,FL,8,False,0
+P00113,59,F,Hypertension,Medicare,NY,17,False,0
+P00114,71,F,None,Medicaid,FL,12,False,0
+P00115,25,M,Cancer,Self-Pay,IL,3,False,0
+P00116,63,M,Cancer,Private,NY,16,False,0
+P00117,61,M,Arthritis,Medicaid,NY,2,False,0
+P00118,30,F,Arthritis,Private,FL,12,False,0
+P00119,51,F,Hypertension,Medicaid,TX,2,False,0
+P00120,23,M,Asthma,Medicare,NY,0,False,0
+P00121,83,F,None,Medicaid,NY,8,False,0
+P00122,83,F,Cancer,Private,IL,5,False,0
+P00123,44,M,Cancer,Medicaid,IL,19,False,0
+P00124,84,F,Hypertension,Private,FL,13,False,0
+P00125,76,M,Asthma,Medicaid,CA,3,False,0
+P00126,18,M,Diabetes,Private,TX,16,False,0
+P00127,61,M,None,Medicaid,IL,20,False,0
+P00128,35,F,Heart Disease,Self-Pay,TX,16,False,0
+P00129,29,F,Asthma,Medicare,NY,13,False,0
+P00130,71,F,None,Medicaid,CA,0,False,0
+P00131,68,M,Asthma,Medicare,CA,5,False,0
+P00132,84,M,Hypertension,Private,FL,6,True,0
+P00133,75,M,Heart Disease,Medicaid,FL,1,False,0
+P00134,48,M,None,Medicaid,NY,8,False,0
+P00135,28,M,Asthma,Medicare,NY,18,True,0
+P00136,25,F,Hypertension,Medicaid,CA,6,False,0
+P00137,55,F,Cancer,Self-Pay,NY,5,False,0
+P00138,58,M,None,Medicaid,IL,14,False,0
+P00139,68,M,Hypertension,Self-Pay,NY,1,False,0
+P00140,76,F,Hypertension,Medicare,FL,0,False,0
+P00141,19,F,Diabetes,Medicare,IL,3,True,0
+P00142,28,M,Heart Disease,Private,NY,5,False,0
+P00143,33,F,Heart Disease,Self-Pay,NY,0,False,0
+P00144,54,F,Cancer,Medicare,IL,16,False,0
+P00145,37,M,Hypertension,Self-Pay,NY,9,False,0
+P00146,79,F,Diabetes,Medicaid,FL,17,False,0
+P00147,55,F,Diabetes,Private,TX,4,False,0
+P00148,61,M,Arthritis,Medicare,IL,0,False,0
+P00149,44,M,Heart Disease,Medicare,FL,15,False,0
+P00150,38,F,Arthritis,Medicaid,CA,18,False,0
+P00151,34,M,Arthritis,Medicare,FL,14,False,0
+P00152,72,F,Diabetes,Self-Pay,TX,0,True,0
+P00153,55,F,Heart Disease,Private,TX,2,False,0
+P00154,24,F,Asthma,Private,CA,13,False,0
+P00155,67,M,Cancer,Private,CA,6,False,0
+P00156,84,F,Hypertension,Medicare,CA,12,False,0
+P00157,75,F,Arthritis,Medicaid,FL,12,False,0
+P00158,53,M,Arthritis,Private,NY,15,False,0
+P00159,36,F,Arthritis,Self-Pay,CA,8,False,0
+P00160,82,M,Diabetes,Self-Pay,TX,10,False,0
+P00161,81,M,Arthritis,Self-Pay,FL,8,False,0
+P00162,49,M,Asthma,Self-Pay,TX,3,False,0
+P00163,80,F,None,Self-Pay,TX,4,False,0
+P00164,77,F,Heart Disease,Self-Pay,FL,7,False,0
+P00165,24,F,Heart Disease,Private,NY,16,False,0
+P00166,48,M,Arthritis,Self-Pay,FL,18,False,0
+P00167,52,M,Diabetes,Medicare,NY,15,True,0
+P00168,32,F,None,Medicaid,IL,15,False,0
+P00169,60,M,Heart Disease,Medicaid,TX,12,False,0
+P00170,44,M,Diabetes,Private,NY,19,False,0
+P00171,22,M,Asthma,Medicaid,TX,8,False,0
+P00172,40,M,Asthma,Private,CA,7,False,0
+P00173,67,M,Hypertension,Medicare,NY,15,False,0
+P00174,41,M,Cancer,Medicare,IL,3,False,0
+P00175,21,M,Cancer,Medicaid,CA,0,False,0
+P00176,24,F,Hypertension,Private,FL,10,False,0
+P00177,33,M,Diabetes,Medicaid,TX,16,False,0
+P00178,70,F,Diabetes,Self-Pay,FL,20,False,0
+P00179,58,M,Asthma,Medicare,IL,6,False,0
+P00180,46,M,Arthritis,Self-Pay,FL,12,False,0
+P00181,53,M,Diabetes,Medicaid,NY,3,False,0
+P00182,43,F,Cancer,Private,FL,6,False,0
+P00183,74,M,Diabetes,Self-Pay,CA,16,False,0
+P00184,59,F,Asthma,Medicare,TX,18,False,0
+P00185,44,M,Hypertension,Self-Pay,FL,3,False,0
+P00186,22,M,Hypertension,Medicare,IL,14,False,0
+P00187,57,F,Arthritis,Medicaid,NY,11,False,0
+P00188,40,M,Asthma,Medicare,CA,19,False,0
+P00189,18,F,Asthma,Private,TX,10,False,0
+P00190,44,F,Arthritis,Medicaid,TX,2,False,0
+P00191,30,F,Diabetes,Medicaid,IL,20,False,0
+P00192,43,F,None,Medicare,CA,5,True,0
+P00193,43,M,Hypertension,Self-Pay,CA,6,False,0
+P00194,22,M,None,Medicaid,NY,11,False,0
+P00195,75,F,Diabetes,Self-Pay,IL,15,False,0
+P00196,75,M,Arthritis,Self-Pay,FL,7,True,0
+P00197,81,M,Diabetes,Self-Pay,FL,13,False,0
+P00198,61,F,Arthritis,Medicare,TX,19,False,0
+P00199,37,F,Arthritis,Medicare,NY,20,False,0
+P00200,77,M,Asthma,Medicaid,FL,2,False,0
+P00201,71,F,Cancer,Medicaid,CA,19,False,0
+P00202,46,F,Arthritis,Medicaid,TX,13,False,0
+P00203,22,M,Heart Disease,Self-Pay,NY,7,False,0
+P00204,24,F,None,Self-Pay,NY,0,False,0
+P00205,37,F,Arthritis,Private,TX,20,False,0
+P00206,69,F,Hypertension,Medicaid,TX,19,False,0
+P00207,67,F,Asthma,Medicaid,IL,11,False,0
+P00208,58,F,Arthritis,Self-Pay,TX,8,False,0
+P00209,45,M,Heart Disease,Medicaid,NY,9,False,0
+P00210,74,M,Asthma,Private,CA,13,False,0
+P00211,38,M,None,Medicaid,IL,4,False,0
+P00212,81,F,Arthritis,Medicare,IL,14,False,0
+P00213,77,M,Arthritis,Medicare,TX,5,False,0
+P00214,80,F,Arthritis,Medicare,IL,11,False,0
+P00215,70,F,Heart Disease,Private,FL,5,False,0
+P00216,22,M,Arthritis,Self-Pay,NY,8,False,0
+P00217,55,M,Cancer,Medicaid,FL,18,False,0
+P00218,42,M,Hypertension,Self-Pay,IL,17,False,0
+P00219,76,F,Heart Disease,Medicaid,NY,13,False,0
+P00220,73,M,Asthma,Self-Pay,IL,19,False,0
+P00221,81,F,Diabetes,Private,IL,16,False,0
+P00222,25,M,Heart Disease,Medicaid,FL,5,False,0
+P00223,61,M,Asthma,Medicaid,NY,12,False,0
+P00224,37,M,Heart Disease,Self-Pay,TX,18,False,0
+P00225,42,M,Diabetes,Medicaid,NY,16,False,0
+P00226,33,M,Heart Disease,Self-Pay,FL,2,False,0
+P00227,48,F,Asthma,Medicare,IL,3,False,0
+P00228,45,F,None,Self-Pay,TX,20,False,0
+P00229,81,M,Heart Disease,Self-Pay,TX,5,False,0
+P00230,33,F,Cancer,Medicare,FL,17,False,0
+P00231,28,M,Cancer,Private,TX,10,False,0
+P00232,72,F,Diabetes,Self-Pay,CA,20,False,0
+P00233,25,M,Heart Disease,Private,CA,20,False,0
+P00234,38,M,Hypertension,Medicaid,TX,1,False,0
+P00235,69,M,Asthma,Self-Pay,FL,17,False,0
+P00236,81,M,Asthma,Medicaid,TX,15,False,0
+P00237,29,M,Hypertension,Self-Pay,TX,3,False,0
+P00238,80,M,Asthma,Medicare,TX,11,False,0
+P00239,52,M,Hypertension,Medicare,CA,9,False,0
+P00240,24,M,Asthma,Private,FL,17,False,0
+P00241,19,M,Diabetes,Self-Pay,TX,17,False,0
+P00242,48,F,Diabetes,Medicare,NY,8,False,0
+P00243,57,M,Asthma,Self-Pay,TX,10,False,0
+P00244,66,M,Asthma,Medicaid,NY,4,False,0
+P00245,62,F,None,Medicare,FL,1,False,0
+P00246,29,M,Diabetes,Self-Pay,CA,8,False,0
+P00247,76,M,None,Private,CA,9,False,0
+P00248,30,F,None,Self-Pay,IL,18,False,0
+P00249,59,M,Cancer,Private,IL,6,False,0
+P00250,18,F,Arthritis,Private,TX,17,False,0
+P00251,49,M,Cancer,Medicare,IL,12,False,0
+P00252,60,M,Asthma,Medicaid,TX,15,False,0
+P00253,41,F,Hypertension,Medicaid,FL,5,False,0
+P00254,29,M,Cancer,Private,FL,14,False,0
+P00255,42,M,Diabetes,Medicare,NY,18,False,0
+P00256,70,M,Arthritis,Self-Pay,CA,9,False,0
+P00257,75,F,Cancer,Medicare,TX,4,False,0
+P00258,49,M,Asthma,Private,CA,4,False,0
+P00259,46,M,Diabetes,Medicaid,NY,3,False,0
+P00260,62,F,Hypertension,Medicaid,TX,7,True,0
+P00261,53,M,Asthma,Medicaid,IL,12,False,0
+P00262,72,F,Diabetes,Self-Pay,FL,2,False,0
+P00263,21,M,Cancer,Private,NY,2,False,0
+P00264,83,F,Diabetes,Self-Pay,FL,11,False,0
+P00265,48,M,Hypertension,Medicaid,CA,6,False,0
+P00266,23,F,None,Self-Pay,IL,3,False,0
+P00267,40,M,Cancer,Medicaid,TX,20,False,0
+P00268,72,M,Arthritis,Private,NY,2,False,0
+P00269,32,M,None,Medicare,FL,18,False,0
+P00270,57,M,Heart Disease,Medicaid,NY,9,False,0
+P00271,43,F,Arthritis,Self-Pay,FL,8,False,0
+P00272,36,M,None,Private,TX,9,False,0
+P00273,41,F,Asthma,Medicaid,IL,7,False,0
+P00274,54,M,Asthma,Medicare,NY,15,False,0
+P00275,76,M,Arthritis,Private,FL,15,False,0
+P00276,53,F,None,Self-Pay,CA,12,False,0
+P00277,85,M,Heart Disease,Self-Pay,IL,8,False,0
+P00278,80,F,None,Medicare,FL,0,False,0
+P00279,80,F,Diabetes,Medicare,TX,15,False,0
+P00280,34,M,Hypertension,Medicaid,NY,0,False,0
+P00281,81,M,None,Self-Pay,IL,7,False,0
+P00282,21,M,Heart Disease,Medicare,NY,16,False,0
+P00283,32,F,Hypertension,Self-Pay,CA,20,False,0
+P00284,75,M,None,Private,IL,18,False,0
+P00285,25,M,Asthma,Self-Pay,NY,10,False,0
+P00286,61,F,Arthritis,Private,IL,8,False,0
+P00287,26,M,Diabetes,Medicare,IL,16,False,0
+P00288,22,M,Heart Disease,Medicaid,FL,18,True,0
+P00289,81,F,Cancer,Medicaid,NY,14,False,0
+P00290,60,F,Diabetes,Medicaid,FL,12,True,0
+P00291,57,M,None,Private,IL,4,False,0
+P00292,57,M,Cancer,Medicaid,CA,2,False,0
+P00293,31,M,Hypertension,Self-Pay,NY,20,False,0
+P00294,57,F,None,Self-Pay,IL,13,False,0
+P00295,27,M,Asthma,Medicare,TX,11,False,0
+P00296,50,F,Heart Disease,Medicare,TX,14,False,0
+P00297,53,F,Asthma,Medicare,TX,19,False,0
+P00298,79,M,Hypertension,Medicare,CA,17,False,0
+P00299,67,F,Diabetes,Self-Pay,IL,11,False,0
+P00300,71,M,None,Medicare,CA,20,False,0
+P00301,71,M,Cancer,Medicaid,CA,20,False,0
+P00302,63,F,Diabetes,Private,NY,17,False,0
+P00303,60,F,Asthma,Self-Pay,FL,2,False,0
+P00304,38,F,Asthma,Private,IL,18,False,0
+P00305,47,F,Arthritis,Medicaid,NY,9,False,0
+P00306,37,M,Hypertension,Medicaid,CA,1,False,0
+P00307,56,F,Arthritis,Medicaid,CA,19,False,0
+P00308,23,M,Asthma,Medicare,IL,4,False,0
+P00309,73,M,Asthma,Private,FL,19,False,0
+P00310,20,M,Cancer,Medicare,TX,3,False,0
+P00311,28,M,Hypertension,Private,TX,19,False,0
+P00312,62,F,Arthritis,Medicare,NY,16,False,0
+P00313,62,F,Heart Disease,Self-Pay,CA,7,False,0
+P00314,50,M,Asthma,Medicaid,FL,19,False,0
+P00315,40,F,Diabetes,Private,NY,3,False,0
+P00316,30,F,Hypertension,Private,CA,9,False,0
+P00317,70,F,None,Medicare,FL,19,False,0
+P00318,73,M,Heart Disease,Medicaid,NY,10,False,0
+P00319,81,M,Hypertension,Self-Pay,CA,10,False,0
+P00320,80,M,None,Medicare,FL,12,False,0
+P00321,66,F,Heart Disease,Medicare,NY,20,False,0
+P00322,51,F,Hypertension,Medicaid,FL,1,False,0
+P00323,66,F,Arthritis,Self-Pay,IL,8,False,0
+P00324,31,F,Arthritis,Private,TX,7,False,0
+P00325,70,F,None,Self-Pay,FL,7,False,0
+P00326,60,F,Asthma,Private,CA,15,False,0
+P00327,54,M,Heart Disease,Private,TX,2,False,0
+P00328,43,F,Diabetes,Private,TX,18,False,0
+P00329,56,M,Diabetes,Self-Pay,IL,3,False,0
+P00330,44,M,Asthma,Private,CA,18,False,0
+P00331,29,F,Arthritis,Medicare,FL,7,False,0
+P00332,72,M,Asthma,Medicaid,TX,6,False,0
+P00333,66,F,Arthritis,Private,CA,1,False,0
+P00334,34,F,Heart Disease,Private,CA,17,False,0
+P00335,47,F,Hypertension,Medicare,TX,7,False,0
+P00336,33,M,Asthma,Medicaid,FL,5,False,0
+P00337,29,M,Hypertension,Medicaid,TX,2,False,0
+P00338,65,M,None,Medicaid,IL,4,False,0
+P00339,22,F,Asthma,Medicaid,FL,13,False,0
+P00340,60,F,Cancer,Private,NY,18,False,0
+P00341,52,F,Asthma,Medicaid,FL,1,True,0
+P00342,57,M,Cancer,Medicaid,NY,8,False,0
+P00343,69,F,Heart Disease,Self-Pay,IL,2,False,0
+P00344,31,F,Diabetes,Self-Pay,FL,20,False,0
+P00345,26,F,Hypertension,Medicaid,CA,8,False,0
+P00346,73,F,Heart Disease,Self-Pay,NY,7,False,0
+P00347,59,M,Hypertension,Medicare,TX,4,True,0
+P00348,60,F,Arthritis,Medicaid,CA,17,False,0
+P00349,63,M,Arthritis,Medicare,TX,17,False,0
+P00350,80,F,Arthritis,Medicare,TX,14,False,0
+P00351,46,M,None,Medicaid,TX,20,False,0
+P00352,18,M,None,Medicaid,FL,5,False,0
+P00353,59,F,Heart Disease,Medicaid,FL,17,False,0
+P00354,64,M,Heart Disease,Private,TX,20,True,0
+P00355,32,M,None,Private,FL,17,False,0
+P00356,27,M,Asthma,Private,CA,7,False,0
+P00357,29,M,Cancer,Medicaid,NY,10,False,0
+P00358,53,F,Arthritis,Private,CA,20,False,0
+P00359,62,M,Hypertension,Self-Pay,CA,5,False,0
+P00360,23,F,None,Medicare,NY,9,False,0
+P00361,29,M,Asthma,Medicaid,TX,6,False,0
+P00362,32,F,Cancer,Self-Pay,FL,5,False,0
+P00363,26,M,Hypertension,Medicare,CA,19,False,0
+P00364,81,M,Asthma,Self-Pay,FL,8,True,0
+P00365,23,M,Arthritis,Private,NY,16,False,0
+P00366,44,F,Heart Disease,Self-Pay,TX,17,False,0
+P00367,53,M,None,Self-Pay,NY,6,False,0
+P00368,54,F,Heart Disease,Medicare,CA,16,False,0
+P00369,25,F,None,Medicaid,CA,18,False,0
+P00370,84,F,Diabetes,Self-Pay,CA,15,False,0
+P00371,46,M,None,Medicare,TX,10,False,0
+P00372,52,F,None,Medicaid,IL,16,False,0
+P00373,72,M,Arthritis,Private,TX,14,False,0
+P00374,72,M,Asthma,Self-Pay,NY,20,False,0
+P00375,73,F,Hypertension,Self-Pay,TX,7,False,0
+P00376,62,M,Diabetes,Self-Pay,TX,1,False,0
+P00377,59,F,Diabetes,Medicaid,NY,16,False,0
+P00378,59,F,Cancer,Self-Pay,FL,6,False,0
+P00379,32,M,Hypertension,Private,TX,13,False,0
+P00380,82,M,Cancer,Medicare,IL,14,False,0
+P00381,59,M,Cancer,Medicare,NY,7,False,0
+P00382,69,M,Arthritis,Medicaid,NY,19,True,0
+P00383,42,F,Cancer,Medicaid,NY,18,False,0
+P00384,67,F,Asthma,Medicare,NY,11,False,0
+P00385,72,M,Arthritis,Medicare,NY,0,False,0
+P00386,48,F,Diabetes,Private,TX,15,False,0
+P00387,24,M,Diabetes,Medicaid,CA,13,False,0
+P00388,19,F,Arthritis,Self-Pay,CA,7,False,0
+P00389,26,M,Hypertension,Self-Pay,CA,18,False,0
+P00390,74,M,Arthritis,Medicare,TX,4,False,0
+P00391,30,M,Asthma,Medicare,CA,20,False,0
+P00392,20,M,Cancer,Self-Pay,FL,12,False,0
+P00393,20,F,Asthma,Self-Pay,TX,13,False,0
+P00394,81,F,Asthma,Medicaid,FL,7,False,0
+P00395,22,M,Asthma,Self-Pay,FL,5,False,0
+P00396,69,M,Arthritis,Self-Pay,FL,6,False,0
+P00397,61,F,None,Medicare,IL,16,False,0
+P00398,69,M,Cancer,Private,FL,19,False,0
+P00399,84,F,Hypertension,Medicaid,TX,11,False,0
+P00400,48,F,Hypertension,Private,IL,2,False,0
+P00401,59,F,Cancer,Private,FL,1,False,0
+P00402,21,M,Cancer,Medicare,IL,4,False,0
+P00403,74,F,Arthritis,Medicare,IL,17,False,0
+P00404,20,F,None,Medicaid,NY,10,False,0
+P00405,67,F,None,Medicaid,IL,11,False,0
+P00406,85,F,Diabetes,Medicare,NY,10,False,0
+P00407,52,F,Asthma,Medicaid,NY,9,False,0
+P00408,52,M,Heart Disease,Medicare,NY,4,False,0
+P00409,57,M,Heart Disease,Medicaid,TX,16,False,0
+P00410,66,M,Hypertension,Private,IL,3,False,0
+P00411,83,M,Asthma,Private,CA,6,False,0
+P00412,38,M,Asthma,Self-Pay,CA,4,False,0
+P00413,82,F,Hypertension,Self-Pay,NY,17,False,0
+P00414,72,M,Arthritis,Medicaid,TX,5,False,0
+P00415,61,F,Arthritis,Self-Pay,CA,20,False,0
+P00416,41,F,Arthritis,Self-Pay,NY,19,False,0
+P00417,43,F,Heart Disease,Self-Pay,TX,6,False,0
+P00418,34,F,Cancer,Self-Pay,IL,19,False,0
+P00419,83,M,Diabetes,Medicaid,FL,11,False,0
+P00420,29,F,Heart Disease,Private,NY,8,False,0
+P00421,72,M,Asthma,Medicaid,NY,2,False,0
+P00422,54,F,None,Medicaid,CA,4,False,0
+P00423,84,F,Hypertension,Medicare,IL,6,False,0
+P00424,35,F,None,Medicaid,FL,1,True,0
+P00425,80,F,Arthritis,Medicare,CA,17,False,0
+P00426,53,F,Hypertension,Medicaid,FL,9,False,0
+P00427,48,F,Heart Disease,Self-Pay,CA,0,False,0
+P00428,58,F,Asthma,Private,FL,3,False,0
+P00429,72,F,Diabetes,Private,CA,12,False,0
+P00430,77,M,Cancer,Medicaid,IL,10,False,0
+P00431,68,M,Arthritis,Medicare,CA,7,False,0
+P00432,42,M,Asthma,Medicaid,NY,13,False,0
+P00433,60,F,Cancer,Self-Pay,TX,14,False,0
+P00434,76,M,Heart Disease,Private,FL,5,True,0
+P00435,76,M,Heart Disease,Medicaid,CA,8,False,0
+P00436,27,F,Cancer,Self-Pay,NY,4,False,0
+P00437,54,M,Asthma,Self-Pay,NY,19,True,0
+P00438,77,F,Arthritis,Self-Pay,CA,19,False,0
+P00439,31,F,Arthritis,Medicare,CA,17,False,0
+P00440,81,F,Cancer,Medicaid,FL,12,False,0
+P00441,63,F,Heart Disease,Medicare,FL,15,False,0
+P00442,53,M,Arthritis,Private,NY,6,False,0
+P00443,26,F,Diabetes,Medicaid,IL,3,False,0
+P00444,67,M,Heart Disease,Self-Pay,NY,15,False,0
+P00445,82,F,Heart Disease,Medicaid,CA,17,False,0
+P00446,58,F,Cancer,Self-Pay,CA,5,False,0
+P00447,61,F,Cancer,Medicare,NY,1,False,0
+P00448,76,M,Asthma,Medicare,NY,9,False,0
+P00449,27,M,Cancer,Medicaid,CA,17,False,0
+P00450,39,F,Diabetes,Medicaid,IL,20,False,0
+P00451,30,M,Asthma,Self-Pay,FL,10,False,0
+P00452,36,M,Hypertension,Private,CA,0,False,0
+P00453,48,M,Hypertension,Medicaid,FL,8,False,0
+P00454,36,M,Asthma,Medicare,FL,12,False,0
+P00455,40,F,Arthritis,Medicare,NY,0,False,0
+P00456,40,M,Asthma,Medicaid,FL,17,False,0
+P00457,75,F,Hypertension,Private,CA,0,False,0
+P00458,69,M,Arthritis,Medicaid,FL,2,False,0
+P00459,74,F,Asthma,Medicare,IL,12,False,0
+P00460,79,M,Arthritis,Self-Pay,NY,13,False,0
+P00461,84,F,Arthritis,Medicare,TX,9,False,0
+P00462,54,M,Arthritis,Medicaid,CA,20,True,0
+P00463,23,M,Diabetes,Self-Pay,NY,6,False,0
+P00464,28,F,Asthma,Medicaid,CA,2,True,0
+P00465,67,F,None,Medicaid,FL,10,False,0
+P00466,55,M,Diabetes,Self-Pay,FL,10,False,0
+P00467,84,M,None,Private,FL,18,False,0
+P00468,26,M,Asthma,Self-Pay,IL,8,False,0
+P00469,80,F,Hypertension,Medicare,FL,6,True,0
+P00470,45,M,Cancer,Medicare,FL,14,False,0
+P00471,52,F,Asthma,Medicaid,NY,7,False,0
+P00472,38,F,Cancer,Medicaid,FL,7,False,0
+P00473,21,F,Hypertension,Medicare,CA,18,False,0
+P00474,68,M,Cancer,Medicaid,NY,2,False,0
+P00475,64,F,Asthma,Medicare,TX,16,False,0
+P00476,33,F,Hypertension,Private,NY,14,False,0
+P00477,51,M,Cancer,Medicare,CA,10,False,0
+P00478,71,M,Cancer,Private,TX,0,False,0
+P00479,59,M,Hypertension,Medicare,IL,2,False,0
+P00480,40,M,Arthritis,Medicare,TX,5,False,0
+P00481,80,M,Asthma,Medicaid,IL,7,False,0
+P00482,40,M,Heart Disease,Medicare,TX,4,False,0
+P00483,58,F,Asthma,Self-Pay,CA,10,False,0
+P00484,81,M,Diabetes,Self-Pay,CA,16,False,0
+P00485,50,F,Hypertension,Medicaid,CA,16,False,0
+P00486,69,M,Diabetes,Self-Pay,NY,1,False,0
+P00487,48,F,Diabetes,Medicare,TX,13,True,0
+P00488,63,F,Arthritis,Self-Pay,IL,12,False,0
+P00489,41,M,Arthritis,Medicaid,IL,8,True,0
+P00490,62,M,Cancer,Medicaid,IL,8,False,0
+P00491,21,F,Hypertension,Medicaid,IL,18,False,0
+P00492,69,M,Arthritis,Private,CA,8,False,0
+P00493,43,F,Diabetes,Medicare,FL,7,False,0
+P00494,55,M,Cancer,Self-Pay,IL,5,False,0
+P00495,18,F,Cancer,Self-Pay,NY,17,False,0
+P00496,81,F,Cancer,Medicare,TX,17,False,0
+P00497,39,M,Hypertension,Self-Pay,IL,2,False,0
+P00498,44,F,Hypertension,Medicare,TX,12,False,0
+P00499,18,M,Cancer,Private,TX,5,False,0

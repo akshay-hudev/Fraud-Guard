@@ -1,0 +1,5 @@
+Model,Acc,Prec,Rec,F1,AUC-ROC,AUC-PR,CI_lower,CI_upper
+logistic_regression,0.9833,0.913,0.9844,0.9474,0.9984,0.994,0.9844,0.9844
+random_forest,1.0,1.0,1.0,1.0,1.0,1.0,0.9908,1.003
+gradient_boosting,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0
+gnn_hgt,,,,,,,,

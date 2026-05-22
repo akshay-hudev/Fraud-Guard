@@ -1,0 +1,38 @@
+[
+  {
+    "threshold": 0.2,
+    "escalation_rate": 0.1195,
+    "system_ring_recall": 1.0,
+    "system_mean_latency_ms": 32.39
+  },
+  {
+    "threshold": 0.3,
+    "escalation_rate": 0.1195,
+    "system_ring_recall": 1.0,
+    "system_mean_latency_ms": 32.39
+  },
+  {
+    "threshold": 0.4,
+    "escalation_rate": 0.1185,
+    "system_ring_recall": 1.0,
+    "system_mean_latency_ms": 32.37
+  },
+  {
+    "threshold": 0.5,
+    "escalation_rate": 0.1185,
+    "system_ring_recall": 1.0,
+    "system_mean_latency_ms": 32.37
+  },
+  {
+    "threshold": 0.6,
+    "escalation_rate": 0.1185,
+    "system_ring_recall": 1.0,
+    "system_mean_latency_ms": 32.37
+  },
+  {
+    "threshold": 0.7,
+    "escalation_rate": 0.1185,
+    "system_ring_recall": 1.0,
+    "system_mean_latency_ms": 32.37
+  }
+]

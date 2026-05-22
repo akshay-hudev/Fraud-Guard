@@ -12,7 +12,7 @@ import random
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 import pandas as pd
 from fastapi import (
@@ -55,6 +55,7 @@ from backend.schemas import (
 setup_logging()
 logger = AppLogger(__name__)
 settings = get_settings()
+USE_INDUCTIVE_MODE = os.getenv("USE_INDUCTIVE_MODE", "true").lower() in {"1", "true", "yes"}
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -63,7 +64,91 @@ class AppState:
     predictor: Optional[ProductionFraudPredictor] = None
     model_registry: Optional[ModelRegistry] = None
     drift_detector: Optional[DriftDetector] = None
+    historical_graph: Optional[Dict[str, Any]] = None
     start_time: datetime = datetime.utcnow()
+
+
+def _load_historical_graph() -> Optional[Dict[str, Any]]:
+    graph_candidates = [
+        "training/data/processed/hetero_graph.pt",
+        "data/processed/hetero_graph.pt",
+    ]
+    mapping_candidates = [
+        "training/data/processed/graph_mappings.json",
+        "data/processed/graph_mappings.json",
+    ]
+    try:
+        import torch
+        graph_path = next((p for p in graph_candidates if os.path.exists(p)), None)
+        if not graph_path:
+            return None
+        try:
+            graph = torch.load(graph_path, map_location="cpu", weights_only=False)
+        except TypeError:
+            graph = torch.load(graph_path, map_location="cpu")
+        mappings = {}
+        mapping_path = next((p for p in mapping_candidates if os.path.exists(p)), None)
+        if mapping_path:
+            with open(mapping_path) as f:
+                mappings = json.load(f)
+        return {"data": graph, "mappings": mappings}
+    except Exception as e:
+        logger.warning(f"Historical graph cache unavailable: {e}")
+        return None
+
+
+def resolve_node_index(historical_graph, node_type: str, claim_features: dict) -> int:
+    mappings = {}
+    if isinstance(historical_graph, dict):
+        mappings = historical_graph.get("mappings", {}) or {}
+    if node_type == "claim":
+        claim_id = claim_features.get("claim_id")
+        claim_map = mappings.get("claim_idx", {})
+        if claim_id in claim_map:
+            return int(claim_map[claim_id])
+    return 0
+
+
+def build_inference_subgraph(
+    claim_features: dict,
+    patient_id: str | None,
+    doctor_id: str | None,
+    historical_graph,
+    k: int = 2,
+):
+    """Extract a 2-hop subgraph for inductive single-claim inference."""
+    if historical_graph is None:
+        return None
+    try:
+        import torch
+        from torch_geometric.data import HeteroData
+        from torch_geometric.utils import k_hop_subgraph
+    except Exception:
+        return None
+
+    graph = historical_graph.get("data") if isinstance(historical_graph, dict) else historical_graph
+    if graph is None:
+        return None
+
+    try:
+        edge_index = graph["claim", "treated_by", "doctor"].edge_index
+    except Exception:
+        return None
+
+    claim_node_idx = resolve_node_index(historical_graph, "claim", claim_features)
+    node_idx, edge_index, mapping, edge_mask = k_hop_subgraph(
+        node_idx=claim_node_idx,
+        num_hops=k,
+        edge_index=edge_index,
+        relabel_nodes=True,
+    )
+
+    subgraph = HeteroData()
+    subgraph["claim"].x = graph["claim"].x[node_idx]
+    doctor_nodes = graph["claim", "treated_by", "doctor"].edge_index[1][edge_mask].unique()
+    subgraph["doctor"].x = graph["doctor"].x[doctor_nodes]
+    subgraph["claim", "treated_by", "doctor"].edge_index = edge_index
+    return subgraph
 
 
 @asynccontextmanager
@@ -73,6 +158,9 @@ async def lifespan(app: FastAPI):
         init_db()
         logger.info("✓ Database initialized")
         AppState.predictor = ProductionFraudPredictor(use_gnn=True)
+        if USE_INDUCTIVE_MODE:
+            AppState.historical_graph = _load_historical_graph()
+            logger.info("Inductive graph cache loaded", available=AppState.historical_graph is not None)
         logger.info("✓ Fraud predictor loaded")
     except Exception as e:
         logger.error("Startup failed", exception=e)
@@ -178,6 +266,7 @@ async def get_status():
         "environment": settings.environment,
         "api_version": "2.0.0",
         "predictor_loaded": AppState.predictor is not None,
+        "use_inductive_mode": USE_INDUCTIVE_MODE,
         "timestamp": datetime.utcnow().isoformat(),
     }
 
@@ -216,8 +305,19 @@ async def predict_single(
 
     try:
         start_time = time.time()
+        # DEPLOYMENT MODE: inductive inference
+        # Score a new claim from its own features plus a 2-hop patient/doctor
+        # neighborhood, without requiring the full training graph at request time.
+        features = claim.dict()
+        if USE_INDUCTIVE_MODE:
+            features["inference_subgraph"] = build_inference_subgraph(
+                claim_features=features,
+                patient_id=claim.patient_id,
+                doctor_id=claim.doctor_id,
+                historical_graph=AppState.historical_graph,
+            )
         result = AppState.predictor.predict(
-            features=claim.dict(),
+            features=features,
             explain=claim.explain,
         )
         inference_time_ms = (time.time() - start_time) * 1000

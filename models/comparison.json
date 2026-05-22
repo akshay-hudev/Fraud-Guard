@@ -1,0 +1,27 @@
+{
+  "logistic_regression": {
+    "accuracy": 0.9833,
+    "precision": 0.913,
+    "recall": 0.9844,
+    "f1": 0.9474,
+    "roc_auc": 0.9984,
+    "auc_pr": 0.994
+  },
+  "random_forest": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "roc_auc": 1.0,
+    "auc_pr": 1.0
+  },
+  "gradient_boosting": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "roc_auc": 1.0,
+    "auc_pr": 1.0
+  },
+  "gnn_hgt": {}
+}

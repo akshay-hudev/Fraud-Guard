@@ -1,0 +1,31 @@
+{
+  "dataset": "Kaggle Healthcare Provider Fraud Detection Analysis",
+  "label": {
+    "synthetic": "fraud_label",
+    "kaggle": "PotentialFraud",
+    "positive_value": "Yes"
+  },
+  "entity_keys": {
+    "patient_id": "BeneID",
+    "doctor_id": "AttendingPhysician",
+    "provider_id": "Provider",
+    "claim_id": "ClaimID"
+  },
+  "temporal_key": "ClaimStartDt",
+  "features": {
+    "claim_amount": "InscClaimAmtReimbursed",
+    "deductible_paid": "DeductibleAmtPaid",
+    "num_procedures": "ClmProcedureCode_1..ClmProcedureCode_6 non-null count",
+    "num_diagnoses": "ClmDiagnosisCode_1..ClmDiagnosisCode_10 non-null count",
+    "days_in_hospital": "DischargeDt - AdmissionDt, fallback ClaimEndDt - ClaimStartDt",
+    "age": "ClaimStartDt - DOB",
+    "gender": "Gender",
+    "race": "Race",
+    "renal_disease": "RenalDiseaseIndicator",
+    "chronic_conditions": "ChronicCond_* columns",
+    "annual_reimbursement": "IPAnnualReimbursementAmt + OPAnnualReimbursementAmt",
+    "annual_deductible": "IPAnnualDeductibleAmt + OPAnnualDeductibleAmt",
+    "provider_aggregates": "Provider grouped claim counts and amount statistics",
+    "beneficiary_aggregates": "BeneID grouped claim counts and amount statistics"
+  }
+}

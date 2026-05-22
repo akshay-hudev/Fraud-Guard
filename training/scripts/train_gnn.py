@@ -29,7 +29,10 @@ def main():
         log.info("Graph: %s", data)
     else:
         log.info("Loading existing graph from %s", graph_path)
-        data = torch.load(graph_path)
+        try:
+            data = torch.load(graph_path, weights_only=False)
+        except TypeError:
+            data = torch.load(graph_path)
 
     log.info("Graph summary:")
     log.info("  Node types  : %s", data.node_types)

@@ -1,0 +1,12 @@
+{
+  "per_ring_recall": {
+    "GB": {
+      "ring_1": 1.0,
+      "ring_2": 0.8,
+      "ring_3": 0.75,
+      "ring_4": 0.5,
+      "ring_5": 0.6667
+    }
+  },
+  "note": "ring_i recall = fraction of ring i claims correctly flagged"
+}

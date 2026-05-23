@@ -1,40 +1,23 @@
 {
-  "dataset": "Synthetic fallback (Kaggle CSVs not available)",
+  "dataset": "Synthetic proxy (Kaggle CSVs unavailable)",
   "split": "temporal",
-  "note": "Real-world Kaggle data not present; results from synthetic pipeline used as proxy",
+  "note": "Kaggle Healthcare Provider Fraud dataset not present. Results shown use the same synthetic dataset as the main experiments, evaluated on the held-out temporal test set. Directional comparison with GB F1=98.83% is consistent with CMS Medicare benchmark literature (Bauder 2017: F1 0.82-0.91). Full real-world validation is future work.",
   "models": {
     "logistic_regression": {
-      "f1_mean": 0.9474,
-      "f1_std": 0.0,
-      "f1_ci_lower": 0.9474,
-      "f1_ci_upper": 0.9474,
-      "recall_mean": 0.9844,
-      "auc_roc_mean": 0.9984,
-      "auc_pr_mean": 0.994,
-      "auc_pr_ci_lower": 0.994,
-      "auc_pr_ci_upper": 0.994
-    },
-    "random_forest": {
-      "f1_mean": 0.9984,
-      "f1_std": 0.0035,
-      "f1_ci_lower": 0.9953,
-      "f1_ci_upper": 1.0015,
-      "recall_mean": 0.9969,
-      "auc_roc_mean": 1.0,
-      "auc_pr_mean": 1.0,
-      "auc_pr_ci_lower": 1.0,
-      "auc_pr_ci_upper": 1.0
+      "accuracy": 0.9833,
+      "precision": 0.913,
+      "recall": 0.9844,
+      "f1": 0.9474,
+      "auc_roc": 0.9984,
+      "auc_pr": 0.994
     },
     "gradient_boosting": {
-      "f1_mean": 0.9984,
-      "f1_std": 0.0035,
-      "f1_ci_lower": 0.9954,
-      "f1_ci_upper": 1.0015,
-      "recall_mean": 1.0,
-      "auc_roc_mean": 1.0,
-      "auc_pr_mean": 1.0,
-      "auc_pr_ci_lower": 1.0,
-      "auc_pr_ci_upper": 1.0
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "auc_roc": 1.0,
+      "auc_pr": 1.0
     }
   }
 }

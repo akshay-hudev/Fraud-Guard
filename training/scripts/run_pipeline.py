@@ -236,6 +236,10 @@ def run_pipeline(skip_gnn: bool = False, skip_generate: bool = False):
         step_generate()
 
     splits = step_preprocess()
+    os.makedirs("data/processed", exist_ok=True)
+    import pickle
+    with open("data/processed/splits.pkl", "wb") as f:
+        pickle.dump(splits, f)
 
     baseline_results, seed_results = step_train_baselines(splits)
 
@@ -266,7 +270,6 @@ def run_pipeline(skip_gnn: bool = False, skip_generate: bool = False):
     compare_models(baseline_results, gnn_results, seed_results)
 
     import json
-    import os
     from scipy import stats
 
     os.makedirs("logs", exist_ok=True)

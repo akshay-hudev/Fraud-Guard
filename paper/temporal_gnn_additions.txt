@@ -1,0 +1,48 @@
+=== INSERT IN SECTION 6 (Discussion), under temporal dynamics ===
+
+Replace:
+  "Future: Temporal GNNs or sequential architectures to capture
+   fraud evolution."
+
+With:
+  "Future work should explore temporal GNN architectures such as
+   TGAT~\cite{xu2020tgat}, which extends self-attention to
+   continuous-time dynamic graphs, TGN~\cite{rossi2020tgn},
+   which uses memory modules to track evolving entity states,
+   and DyRep~\cite{trivedi2019dyrep}, which models event-driven
+   graph dynamics. These architectures are directly suited to
+   capturing how provider rings evolve over time, recruit new
+   members, and change billing patterns in response to audits."
+
+=== INSERT IN RELATED WORK, new subsection after 2.3 ===
+
+\subsection{Temporal Graph Neural Networks}
+Static GNNs treat the fraud network as fixed, but real provider
+rings evolve over time. Temporal GNNs address this by modelling
+time-stamped interactions. Xu et al.~\cite{xu2020tgat} propose
+TGAT using time-encoding and attention over temporal neighbours.
+Rossi et al.~\cite{rossi2020tgn} introduce TGN with a memory
+module that maintains evolving node states. Trivedi et
+al.~\cite{trivedi2019dyrep} model event-driven structural changes.
+These approaches are directly relevant to detecting ring fraud
+that emerges gradually across billing periods.
+
+=== INSERT IN BIBLIOGRAPHY ===
+
+\bibitem{xu2020tgat}
+D.~Xu, C.~Ruan, E.~Korpeoglu, S.~Kumar, and K.~Achan,
+``Inductive representation learning on temporal graphs,''
+\textit{Proc.\ 8th ICLR}, Addis Ababa, Apr.\ 2020.
+
+\bibitem{rossi2020tgn}
+E.~Rossi, B.~Chamberlain, F.~Frasca, D.~Eynard, F.~Monti,
+and M.~Bronstein,
+``Temporal graph networks for deep learning on dynamic graphs,''
+\textit{ICML Workshop on Graph Representation Learning}, 2020.
+
+\bibitem{trivedi2019dyrep}
+R.~Trivedi, M.~Farajtabar, P.~Biswal, and H.~Zha,
+``DyRep: Learning representations over dynamic graphs,''
+\textit{Proc.\ 7th ICLR}, New Orleans, May 2019.
+
+=== END OF INSERTIONS ===

@@ -307,6 +307,10 @@ class FraudDataPreprocessor:
         X_val_scaled = self.scaler.transform(X_val)
         X_test_scaled = self.scaler.transform(X_test)
 
+        feature_names = list(features_train.drop(columns=["fraud_label"]).columns)
+        with open(f"{self.processed_dir}/feature_names.json", "w") as f:
+            json.dump(feature_names, f)
+
         # Step 7: Save all artifacts
         log.info("\n💾 Saving artifacts...")
         np.save(f"{self.processed_dir}/X_train.npy", X_train_scaled)
@@ -343,7 +347,7 @@ class FraudDataPreprocessor:
             "y_train": y_train,
             "y_val": y_val,
             "y_test": y_test,
-            "feature_names": list(features_train.drop(columns=["fraud_label"]).columns),
+            "feature_names": feature_names,
         }
 
 

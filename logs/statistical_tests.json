@@ -8,9 +8,10 @@
     1.0,
     1.0
   ],
-  "mean_difference": null,
-  "t_statistic": null,
-  "p_value": null,
-  "cohens_d": null,
-  "significant_at_0.05": false
+  "t_statistic": "N/A",
+  "p_value": "N/A",
+  "cohens_d": "N/A",
+  "mean_difference": "N/A",
+  "significant_at_0.05": false,
+  "note": "HGT not run - install torch-sparse and re-run"
 }

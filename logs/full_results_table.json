@@ -31,5 +31,57 @@
     "auc_pr_mean": 1.0,
     "auc_pr_ci_lower": 1.0,
     "auc_pr_ci_upper": 1.0
+  },
+  "HGT": {
+    "f1_mean": null,
+    "f1_std": null,
+    "f1_ci_lower": null,
+    "f1_ci_upper": null,
+    "recall_mean": null,
+    "auc_roc_mean": null,
+    "auc_pr_mean": null,
+    "auc_pr_ci_lower": null,
+    "auc_pr_ci_upper": null,
+    "ring_recall": null,
+    "note": "Skipped: torch-sparse not installed"
+  },
+  "RGCN": {
+    "f1_mean": null,
+    "f1_std": null,
+    "f1_ci_lower": null,
+    "f1_ci_upper": null,
+    "recall_mean": null,
+    "auc_roc_mean": null,
+    "auc_pr_mean": null,
+    "auc_pr_ci_lower": null,
+    "auc_pr_ci_upper": null,
+    "ring_recall": null,
+    "note": "Skipped: torch-sparse not installed"
+  },
+  "HAN": {
+    "f1_mean": null,
+    "f1_std": null,
+    "f1_ci_lower": null,
+    "f1_ci_upper": null,
+    "recall_mean": null,
+    "auc_roc_mean": null,
+    "auc_pr_mean": null,
+    "auc_pr_ci_lower": null,
+    "auc_pr_ci_upper": null,
+    "ring_recall": null,
+    "note": "Skipped: torch-sparse not installed"
+  },
+  "SimpleHGN": {
+    "f1_mean": null,
+    "f1_std": null,
+    "f1_ci_lower": null,
+    "f1_ci_upper": null,
+    "recall_mean": null,
+    "auc_roc_mean": null,
+    "auc_pr_mean": null,
+    "auc_pr_ci_lower": null,
+    "auc_pr_ci_upper": null,
+    "ring_recall": null,
+    "note": "Skipped: torch-sparse not installed"
   }
 }

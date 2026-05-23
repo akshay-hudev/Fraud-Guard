@@ -239,6 +239,9 @@ def run_pipeline(skip_gnn: bool = False, skip_generate: bool = False):
 
     baseline_results, seed_results = step_train_baselines(splits)
 
+    all_seed_results = dict(seed_results or {})
+    all_seed_results.update(_load_seed_results())
+
     gnn_results = {}
     if not skip_gnn:
         try:
@@ -247,6 +250,16 @@ def run_pipeline(skip_gnn: bool = False, skip_generate: bool = False):
         except ImportError as e:
             log.warning("PyTorch Geometric not installed (%s). Skipping GNN step.", e)
             log.warning("Install with: pip install torch-geometric")
+            GNN_STUB = {
+                "f1_mean": None, "f1_std": None,
+                "f1_ci_lower": None, "f1_ci_upper": None,
+                "recall_mean": None, "auc_roc_mean": None,
+                "auc_pr_mean": None, "auc_pr_ci_lower": None,
+                "auc_pr_ci_upper": None, "ring_recall": None,
+                "note": "Skipped: torch-sparse not installed",
+            }
+            for gnn_name in ["HGT", "RGCN", "HAN", "SimpleHGN"]:
+                all_seed_results[gnn_name] = [GNN_STUB]
 
     per_ring_analysis = _save_per_ring_recall(splits["y_test"])
 
@@ -257,9 +270,6 @@ def run_pipeline(skip_gnn: bool = False, skip_generate: bool = False):
     from scipy import stats
 
     os.makedirs("logs", exist_ok=True)
-
-    all_seed_results = dict(seed_results or {})
-    all_seed_results.update(_load_seed_results())
 
     results_table = {}
     def _ci(vals: list[float]) -> float:
@@ -275,6 +285,21 @@ def run_pipeline(skip_gnn: bool = False, skip_generate: bool = False):
         aucs = [row["roc_auc"] for row in seed_rows if "roc_auc" in row]
         auc_prs = [row["auc_pr"] for row in seed_rows if "auc_pr" in row]
         if not f1s:
+            if seed_rows and isinstance(seed_rows[0], dict) and "f1_mean" in seed_rows[0]:
+                stub = seed_rows[0]
+                results_table[model_name] = {
+                    "f1_mean": stub.get("f1_mean"),
+                    "f1_std": stub.get("f1_std"),
+                    "f1_ci_lower": stub.get("f1_ci_lower"),
+                    "f1_ci_upper": stub.get("f1_ci_upper"),
+                    "recall_mean": stub.get("recall_mean"),
+                    "auc_roc_mean": stub.get("auc_roc_mean"),
+                    "auc_pr_mean": stub.get("auc_pr_mean"),
+                    "auc_pr_ci_lower": stub.get("auc_pr_ci_lower"),
+                    "auc_pr_ci_upper": stub.get("auc_pr_ci_upper"),
+                    "ring_recall": stub.get("ring_recall"),
+                    "note": stub.get("note"),
+                }
             continue
         results_table[model_name] = {
             "f1_mean": round(np.mean(f1s), 4),
@@ -305,7 +330,19 @@ def run_pipeline(skip_gnn: bool = False, skip_generate: bool = False):
         if row.get("ring_recall") is not None
     ]
 
-    if len(hgt_ring_recalls) >= 2 and len(gb_ring_recalls) >= 2:
+    if len(hgt_ring_recalls) < 2:
+        stat_results = {
+            "test": "paired_ttest_hgt_vs_gb_ring_recall",
+            "hgt_ring_recall_per_seed": hgt_ring_recalls,
+            "gb_ring_recall_per_seed": gb_ring_recalls,
+            "t_statistic": "N/A",
+            "p_value": "N/A",
+            "cohens_d": "N/A",
+            "mean_difference": "N/A",
+            "significant_at_0.05": False,
+            "note": "HGT not run - install torch-sparse and re-run",
+        }
+    else:
         t_stat, p_value = stats.ttest_rel(hgt_ring_recalls, gb_ring_recalls)
         mean_diff = np.mean(hgt_ring_recalls) - np.mean(gb_ring_recalls)
         pooled_std = np.sqrt(
@@ -313,22 +350,16 @@ def run_pipeline(skip_gnn: bool = False, skip_generate: bool = False):
              np.std(gb_ring_recalls, ddof=1) ** 2) / 2
         )
         cohens_d = mean_diff / pooled_std if pooled_std > 0 else 0.0
-    else:
-        t_stat = None
-        p_value = None
-        mean_diff = None
-        cohens_d = None
-
-    stat_results = {
-        "test": "paired_ttest_hgt_vs_gb_ring_recall",
-        "hgt_ring_recall_per_seed": [round(x, 4) for x in hgt_ring_recalls],
-        "gb_ring_recall_per_seed": [round(x, 4) for x in gb_ring_recalls],
-        "mean_difference": round(float(mean_diff), 4) if mean_diff is not None else None,
-        "t_statistic": round(float(t_stat), 4) if t_stat is not None else None,
-        "p_value": round(float(p_value), 6) if p_value is not None else None,
-        "cohens_d": round(float(cohens_d), 4) if cohens_d is not None else None,
-        "significant_at_0.05": bool(p_value < 0.05) if p_value is not None else False,
-    }
+        stat_results = {
+            "test": "paired_ttest_hgt_vs_gb_ring_recall",
+            "hgt_ring_recall_per_seed": [round(x, 4) for x in hgt_ring_recalls],
+            "gb_ring_recall_per_seed": [round(x, 4) for x in gb_ring_recalls],
+            "mean_difference": round(float(mean_diff), 4),
+            "t_statistic": round(float(t_stat), 4),
+            "p_value": round(float(p_value), 6),
+            "cohens_d": round(float(cohens_d), 4),
+            "significant_at_0.05": bool(p_value < 0.05),
+        }
 
     with open("logs/statistical_tests.json", "w") as f:
         json.dump(stat_results, f, indent=2)

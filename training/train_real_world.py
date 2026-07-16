@@ -242,17 +242,6 @@ def load_kaggle_fraud_data(data_dir: str) -> tuple[np.ndarray, np.ndarray, np.nd
     return X_train_scaled, X_test_scaled, y_train, y_test
 
 
-def _load_synthetic_fallback() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    processed_dir = Path("data/processed")
-    if not processed_dir.exists():
-        processed_dir = Path("training/data/processed")
-    X_train = np.load(processed_dir / "X_train.npy")
-    X_val = np.load(processed_dir / "X_val.npy")
-    X_test = np.load(processed_dir / "X_test.npy")
-    y_train = np.load(processed_dir / "y_train.npy")
-    y_val = np.load(processed_dir / "y_val.npy")
-    y_test = np.load(processed_dir / "y_test.npy")
-    return X_train, X_val, X_test, y_train, y_val, y_test
 
 
 def run_real_world_experiment(

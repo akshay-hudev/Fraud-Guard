@@ -5,9 +5,20 @@ Run after starting the API with: python -m uvicorn backend.main:app --reload
 
 import requests
 import json
-from typing import Dict
+import pytest
 
 BASE_URL = "http://localhost:8000"
+
+
+@pytest.fixture(autouse=True)
+def require_running_api():
+    """These integration checks require the separately managed API service."""
+    try:
+        response = requests.get(f"{BASE_URL}/health", timeout=2)
+        response.raise_for_status()
+    except requests.RequestException:
+        pytest.skip("API not running — start with: uvicorn backend.main:app")
+
 
 def test_health_endpoint():
     """Test /health endpoint with updated metrics."""

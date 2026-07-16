@@ -65,14 +65,10 @@ class FraudPredictor:
             self.scaler         = None
             self.label_encoders = {}
 
-        # Load feature names from processed features
-        feat_path = f"{self.processed_dir}/features_raw.csv"
-        if os.path.exists(feat_path):
-            import pandas as pd
-            df = pd.read_csv(feat_path, nrows=1)
-            drop = ["claim_id", "patient_id", "doctor_id", "hospital_id",
-                    "claim_date", "approved", "fraud_label"]
-            self.feature_names = [c for c in df.columns if c not in drop]
+        feature_names_path = f"{self.processed_dir}/feature_names.json"
+        if os.path.exists(feature_names_path):
+            with open(feature_names_path) as feature_names_file:
+                self.feature_names = json.load(feature_names_file)
         else:
             self.feature_names = []
 

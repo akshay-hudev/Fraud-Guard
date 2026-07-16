@@ -13,19 +13,21 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from generate_dataset import DATASET_CONFIG
+
 # ── Data Tests ─────────────────────────────────────────────────────────────────
 
 class TestDataGeneration:
 
     def test_hospitals_generated(self):
         df = pd.read_csv("data/raw/hospitals.csv")
-        assert len(df) == 50
+        assert len(df) == DATASET_CONFIG["n_hospitals"]
         assert "hospital_id" in df.columns
-        assert df["hospital_id"].nunique() == 50
+        assert df["hospital_id"].nunique() == DATASET_CONFIG["n_hospitals"]
 
     def test_doctors_generated(self):
         df = pd.read_csv("data/raw/doctors.csv")
-        assert len(df) == 200
+        assert len(df) == DATASET_CONFIG["n_doctors"]
         assert "hospital_id" in df.columns
         # All doctors have valid hospital references
         hospitals = pd.read_csv("data/raw/hospitals.csv")["hospital_id"].tolist()
@@ -33,13 +35,13 @@ class TestDataGeneration:
 
     def test_patients_generated(self):
         df = pd.read_csv("data/raw/patients.csv")
-        assert len(df) == 2000
+        assert len(df) == DATASET_CONFIG["n_patients"]
         assert df["age"].between(18, 90).all()
         assert df["gender"].isin(["M", "F"]).all()
 
     def test_claims_generated(self):
         df = pd.read_csv("data/raw/claims.csv")
-        assert len(df) == 10000
+        assert len(df) == DATASET_CONFIG["n_claims"]
         assert "fraud_label" in df.columns
         assert df["fraud_label"].isin([0, 1]).all()
         # Fraud rate should be around 12% ± 5%
@@ -88,14 +90,14 @@ class TestPreprocessing:
             y = np.load(f"data/processed/{split}.npy")
             assert set(y).issubset({0, 1}), f"Non-binary labels in {split}"
 
-    def test_stratified_split(self):
+    def test_temporal_split_has_stable_label_distribution(self):
         y_train = np.load("data/processed/y_train.npy")
         y_val   = np.load("data/processed/y_val.npy")
         y_test  = np.load("data/processed/y_test.npy")
-        # Fraud rate should be similar across splits (stratified)
+        # The current pipeline is temporal, so modest drift between periods is expected.
         rates = [y.mean() for y in [y_train, y_val, y_test]]
-        for r in rates:
-            assert abs(r - rates[0]) < 0.03, f"Unstratified split: rates={rates}"
+        assert all(0 < rate < 1 for rate in rates)
+        assert max(rates) - min(rates) < 0.05, f"Excessive temporal drift: rates={rates}"
 
     def test_scaler_transform(self):
         import joblib
@@ -261,7 +263,17 @@ class TestAPI:
     def skip_if_api_down(self):
         import requests
         try:
-            requests.get(f"{self.BASE}/health", timeout=2)
+            health = requests.get(f"{self.BASE}/health", timeout=2)
+            health.raise_for_status()
+            token_response = requests.post(
+                f"{self.BASE}/token",
+                params={"api_key": "test_key_123"},
+                timeout=2,
+            )
+            token_response.raise_for_status()
+            self.auth_headers = {
+                "Authorization": f"Bearer {token_response.json()['access_token']}",
+            }
         except Exception:
             pytest.skip("API not running — start with: uvicorn backend.main:app")
 
@@ -280,12 +292,16 @@ class TestAPI:
             "num_procedures": 8,
             "days_in_hospital": 5,
         }
-        r = requests.post(f"{self.BASE}/predict", json=payload)
+        r = requests.post(
+            f"{self.BASE}/predict",
+            json=payload,
+            headers=self.auth_headers,
+        )
         assert r.status_code == 200
         data = r.json()
-        assert "fraud_probability" in data
-        assert "risk_level" in data
-        assert data["risk_level"] in ["LOW", "MEDIUM", "HIGH"]
+        assert 0 <= data["fraud_score"] <= 1
+        assert isinstance(data["fraud_prediction"], bool)
+        assert data["model_version"]
 
     def test_stats_endpoint(self):
         import requests
@@ -321,11 +337,16 @@ class TestAPI:
                 {"claim_id": "B002", "claim_amount": 40000, "num_procedures": 15},
             ]
         }
-        r = requests.post(f"{self.BASE}/predict/batch", json=payload)
+        r = requests.post(
+            f"{self.BASE}/predict/batch",
+            json=payload,
+            headers=self.auth_headers,
+        )
         assert r.status_code == 200
         data = r.json()
-        assert data["total"] == 2
-        assert len(data["results"]) == 2
+        assert data["total_processed"] == 2
+        assert data["successful"] == 2
+        assert len(data["predictions"]) == 2
 
     def test_upload_csv(self):
         import requests, io

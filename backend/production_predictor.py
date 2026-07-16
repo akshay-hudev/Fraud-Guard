@@ -79,14 +79,11 @@ class ProductionFraudPredictor:
             self.scaler         = None
             self.label_encoders = {}
 
-        # Load feature names from the CSV that was used for training
-        feat_path = f"{self.processed_dir}/features_raw.csv"
+        # Load the exact feature order persisted by the preprocessor.
+        feat_path = f"{self.processed_dir}/feature_names.json"
         try:
-            import pandas as pd
-            df = pd.read_csv(feat_path, nrows=1)
-            drop_cols = ["claim_id", "patient_id", "doctor_id", "hospital_id",
-                         "claim_date", "approved", "fraud_label"]
-            self.feature_names = [c for c in df.columns if c not in drop_cols]
+            with open(feat_path) as feature_names_file:
+                self.feature_names = json.load(feature_names_file)
             logger.info(f"Loaded {len(self.feature_names)} feature names")
         except Exception as e:
             logger.warning(f"Could not load feature names: {e}. Using defaults.")
@@ -172,10 +169,10 @@ class ProductionFraudPredictor:
         """
         import pandas as pd
 
-        amount     = float(raw.get("claim_amount",     1000))
-        procedures = int  (raw.get("num_procedures",   1))
-        days       = int  (raw.get("days_in_hospital", 0))
-        age        = int  (raw.get("age",              40))
+        amount     = float(raw.get("claim_amount") or 1000)
+        procedures = int  (raw.get("num_procedures") or 1)
+        days       = int  (raw.get("days_in_hospital") or 0)
+        age        = int  (raw.get("age") or 40)
 
         mean_claim = self.train_stats["mean_claim"]
         pat_avg    = self.train_stats["patient_avg_claim"]

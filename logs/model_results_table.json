@@ -18,8 +18,8 @@
     "F1":1.0,
     "AUC-ROC":1.0,
     "AUC-PR":1.0,
-    "CI_lower":0.9908,
-    "CI_upper":1.003
+    "CI_lower":1.0,
+    "CI_upper":1.0
   },
   {
     "Model":"gradient_boosting",

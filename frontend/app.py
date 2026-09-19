@@ -12,12 +12,20 @@ import pandas as pd
 import numpy as np
 import json
 import os
+import sys
 import time
 from datetime import datetime, timedelta
+from pathlib import Path
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import networkx as nx
+
+# Community Cloud executes this file with `frontend/` as the import root. Add
+# the repository root so sibling packages such as `backend` remain importable.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 # ── Config ─────────────────────────────────────────────────────────────────────
 st.set_page_config(

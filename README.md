@@ -1,3 +1,12 @@
+---
+title: FraudGuard
+emoji: 🛡️
+colorFrom: blue
+colorTo: red
+sdk: docker
+app_port: 7860
+---
+
 # Health Insurance Fraud Detection
 
 Production-style ML system for detecting fraudulent healthcare claims. The repo includes a leakage-safe training pipeline (tabular baselines + HGT-style GNN), a FastAPI scoring API, and a Streamlit dashboard. The API currently serves the Random Forest baseline model; GNN training is implemented for offline evaluation and comparison.

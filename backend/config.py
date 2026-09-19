@@ -3,6 +3,7 @@ Configuration Module
 Centralized config management using Pydantic + environment variables.
 """
 
+from pydantic import Field
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 import logging
@@ -53,7 +54,8 @@ class Settings(BaseSettings):
     drift_threshold_js_divergence: float = 0.1
 
     # Environment
-    debug: bool = False
+    # Avoid collisions with generic DEBUG variables injected by host platforms.
+    debug: bool = Field(default=False, validation_alias="FRAUDGUARD_DEBUG")
     environment: str = "development"
 
     class Config:

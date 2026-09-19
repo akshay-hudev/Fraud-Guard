@@ -62,6 +62,9 @@ training/notebooks/.ipynb_checkpoints/
 *.jpeg
 *.gif
 *.pkl
+# Small trained runtime artifacts required by the deployed API.
+!models/baseline/*.pkl
+!data/processed/scaler.pkl
+!data/processed/label_encoders.pkl
 htmlcov/
 .pytest_cache/
-

@@ -27,8 +27,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-API_BASE = "http://localhost:8000"
-API_KEY  = "test_key_123"
+API_BASE = os.getenv("API_BASE", "http://localhost:8000").rstrip("/")
+API_KEY  = os.getenv("API_KEY", "test_key_123")
 USE_INDUCTIVE_MODE = os.getenv("USE_INDUCTIVE_MODE", "true").lower() in {"1", "true", "yes"}
 
 
@@ -2416,4 +2416,3 @@ elif page == "🛡️ Resilience":
                         st.warning(insight)
         except Exception as e:
             st.error(f"Error: {e}")
-

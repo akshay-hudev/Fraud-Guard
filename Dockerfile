@@ -17,6 +17,10 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+# The GNN is an offline evaluation model; avoid loading its graph at web startup.
+ENV USE_INDUCTIVE_MODE=false \
+    PYTHONUNBUFFERED=1
+
 # ── Copy Requirements & Install Dependencies ────────────────────────────────
 COPY requirements.txt .
 
@@ -44,7 +48,7 @@ RUN mkdir -p \
 RUN mkdir -p ~/.streamlit && \
     echo "[server]" > ~/.streamlit/config.toml && \
     echo "headless = true" >> ~/.streamlit/config.toml && \
-    echo "port = 8501" >> ~/.streamlit/config.toml && \
+    echo "port = 7860" >> ~/.streamlit/config.toml && \
     echo "enableXsrfProtection = false" >> ~/.streamlit/config.toml && \
     echo "enableCORS = false" >> ~/.streamlit/config.toml && \
     echo "" >> ~/.streamlit/config.toml && \
@@ -53,12 +57,12 @@ RUN mkdir -p ~/.streamlit && \
 
 # ── Expose Ports ────────────────────────────────────────────────────────────
 # 8000 = FastAPI Backend
-# 8501 = Streamlit Frontend
-EXPOSE 8000 8501
+# 7860 = Hugging Face Spaces public Streamlit port
+EXPOSE 7860
 
 # ── Health Check ────────────────────────────────────────────────────────────
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:7860/_stcore/health || exit 1
 
 # ── Create Startup Script ───────────────────────────────────────────────────
 RUN echo '#!/bin/bash\n\
@@ -76,8 +80,8 @@ echo "✓ Backend PID: $BACKEND_PID"\n\
 # Wait for backend to be ready\n\
 sleep 3\n\
 \n\
-echo "Starting Streamlit Frontend on :8501..."\n\
-streamlit run frontend/app.py --server.port 8501 --server.address 0.0.0.0 --logger.level=info &\n\
+echo "Starting Streamlit Frontend on :7860..."\n\
+streamlit run frontend/app.py --server.port 7860 --server.address 0.0.0.0 --logger.level=info &\n\
 FRONTEND_PID=$!\n\
 echo "✓ Frontend PID: $FRONTEND_PID"\n\
 \n\
@@ -85,7 +89,7 @@ echo ""\n\
 echo "========================================"\n\
 echo "✅ Fraud-Guard is Running!"\n\
 echo "========================================"\n\
-echo "📊 Frontend (Streamlit):  http://localhost:8501"\n\
+echo "📊 Frontend (Streamlit):  http://localhost:7860"\n\
 echo "🔌 Backend API (FastAPI):  http://localhost:8000"\n\
 echo "📖 API Docs (Swagger):    http://localhost:8000/docs"\n\
 echo "📚 API Docs (ReDoc):      http://localhost:8000/redoc"\n\

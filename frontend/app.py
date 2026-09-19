@@ -7,7 +7,7 @@ Streamlit Frontend Dashboard — Fixed
 """
 
 import streamlit as st
-import requests
+import requests as http_requests
 import pandas as pd
 import numpy as np
 import json
@@ -29,7 +29,28 @@ st.set_page_config(
 
 API_BASE = os.getenv("API_BASE", "http://localhost:8000").rstrip("/")
 API_KEY  = os.getenv("API_KEY", "test_key_123")
-USE_INDUCTIVE_MODE = os.getenv("USE_INDUCTIVE_MODE", "true").lower() in {"1", "true", "yes"}
+USE_INDUCTIVE_MODE = os.getenv("USE_INDUCTIVE_MODE", "false").lower() in {"1", "true", "yes"}
+
+
+@st.cache_resource(show_spinner="Starting FraudGuard services…")
+def get_embedded_api_client():
+    """Run FastAPI in-process when no external API URL is configured.
+
+    Streamlit Community Cloud exposes one Streamlit process and does not run our
+    Docker entrypoint. TestClient preserves the existing API boundary without a
+    second listening port, and its lifespan starts the model and database once.
+    """
+    from fastapi.testclient import TestClient
+    from backend.main import app as fastapi_app
+
+    client = TestClient(fastapi_app)
+    client.__enter__()
+    return client
+
+
+# An explicit API_BASE keeps the original split-service/Docker behaviour.
+# Without it, use the embedded transport required by Streamlit Community Cloud.
+requests = http_requests if os.getenv("API_BASE") else get_embedded_api_client()
 
 
 # ── Session State (must be initialised before any widget) ─────────────────────

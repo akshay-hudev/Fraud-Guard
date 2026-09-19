@@ -19,6 +19,7 @@ WORKDIR /app
 
 # The GNN is an offline evaluation model; avoid loading its graph at web startup.
 ENV USE_INDUCTIVE_MODE=false \
+    API_BASE=http://localhost:8000 \
     PYTHONUNBUFFERED=1
 
 # ── Copy Requirements & Install Dependencies ────────────────────────────────

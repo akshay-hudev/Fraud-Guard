@@ -55,7 +55,7 @@ from backend.schemas import (
 setup_logging()
 logger = AppLogger(__name__)
 settings = get_settings()
-USE_INDUCTIVE_MODE = os.getenv("USE_INDUCTIVE_MODE", "true").lower() in {"1", "true", "yes"}
+USE_INDUCTIVE_MODE = os.getenv("USE_INDUCTIVE_MODE", "false").lower() in {"1", "true", "yes"}
 
 limiter = Limiter(key_func=get_remote_address)
 

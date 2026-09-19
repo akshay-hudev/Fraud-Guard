@@ -1,15 +1,23 @@
----
-title: FraudGuard
-emoji: 🛡️
-colorFrom: blue
-colorTo: red
-sdk: docker
-app_port: 7860
----
-
 # Health Insurance Fraud Detection
 
 Production-style ML system for detecting fraudulent healthcare claims. The repo includes a leakage-safe training pipeline (tabular baselines + HGT-style GNN), a FastAPI scoring API, and a Streamlit dashboard. The API currently serves the Random Forest baseline model; GNN training is implemented for offline evaluation and comparison.
+
+## Deploy free on Streamlit Community Cloud
+
+This branch can run the dashboard and FastAPI application together inside one
+Streamlit process. Docker and a separately hosted API are not required.
+
+1. Open [Streamlit Community Cloud](https://share.streamlit.io/) and connect GitHub.
+2. Create an app from `akshay-hudev/Fraud-Guard`.
+3. Select the `streamlit-deployment` branch.
+4. Set the entrypoint to `frontend/app.py`.
+5. In Advanced settings, select Python 3.12. No secrets are required for the demo.
+6. Deploy.
+
+Community Cloud automatically uses `frontend/requirements.txt`, which excludes
+the offline PyTorch/GNN training stack. When `API_BASE` is unset, the dashboard
+uses the FastAPI application in-process. Set `API_BASE` explicitly to retain the
+split-service setup used by Docker or local development.
 
 ## Key capabilities
 - Synthetic dataset generator and temporal split preprocessing (no leakage).

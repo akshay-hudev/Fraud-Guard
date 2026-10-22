@@ -1,0 +1,121 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-22T06:02:51+00:00",
+    "git": {
+      "commit": "f16ccc7f4fa0779c2850d212f805027ca357db07",
+      "dirty": true
+    },
+    "config_hash": "09ff710b2e97e220",
+    "config": {
+      "budget": 6,
+      "split_seed": 1000
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    }
+  },
+  "best": {
+    "LR-P": {
+      "C": 1.0
+    },
+    "RF-P": {
+      "max_depth": 16,
+      "max_features": 0.3,
+      "min_samples_leaf": 10,
+      "n_estimators": 300
+    },
+    "GB-P": {
+      "l2": 0.0,
+      "learning_rate": 0.03,
+      "max_iter": 200,
+      "max_leaf_nodes": 15,
+      "min_samples_leaf": 50
+    },
+    "GB-PG": {
+      "l2": 0.0,
+      "learning_rate": 0.03,
+      "max_iter": 200,
+      "max_leaf_nodes": 15,
+      "min_samples_leaf": 50
+    },
+    "GB-PGL": {
+      "l2": 0.0,
+      "learning_rate": 0.03,
+      "max_iter": 200,
+      "max_leaf_nodes": 15,
+      "min_samples_leaf": 50
+    },
+    "MLP-P": {
+      "dropout": 0.3,
+      "hidden": 128,
+      "layers": 2,
+      "lr": 0.001,
+      "weight_decay": 1e-05
+    },
+    "SAGE": {
+      "aggr": "mean",
+      "dropout": 0.3,
+      "hidden": 64,
+      "layers": 3,
+      "lr": 0.003,
+      "weight_decay": 0.0001
+    },
+    "HAN": {
+      "dropout": 0.1,
+      "heads": 2,
+      "hidden": 64,
+      "layers": 2,
+      "lr": 0.003,
+      "weight_decay": 0.0001
+    },
+    "HGT": {
+      "dropout": 0.1,
+      "heads": 4,
+      "hidden": 64,
+      "layers": 2,
+      "lr": 0.01,
+      "weight_decay": 0.001
+    },
+    "RGCN": {
+      "aggr": "sum",
+      "dropout": 0.3,
+      "hidden": 64,
+      "layers": 2,
+      "lr": 0.01,
+      "weight_decay": 0.001
+    },
+    "SimpleHGN": {
+      "dropout": 0.1,
+      "heads": 4,
+      "hidden": 64,
+      "layers": 2,
+      "lr": 0.01,
+      "weight_decay": 0.001
+    },
+    "SAGE+G": {
+      "aggr": "mean",
+      "dropout": 0.3,
+      "hidden": 64,
+      "layers": 3,
+      "lr": 0.003,
+      "weight_decay": 0.0001
+    },
+    "HGT+G": {
+      "dropout": 0.1,
+      "heads": 4,
+      "hidden": 64,
+      "layers": 2,
+      "lr": 0.01,
+      "weight_decay": 0.001
+    }
+  }
+}

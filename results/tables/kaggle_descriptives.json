@@ -1,0 +1,18 @@
+{
+  "n_providers": 5410,
+  "fraud_rate": 0.09353049907578559,
+  "beneficiary": {
+    "share_with_coproviders": 0.9946395563770795,
+    "median_coproviders": 30.0,
+    "fraud_share_among_coproviders_of_fraud": 0.23853255255843364,
+    "fraud_share_among_coproviders_of_nonfraud": 0.2528988795912768
+  },
+  "physician": {
+    "share_with_coproviders": 0.7260628465804067,
+    "median_coproviders": 2.0,
+    "fraud_share_among_coproviders_of_fraud": 0.19078461526625035,
+    "fraud_share_among_coproviders_of_nonfraud": 0.14241428549752713
+  },
+  "median_claims_fraud": 155.5,
+  "median_claims_nonfraud": 27.0
+}

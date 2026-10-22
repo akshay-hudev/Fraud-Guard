@@ -1,0 +1,23 @@
+\begin{table}[h]
+\caption{Provider-level fraud detection on the public Medicare-style provider dataset (5-fold rotation; mean $\pm$ s.d. over folds). F1 at the validation-selected threshold; Recall@10\% = share of fraudulent providers among the top 10\% scored.}\label{tab:kaggle}
+\footnotesize
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Method & AP & ROC-AUC & F1 & Recall@10\% \\
+\midrule
+LR-P & 0.678 $\pm$ 0.041 & 0.940 $\pm$ 0.017 & 0.617 $\pm$ 0.030 & 0.644 $\pm$ 0.023 \\
+RF-P & 0.681 $\pm$ 0.049 & 0.942 $\pm$ 0.017 & 0.624 $\pm$ 0.031 & 0.644 $\pm$ 0.025 \\
+\textbf{GB-P} & 0.704 $\pm$ 0.045 & 0.939 $\pm$ 0.020 & 0.624 $\pm$ 0.028 & 0.636 $\pm$ 0.027 \\
+GB-PG & 0.695 $\pm$ 0.040 & 0.937 $\pm$ 0.019 & 0.600 $\pm$ 0.043 & 0.642 $\pm$ 0.024 \\
+GB-PGL & 0.697 $\pm$ 0.042 & 0.937 $\pm$ 0.019 & 0.595 $\pm$ 0.045 & 0.634 $\pm$ 0.019 \\
+MLP-P & 0.685 $\pm$ 0.052 & 0.940 $\pm$ 0.019 & 0.613 $\pm$ 0.028 & 0.642 $\pm$ 0.032 \\
+SAGE & 0.664 $\pm$ 0.047 & 0.938 $\pm$ 0.018 & 0.605 $\pm$ 0.036 & 0.624 $\pm$ 0.046 \\
+RGCN & 0.621 $\pm$ 0.054 & 0.927 $\pm$ 0.019 & 0.578 $\pm$ 0.029 & 0.593 $\pm$ 0.029 \\
+HAN & 0.666 $\pm$ 0.046 & 0.938 $\pm$ 0.018 & 0.583 $\pm$ 0.028 & 0.636 $\pm$ 0.045 \\
+Simple-HGN & 0.670 $\pm$ 0.057 & 0.939 $\pm$ 0.020 & 0.600 $\pm$ 0.037 & 0.630 $\pm$ 0.036 \\
+HGT & 0.676 $\pm$ 0.058 & 0.939 $\pm$ 0.019 & 0.613 $\pm$ 0.051 & 0.640 $\pm$ 0.051 \\
+SAGE+G & 0.653 $\pm$ 0.048 & 0.937 $\pm$ 0.018 & 0.612 $\pm$ 0.040 & 0.623 $\pm$ 0.031 \\
+HGT+G & 0.648 $\pm$ 0.032 & 0.933 $\pm$ 0.014 & 0.589 $\pm$ 0.022 & 0.615 $\pm$ 0.035 \\
+\botrule
+\end{tabular}
+\end{table}

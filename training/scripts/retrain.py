@@ -217,8 +217,7 @@ def cmd_schedule():
             print("\n✓ Scheduler stopped")
             return 0
     else:
-        print("⚠️  APScheduler not available - use GitHub Actions cron instead")
-        print("\nAlternative: Configure in .github/workflows/drift-retraining.yml")
+        print("⚠️  APScheduler not available - install it or schedule this script with cron")
         return 0
 
 

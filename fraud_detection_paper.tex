@@ -1,391 +1,1203 @@
-%Version 3.1 December 2024
-% Fraud-Guard: Updated Research Paper with Latest Project Structure
-% See section 11 of the User Manual for version history
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                                                                 %%
-%% Please do not use \input{...} to include other tex files.       %%
-%% Submit your LaTeX manuscript as one .tex document.              %%
-%%                                                                 %%
-%% All additional figures and files should be attached             %%
-%% separately and not embedded in the \TeX\ document itself.       %%
-%%                                                                 %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[pdflatex,sn-mathphys-num]{sn-jnl}
 
-\documentclass[pdflatex,sn-mathphys-num]{sn-jnl}% Math and Physical Sciences Numbered Reference Style
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage[title]{appendix}
+\usepackage{xcolor}
+\usepackage{textcomp}
+\usepackage{manyfoot}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
 
-%%%% Standard Packages
-\usepackage{graphicx}%
-\usepackage{multirow}%
-\usepackage{amsmath,amssymb,amsfonts}%
-\usepackage{amsthm}%
-\usepackage{mathrsfs}%
-\usepackage[title]{appendix}%
-\usepackage{xcolor}%
-\usepackage{textcomp}%
-\usepackage{manyfoot}%
-\usepackage{booktabs}%
-\usepackage{algorithm}%
-\usepackage{algorithmicx}%
-\usepackage{algpseudocode}%
-\usepackage{listings}%
-%%%%
-
-%% Theorem styles
-\theoremstyle{thmstyleone}%
-\newtheorem{theorem}{Theorem}%
-\newtheorem{proposition}[theorem]{Proposition}%
-
-\theoremstyle{thmstyletwo}%
-\newtheorem{example}{Example}%
-\newtheorem{remark}{Remark}%
-
-\theoremstyle{thmstylethree}%
-\newtheorem{definition}{Definition}%
+\graphicspath{{./}{results/figures/}}
 
 \raggedbottom
 
 \begin{document}
 
-\title[Fraud-Guard: Real-Time HGN Fraud Detection]{Fraud-Guard: A Heterogeneous Graph Neural Network Framework for Real-Time Healthcare Insurance Fraud Detection}
+\title[When Does Relational Structure Help Healthcare Fraud Detection?]{When Does Relational Structure Help Healthcare Fraud Detection? A Controlled Benchmark of Heterogeneous Graph Neural Networks and Graph-Augmented Tabular Models}
 
-\author[1]{\fnm{Eshita} \sur{Narayana}}\email{rvit23bcs031.rvitm@rvei.edu.in}
-\equalcont{These authors contributed equally to this work.}
-
-\author[1]{\fnm{Harshita} \sur{Srivastava}}\email{rvit23bcs323.rvitm@rvei.edu.in}
-\equalcont{These authors contributed equally to this work.}
-
-\author[1]{\fnm{H M} \sur{Akshay}}\email{rvit23bcs106.rvitm@rvei.edu.in}
-\equalcont{These authors contributed equally to this work.}
+\author*[1]{\fnm{H M} \sur{Akshay}}\email{rvit23bcs106.rvitm@rvei.edu.in}
 
 \author[1]{\fnm{Gaurav} \sur{S B}}\email{rvit23bcs258.rvitm@rvei.edu.in}
-\equalcont{These authors contributed equally to this work.}
+
+\author[1]{\fnm{Eshita} \sur{Narayana}}\email{rvit23bcs031.rvitm@rvei.edu.in}
+
+\author[1]{\fnm{Harshita} \sur{Srivastava}}\email{rvit23bcs323.rvitm@rvei.edu.in}
 
 \author[1]{\fnm{Malini M} \sur{Patil}}\email{malinimp.rvitm@rvei.edu.in}
 
-\affil[1]{\orgdiv{Department of Computer Science and Engineering}, \orgname{RV Institute of Technology and Management}, \orgaddress{\city{Bengaluru}, \postcode{560083}, \state{Karnataka}, \country{India}}}
+\affil[1]{\orgdiv{Department of Computer Science and Engineering},
+\orgname{RV Institute of Technology and Management},
+\orgaddress{\city{Bengaluru}, \postcode{560083}, \state{Karnataka}, \country{India}}}
 
-\abstract{Fraudulent practices in healthcare insurance are highly expensive, with fraud estimated to account for significant portions of insurance expenditure globally. Existing approaches to fraud detection emphasize claims fraud using tabular-based feature engineering without considering interactions between patients, doctors, hospitals, and claims. We present Fraud-Guard, a production-grade framework combining Heterogeneous Graph Transformer (HGT) architecture with classical machine learning models. The system implements a critical data leakage fix: feature engineering is performed ONLY after temporal data splitting, eliminating information leakage that previously produced spurious $>99.9\%$ accuracy. After the fix, baseline models (Random Forest: $98.95\%$ F1, Gradient Boosting: $99.05\%$ F1) demonstrate realistic performance, while HGT achieves $95.35\%$ accuracy and $0.980$ AUC. The full system includes a FastAPI backend with 8 RESTful APIs, role-based access control, real-time SHAP explainability, Prometheus monitoring, automatic drift detection, SQLite audit logging, and a Streamlit dashboard with graph visualization. Docker Compose enables reproducible deployment across development and production environments. Deployment benchmarks: $<100$ms P99 latency per prediction, $5000+$ predictions/second throughput.}
 
-\keywords{Fraud detection, heterogeneous graph neural networks, Heterogeneous Graph Transformer, zero data leakage, healthcare machine learning, SHAP explainability, FastAPI, production ML systems, PyTorch Geometric, real-time inference}
+\abstract{\mathversion{normal}\textbf{Purpose:} Graph neural networks (GNNs) are increasingly
+proposed for healthcare insurance fraud because collusive provider rings
+leave traces in the patient--provider network, but it is unclear when they
+improve on tabular models.
+\textbf{Methods:} We built a synthetic claims benchmark in which the
+feature-level signal of ring claims and the density of the ring's
+doctor--patient block are varied independently, every test ring is formed by
+doctors and patients never seen in training, and each audit period is
+analysed separately to avoid leakage. We compared 14 methods---tabular models
+with and without engineered graph features, an MLP control, five
+heterogeneous GNNs (GraphSAGE, RGCN, HAN, Simple-HGN, HGT), two hybrids and an
+unsupervised overlap score---with equal tuning budgets over nine regimes and
+54 independently generated worlds, and validated on a public provider-labelled
+Medicare-style dataset (5{,}410 providers).
+\textbf{Results:} Without a feature-level signal, claim-only models were at
+chance, while per-entity aggregates detected most rings (average precision
+0.89--0.93). Structure added up to 0.10 average precision, and only when ring
+members were moderately or densely interlinked. Pooled over all worlds, no GNN outperformed gradient boosting with
+engineered graph features (GraphSAGE $-0.0001$, HGT $-0.011$); hybrids gained
+$+0.008$. GNNs were 0.08--0.15 worse on isolated fraud, HGT lost most of its ring
+detection without degree encodings, and letting test rings share members with
+training rings inflated performance by up to 0.60. On real data, gradient
+boosting on provider aggregates was best (0.704); graph features and GNNs did
+not help.
+\textbf{Conclusion:} Relational modelling pays off only for dense collusion
+and, even then, mainly through structure that simple engineered features
+capture. Graph models should be evaluated against graph-augmented tabular
+baselines on unseen entities.}
+
+\keywords{Healthcare fraud detection, provider rings, heterogeneous graph neural networks, gradient boosting, synthetic benchmark, data leakage, evaluation methodology}
+
 
 \maketitle
 
-\section{Introduction}\label{sec1}
+\section{Introduction}\label{sec:intro}
 
-Health insurance fraud is a critical challenge facing contemporary healthcare systems globally. The National Health Care Anti-Fraud Association (NHCAA) estimates that healthcare insurance fraud costs the United States more than ten billion dollars annually. This instability threatens private insurers and government-sponsored plans such as Medicare and Medicaid. Fraud manifests as billing inflation, unnecessary procedures, kickbacks, and organized provider rings.\newline
+Health insurance fraud causes losses estimated in the tens of billions of
+dollars each year in the United States alone~\cite{nhcaa}. It takes two
+broad forms. In \emph{isolated} fraud a single provider inflates or
+fabricates individual claims, so the evidence lies in the claim itself:
+amounts, procedure counts or coding that are unusual for the provider's
+specialty. In \emph{collusive} fraud a group of providers and recruited
+patients file claims together. Each claim can look ordinary; the evidence
+lies in who bills whom---patients who see many members of the same small
+group of providers, and providers who share an unusually large fraction of
+their patients.
 
-Traditional insurance fraud detection relies on tabular data and threshold-based methods, which fail to capture relational patterns such as a doctor submitting identical claims across multiple hospitals or a patient exhibiting anomalous demographics. Graph Neural Networks offer a promising alternative by modeling entities as nodes and relationships as edges, enabling fraud signals to propagate through the network.\newline
+The second form motivates graph neural networks (GNNs) over the
+patient--provider--facility network, in particular heterogeneous
+architectures such as RGCN~\cite{schlichtkrull2018}, HAN~\cite{wang2019han},
+HGT~\cite{hu2020hgt} and Simple-HGN~\cite{lv2021}. Whether GNNs are needed,
+however, is an empirical question. Gradient-boosted trees remain strong on
+tabular data~\cite{grinsztajn2022}, relational signals can be engineered as
+features, and benchmark studies outside healthcare report that tree
+ensembles with neighbourhood features often match or beat GNNs on graph
+anomaly detection~\cite{weber2019elliptic,tang2023gadbench}.
 
-A critical finding: initial experiments with this system achieved $>99.9\%$ accuracy on the test set—indicating \textit{data leakage}. Root cause analysis revealed that aggregate features (doctor fraud rate, hospital average claim amount) were computed on the entire dataset before splitting, allowing the model to implicitly see target information during training. This paper presents the \textit{repaired} system with temporal split-before-engineering methodology, achieving realistic performance: $99.05\%$ F1 for ensemble methods, $95.35\%$ accuracy for HGT.\newline
+Answering the question for healthcare claims is difficult for two reasons.
+First, public claims data with labelled collusion are not available, and
+real labels conflate fraud typologies. Second, evaluation is fragile:
+identifiers that encode the label, statistics computed on the full dataset,
+and providers that appear in both training and test data inflate apparent
+performance~\cite{kaufman2012leakage,kapoor2023leakage}. Fraud rings make the
+last problem acute, because a model can score a test claim correctly by
+recognising a provider it saw labelled during training instead of
+recognising coordination.
 
-Our contributions:\newline
-• \textit{Data Leakage Fix}: Implementing split-before-engineering to ensure feature statistics come exclusively from the training set.\newline
-• \textit{Production Architecture}: HGTFraudDetector model with multi-head attention, residual connections, and type-dependent message passing.\newline
-• \textit{Comprehensive Deployment}: FastAPI with 8 endpoints, SHAP explainability, MLOps (drift detection, model registry, compliance logging).\newline
-• \textit{Real-Time Performance}: $<100$ms latency, $5000+$ predictions/second, production hardening (rate limiting, JWT auth, audit trails).\newline
-• \textit{Containerization}: Docker Compose for reproducible deployment.\newline
+We therefore study the question in a controlled setting and check it on
+real data. Our contributions are:
+\begin{enumerate}
+\item \textbf{A regime-controllable benchmark.} A synthetic claims generator
+  in which the feature-level signal of ring claims ($\delta$) and the density
+  of the ring's doctor--patient block ($s$) are varied independently, with an
+  \emph{emergent} protocol in which every test ring is formed by doctors and
+  patients never seen in a training ring, and an audit-period design that
+  keeps features and graphs free of future information
+  (Section~\ref{sec:benchmark}). Code, generator and tests are released.
+\item \textbf{A controlled comparison} of 14 methods---tabular models with and
+  without engineered graph features, an MLP control, five heterogeneous GNNs,
+  two hybrids and an unsupervised overlap score---with an equal tuning
+  budget, nine regimes, six independently generated worlds per regime and
+  paired statistics (Sections~\ref{sec:methods} and~\ref{sec:results}).
+\item \textbf{Mechanism and memorisation analyses}: degree-preserving
+  rewiring, relation and encoding ablations, depth, and a comparison of new
+  versus recurring rings that quantifies how much apparent ring detection
+  comes from recognising known members (Section~\ref{sec:mechanism}).
+\item \textbf{Real-world validation} on a public, provider-labelled
+  Medicare-style claims dataset with a provider-disjoint protocol
+  (Section~\ref{sec:realdata}).
+\end{enumerate}
 
-\section{Related Work}\label{sec2}
+Our main findings are as follows. Claim features alone cannot reveal rings
+whose claims look legitimate, but per-entity aggregates capture most of the
+evidence, because ring members are unusually active. Coordination structure
+adds measurable value only when the ring's doctor--patient block is dense.
+Where it does, gradient boosting with a few engineered shared-patient features
+is as good as or better than every GNN we tested; GNNs that also receive those
+features gain a small but consistent amount ($+0.008$ AP pooled). GNNs are
+clearly worse on isolated fraud, because message passing dilutes claim-level
+anomalies, and attention-based GNNs lose most of their ring-detection ability
+without explicit degree encodings. Evaluations that let test rings share members with training
+rings overstate ring detection, by up to 0.60 AP for a model that only sees
+entity attributes. On the real data, where labels show no relational
+assortativity, no graph-based method improved on gradient boosting over
+provider aggregates.
 
-\textbf{A. Classical Machine Learning Methods}\newline
-Bauder and Khoshgoftaar reviewed healthcare fraud detection using decision trees, Random Forests, and Gradient Boosting. These methods are interpretable and require minimal preprocessing but treat claims in isolation without capturing entity relationships.\newline
 
-\textbf{B. Graph-Based Fraud Detection}\newline
-Pourhabibi et al. surveyed graph analytics for fraud detection in finance and insurance. Akoglu et al. introduced Oddball for detecting structural anomalies. Liu et al. applied graph convolutional networks to transaction graphs, showing that aggregating neighbor information improves recall.\newline
+\section{Related Work}\label{sec:related}
 
-\textbf{C. Heterogeneous Graph Neural Networks}\newline
-Wang et al. developed Heterogeneous Graph Attention Networks (HAN) using meta-path guided attention. Hu et al. introduced Heterogeneous Graph Transformer (HGT), which handles multiple node and edge types without requiring meta-paths. HGT employs type-dependent attention mechanisms and has demonstrated superior results on citation networks.\newline
+\paragraph{Tabular healthcare fraud detection.}
+Most published healthcare-fraud detectors are supervised classifiers over
+claim- or provider-level features. On Medicare data labelled with the
+federal exclusion list (LEIE), Bauder and Khoshgoftaar~\cite{bauder2017}
+compared classical learners, Herland et al.~\cite{herland2018} combined
+several Medicare data sources, and Johnson and
+Khoshgoftaar~\cite{johnson2019} studied neural networks under extreme class
+imbalance. Earlier work on Medicaid data used multidimensional data models
+and outlier analysis~\cite{thornton2013}. These models score each claim or
+provider from its own attributes and pre-computed aggregates; relational
+information enters, if at all, through hand-engineered features.
 
-\textbf{D. Data Leakage and Temporal Validation}\newline
-Kaggle competitions and ML benchmarks have repeatedly exposed data leakage issues where aggregation statistics computed on full datasets (pre-split) allow models to memorize target information. Proper temporal splitting with train-set-only statistics is essential.\newline
+\paragraph{Graph-based fraud and anomaly detection.}
+Surveys of graph-based anomaly detection~\cite{akoglu2015,pourhabibi2020}
+document how coordination leaves structural traces such as dense blocks,
+lockstep behaviour and unusual egonets. Unsupervised detectors exploit these
+traces directly, e.g.\ OddBall~\cite{akoglu2010oddball},
+CopyCatch~\cite{beutel2013copycatch} and FRAUDAR~\cite{hooi2016fraudar}.
+Graph neural networks (GNNs) have been applied to review
+fraud~\cite{wang2019fdgars}, underground-forum key players~\cite{zhang2019player2vec},
+and camouflaged or class-imbalanced fraudsters~\cite{dou2020care,liu2021pcgnn};
+spectral analyses argue that anomalies shift graph spectra in ways that
+standard message passing can blur~\cite{tang2022bwgnn}.
 
-\textbf{E. Explainability in Fraud Detection}\newline
-Lundberg and Lee introduced SHAP (SHapley Additive exPlanations), providing model-agnostic feature importance via cooperative game theory. SHAP TreeExplainer is widely applied to tree-based models in fraud detection.\newline
+\paragraph{Heterogeneous GNNs.}
+Relational GCN~\cite{schlichtkrull2018} uses relation-specific weights; HAN~\cite{wang2019han}
+aggregates over hand-chosen meta-paths with node- and semantic-level
+attention; HGT~\cite{hu2020hgt} parameterises attention by node and edge
+type without meta-paths; and Simple-HGN~\cite{lv2021} showed that a GAT
+with edge-type embeddings, residual attention and output normalisation is
+competitive with more elaborate heterogeneous architectures when baselines
+are tuned fairly.
 
-\section{System Architecture}\label{sec3}
+\paragraph{When do graph models beat tabular models?}
+Evidence on this question is mixed. On the Elliptic Bitcoin dataset a random
+forest on node features outperformed graph convolutional networks under a
+temporal split~\cite{weber2019elliptic}. GADBench~\cite{tang2023gadbench}
+found that tree ensembles with simple neighbourhood aggregation are among the
+strongest supervised graph anomaly detectors across ten datasets, and tree
+ensembles remain hard to beat on tabular data generally~\cite{grinsztajn2022}.
+Synthetic benchmarks with injected typologies make the question
+testable: Altman et al.~\cite{altman2023aml} generate money-laundering
+patterns with known ground truth, and Jesus et al.~\cite{jesus2022baf}
+release controlled tabular fraud suites. To our knowledge no comparable
+controlled study exists for heterogeneous patient--provider--facility claim
+graphs, where the relevant typology is the collusive provider ring.
 
-\textbf{A. Overview}\newline
-Fraud-Guard implements a four-layer architecture:\newline
-(i) \textit{Data Layer}: Raw CSV files (patient, doctor, hospital, claim records).\newline
-(ii) \textit{Processing Layer}: FraudDataPreprocessor and GraphBuilder with split-before-engineering.\newline
-(iii) \textit{Model Layer}: Baseline classifiers (Logistic Regression, Random Forest, Gradient Boosting) and HGTFraudDetector.\newline
-(iv) \textit{Deployment Layer}: FastAPI backend, monitoring, explainability, Streamlit dashboard, Docker orchestration.\newline
+\paragraph{Evaluation pitfalls.}
+Leakage through features that encode the target, through preprocessing fitted
+on the full dataset, or through entities shared between training and test
+data inflates reported performance~\cite{kaufman2012leakage,kapoor2023leakage}.
+GNN benchmarks are additionally sensitive to split choice and tuning
+effort~\cite{shchur2018pitfalls}. These risks are acute for fraud rings,
+whose members recur across claims: a model can score a test claim correctly
+by recognising a provider it saw labelled in training rather than by
+recognising coordination.
 
-\textbf{B. Data Layer}\newline
-The dataset is generated by \texttt{training/data/generate\_synthetic.py} producing four inter-related CSV files. \textit{claims.csv}: claim ID, amount, procedure count, hospital days, patient/doctor/hospital IDs, insurance type, claim date, fraud label. \textit{patients.csv}: age, gender, tenure, chronic disease flag. \textit{doctors.csv}: experience years, monthly claims, licensure flag. \textit{hospitals.csv}: bed count, accreditation status.\newline
 
-Dataset: $2,100$ claims, $500$ patients, $50$ doctors, $20$ hospitals, $18\%$ fraud prevalence (representing realistic class imbalance). Fraud patterns include inflated amounts, excessive procedures, and provider rings.\newline
 
-\textbf{C. Processing Layer — Data Leakage Prevention}\newline
-\textit{Critical Fix}: \texttt{training/src/data/preprocessor.py} (FraudDataPreprocessor) splits data BEFORE aggregation feature engineering:\newline
+\section{Benchmark Design}\label{sec:benchmark}
 
-\textit{Step 1: Load and Clean}\newline
-Raw CSV files are loaded and cleaning performed (duplicates removed, missing values imputed using medians for numeric columns and modes for categorical).\newline
+\subsection{Synthetic claims world}\label{sec:generator}
+We simulate $6{,}000$ patients, $300$ doctors and $40$ hospitals in five
+regions over four audit periods of six months (Fig.~\ref{fig:protocol}; Table~\ref{tab:generator}).
+Each doctor has one of eight specialties, which sets the distribution of
+claim amounts, inpatient probability and procedure counts. Patients have
+heterogeneous utilisation (gamma-distributed claim rates with mean three
+claims per two years) and one to three regular doctors in their region;
+85\% of legitimate claims go to a regular doctor and the rest to a
+popularity-weighted random doctor. Claim amounts are log-normal given the
+specialty, procedure count and inpatient status.
 
-\textit{Step 2: Temporal Split (Before Feature Engineering)}\newline
-Claims are sorted by date, then split temporally: $60\%$ training, $20\%$ validation, $20\%$ test (stratified by fraud label). This ordering respects causality and prevents look-ahead bias.\newline
+\paragraph{Isolated fraud.} Three per cent of claims are upcoded claims filed
+through a patient's own regular doctor. Their log-amount, procedure count,
+inpatient probability and procedure-code level are shifted by two standard
+deviations; their structure is that of an ordinary claim.
 
-\textit{Step 3: Feature Engineering (Train Set Only)}\newline
-Only training data is used to compute aggregation statistics. Features include:\newline
-Patient-level: total claims, mean claim amount, distinct hospitals visited, distinct doctors visited.\newline
-Doctor-level: total claims, mean amount, patient count, fraud rate $= \frac{\text{fraudulent claims}}{\text{total claims}}$.\newline
-Hospital-level: total claims, mean amount, fraud rate.\newline
-Cross-entity ratios: $\frac{\text{claim amount}}{\text{patient mean}}$, $\frac{\text{claim amount}}{\text{doctor mean}}$, etc.\newline
-Total: $36$ features per claim.\newline
+\paragraph{Provider rings.} A ring consists of four colluding doctors and
+twelve recruited patients, drawn preferentially from high utilisers. During
+its active period the ring files 16 claims per month between linked
+doctor--patient pairs, clustered around monthly burst days. Two parameters
+are varied independently:
+\begin{itemize}
+\item the \emph{feature shift} $\delta\in\{0, 1, 2\}$ applied to ring
+  claims, in standard deviations of log-amount (with matching shifts in
+  procedures, inpatient probability and coding level). At $\delta=0$ a ring
+  claim is drawn from exactly the distribution of a legitimate claim of the
+  same doctor's specialty;
+\item the \emph{structural density} $s\in\{0.1, 0.5, 0.9\}$, the probability
+  that a ring patient is linked to each ring doctor. Ring claim volume is
+  fixed, so $s$ changes only how the claims are spread over the
+  doctor--patient block (realised block densities $\approx 0.37$, $0.62$ and
+  $0.79$).
+\end{itemize}
+Ring patients keep a single regular doctor, so the number of distinct
+doctors they see is governed by $s$. Their elevated claim volume, a degree
+signal visible to every model, is the same in all regimes.
 
-\textit{Step 4: Apply Training Statistics to Validation/Test}\newline
-Validation and test samples use cached training statistics. For unseen entities, fallback to training set global means (e.g., mean fraud rate across all doctors).\newline
+\paragraph{Protocols.} Under the \emph{emergent} protocol (default), four new
+rings start in each period and rings in different periods are formed by
+disjoint doctors and patients, so every test ring is unseen during training.
+Under the \emph{persistent} protocol the same four rings are active in all
+periods, which reproduces the setting of most prior synthetic evaluations
+and lets a model succeed by recognising known members. Both protocols have
+identical claim and ring-claim volumes per period. Ground truth (fraud type
+and ring identifier) is stored separately from the claim records and never
+enters feature construction.
 
-\textit{Step 5: Encode and Scale}\newline
-Categorical features encoded with LabelEncoder. Numerical features scaled with StandardScaler (fit on training set only).\newline
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  per/.style={draw, minimum height=0.9cm, minimum width=2.45cm, font=\footnotesize, align=center, inner sep=2pt},
+  ring/.style={draw, rounded corners=1pt, minimum height=0.32cm, minimum width=2.2cm, font=\scriptsize, fill=black!8}]
+  \node[per, fill=blue!7] (p1) at (0,0) {Period 1\\[-1pt]\scriptsize months 1--6};
+  \node[per, fill=blue!7] (p2) at (2.6,0) {Period 2\\[-1pt]\scriptsize months 7--12};
+  \node[per, fill=orange!10] (p3) at (5.2,0) {Period 3\\[-1pt]\scriptsize months 13--18};
+  \node[per, fill=green!8] (p4) at (7.8,0) {Period 4\\[-1pt]\scriptsize months 19--24};
+  \node[font=\scriptsize] at (1.3,0.65) {training};
+  \node[font=\scriptsize] at (5.2,0.65) {validation};
+  \node[font=\scriptsize] at (7.8,0.65) {test};
+  \node[font=\scriptsize, anchor=east] at (-1.3,-0.8) {emergent};
+  \node[ring] at (0,-0.8) {rings 1--4};
+  \node[ring] at (2.6,-0.8) {rings 5--8};
+  \node[ring] at (5.2,-0.8) {rings 9--12};
+  \node[ring] at (7.8,-0.8) {rings 13--16};
+  \node[font=\scriptsize, anchor=east] at (-1.3,-1.35) {persistent};
+  \foreach \x in {0,2.6,5.2,7.8} {\node[ring] at (\x,-1.35) {rings 1--4};}
+\end{tikzpicture}
+\caption{Audit-period protocol. Each six-month period is analysed separately:
+features and graphs use only that period's claims. Under the emergent
+protocol every period has new rings formed by disjoint doctors and patients,
+so test rings are unseen; under the persistent protocol the same rings recur
+and can be recognised by their members.}
+\label{fig:protocol}
+\end{figure}
 
-This methodology ensures that the model cannot implicitly observe the target variable during training, eliminating the spurious $>99.9\%$ accuracy observed in earlier (leaky) versions.\newline
+\subsection{Evaluation protocol}\label{sec:protocol}
+Periods 1--2 are used for training, period 3 for validation (early stopping,
+threshold selection) and period 4 for testing. Each period is analysed on its
+own, as in a retrospective audit: a claim's aggregate and graph features, and
+the graph a GNN operates on, are built only from claims of the same period.
+This keeps every split's features on the same time scale and prevents
+information from later periods reaching earlier ones; it is verified by
+automated tests (Section~\ref{sec:repro}).
 
-\textbf{D. Graph Construction}\newline
-\texttt{training/src/data/graph\_builder.py} (GraphBuilder) converts preprocessed tabular data into PyTorch Geometric HeteroData objects containing:\newline
+\section{Methods}\label{sec:methods}
 
-\textit{Node Types and Features}:\newline
-Patient nodes ($d=4$): age, gender, tenure, chronic disease flag.\newline
-Doctor nodes ($d=3$): experience, monthly claims, licensure.\newline
-Hospital nodes ($d=2$): bed count, accreditation.\newline
-Claim nodes ($d=9$): amount, procedures, days, 6 engineered features (ratios, aggregates).\newline
+\subsection{Tabular features}\label{sec:features}
+\begin{itemize}
+\item \textbf{C} (claim): log-amount, procedures, length of stay, inpatient flag,
+  coding level, month (cyclical), patient age, sex and chronic-condition count,
+  doctor experience and specialty, hospital size.
+\item \textbf{A} (aggregates within the period, no labels): the patient's claim
+  count, distinct doctors and mean/maximum log-amount; the doctor's claim
+  count, distinct patients and mean log-amount; hospital claim count;
+  patient--doctor pair count; and the claim's log-amount relative to the
+  patient, doctor and specialty means.
+\item \textbf{G} (graph features on the period's patient--doctor bipartite graph,
+  no labels): the doctor's maximum shared-patient Jaccard similarity with
+  another doctor and number of doctors sharing at least two patients, the
+  mean degree of the doctor's patients, the patient's mean doctor overlap and
+  share of doctor pairs that co-treat other patients, and the triadic closure
+  of the claim (how many of the patient's other doctors share patients with
+  the claim's doctor), raw and degree-normalised.
+\end{itemize}
 
-\textit{Edge Types}:\newline
-Patient $\xrightarrow{\text{filed\_claim}}$ Claim.\newline
-Claim $\xrightarrow{\text{treated\_by}}$ Doctor.\newline
-Doctor $\xrightarrow{\text{works\_at}}$ Hospital.\newline
-Graph preserves temporal ordering: claims sorted by date to prevent information leakage in transductive evaluation.\newline
+\subsection{Heterogeneous graph}\label{sec:graph}
+Each period's graph has patient, doctor, hospital and claim nodes and the
+relations \emph{files} (patient$\to$claim), \emph{billed\_by}
+(claim$\to$doctor), \emph{affiliated} (doctor$\to$hospital) and \emph{visits}
+(patient$\to$doctor), each with a reverse relation so that every node type
+receives messages. Claim nodes carry claim-intrinsic attributes; entity nodes
+carry their static attributes and $\log(1+\text{degree})$ for each incident
+relation, a label-free structural encoding included because attention- and
+mean-based aggregators cannot otherwise count neighbours~\cite{xu2019gin}.
+No engineered aggregates or labels are used as node features (Fig.~\ref{fig:schema}). Standardisation
+statistics are fitted on training data.
 
-\section{Model Design}\label{sec4}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  ent/.style={draw, rounded corners=2pt, minimum width=1.9cm, minimum height=0.75cm, align=center, font=\footnotesize, fill=black!4},
+  rel/.style={-{Stealth[length=2mm]}, thick},
+  lab/.style={font=\scriptsize, fill=white, inner sep=1pt}]
+  \node[ent] (pat) at (0,0) {Patient\\[-1pt]\scriptsize age, sex, chronic, deg.};
+  \node[ent] (clm) at (3.6,0) {Claim\\[-1pt]\scriptsize amount, procs, stay, \ldots};
+  \node[ent] (doc) at (7.2,0) {Doctor\\[-1pt]\scriptsize specialty, exp., deg.};
+  \node[ent] (hos) at (10.4,0) {Hospital\\[-1pt]\scriptsize beds, deg.};
+  \draw[rel] (pat) -- node[lab, above] {files} (clm);
+  \draw[rel] (clm) -- node[lab, above] {billed\_by} (doc);
+  \draw[rel] (doc) -- node[lab, above] {affiliated} (hos);
+  \draw[rel] (pat.south) to[out=-25, in=-155] node[lab, below] {visits} (doc.south);
+\end{tikzpicture}
+\caption{Heterogeneous claim graph of one audit period. Every relation also
+has a reverse relation (not drawn), so every node type receives messages and
+doctor context reaches claim nodes. Entity nodes carry static attributes and
+$\log(1+\text{degree})$ per incident relation; claim nodes carry only
+claim-intrinsic attributes.}
+\label{fig:schema}
+\end{figure}
 
-\textbf{A. Baseline Models}\newline
-Three classical classifiers accept 36-dimensional feature vectors:\newline
+\subsection{Models}\label{sec:models}
+\begin{itemize}
+\item \textbf{Tabular}: logistic regression (LR) and random forest (RF) on C+A;
+  histogram gradient boosting (GB)~\cite{ke2017lightgbm} on C, C+A and C+A+G.
+\item \textbf{MLP-C}: a multilayer perceptron on C, the no-graph control for the GNNs.
+\item \textbf{GNNs}: heterogeneous GraphSAGE~\cite{hamilton2017sage} (one convolution
+  per relation, mean or sum aggregation), RGCN~\cite{schlichtkrull2018}, HAN~\cite{wang2019han}
+  (claim nodes; meta-paths claim--patient--claim and claim--doctor--claim, with
+  patient, doctor and hospital attributes appended to claim inputs),
+  Simple-HGN~\cite{lv2021} and HGT~\cite{hu2020hgt}. All share the same
+  per-type input projection, residual connections with layer normalisation,
+  and two-layer classification head.
+\item \textbf{Hybrids}: SAGE+AG and HGT+AG, whose claim nodes also receive the
+  A and G features, testing whether message passing adds information beyond
+  the engineered features. Hybrids reuse the tuned configuration of their base
+  architecture and receive no separate tuning budget.
+\item \textbf{Overlap score}: the degree-normalised triadic closure of the claim,
+  used directly as an unsupervised score.
+\end{itemize}
+Tabular models use scikit-learn~\cite{pedregosa2011} and graph models PyTorch
+Geometric~\cite{fey2019}. Neural models are trained full-batch with AdamW,
+class-weighted binary cross-entropy and early stopping on validation average
+precision (patience 20, at most 200 epochs).
 
-(1) \textit{Logistic Regression}: $L2$ regularization, class weights balancing.\newline
-(2) \textit{Random Forest}: 200 trees, max depth 12, class weights balancing.\newline
-(3) \textit{Gradient Boosting}: 150 estimators, learning rate 0.1, max depth 5.\newline
+\paragraph{Hyperparameters.} Every method receives the same budget of up to
+ten configurations (the first being a default), selected by mean validation
+average precision on two development worlds (generator seeds 901 and 902,
+$\delta=0.5$, $s=0.5$) that are never used for evaluation
+(Appendix~\ref{app:hyperparams}, Table~\ref{tab:hyperparams}). The development regime ($\delta=0.5$) is
+deliberately not one of the evaluation regimes.
 
-Models are serialized with joblib for fast inference.\newline
+\subsection{Metrics and statistics}\label{sec:stats}
+The primary metric is average precision (AP, the area under the
+precision--recall curve), appropriate under class imbalance~\cite{saito2015pr}.
+\emph{Ring AP} scores ring claims against legitimate claims (isolated fraud
+excluded); \emph{isolated AP} is defined analogously. We also report F1 at
+the threshold that maximises validation F1, ROC-AUC and recall when the top
+5\% of claims are investigated. Each of the nine regimes is replicated with
+six independently generated worlds (generator seeds 1--6), 54 worlds in total. Methods are compared within a
+regime with paired $t$-tests across worlds; $p$-values are Holm-adjusted
+within each pre-specified family of comparisons~\cite{holm1979}, and
+Wilcoxon signed-rank tests are reported as a robustness check~\cite{demsar2006}.
+Intervals are 95\% $t$-intervals over worlds.
 
-\textbf{B. Heterogeneous Graph Transformer (HGTFraudDetector)}\newline
-\texttt{training/src/models/gnn.py} implements HGTFraudDetector for node-level fraud classification on claim nodes.\newline
 
-\textit{Architecture}:\newline
+\section{Real-World Validation}\label{sec:realdata}
 
-\textit{1. Input Projection Layer}:\newline
-Per-node-type linear transformation $f_{\text{proj}, t}(\mathbf{x}_t) = \text{ELU}(\mathbf{W}_t \mathbf{x}_t)$, where $\mathbf{W}_t \in \mathbb{R}^{128 \times d_t}$ and $d_t$ is node type $t$'s input dimension. Handles heterogeneous input sizes (patient: 4, doctor: 3, hospital: 2, claim: 9).\newline
+\subsection{Data}
+We use the public ``Healthcare Provider Fraud Detection Analysis''
+dataset~\cite{kaggle2019} (CC0 public domain), which links Medicare-style
+inpatient and outpatient claims to beneficiaries and labels each provider as
+potentially fraudulent or not. Only the labelled training files are used:
+558{,}211 claims (40{,}474 inpatient, 517{,}737 outpatient) dated between
+November~2008 and December~2009, filed by 5{,}410 providers (506, or 9.4\%,
+labelled fraudulent) for 138{,}556 beneficiaries, with 100{,}737 distinct
+attending, operating or other physicians. The data documentation does not
+describe how the labels were obtained, so we treat them as given and
+discuss this limitation in Section~\ref{sec:limitations}. Because labels
+exist only per provider, the prediction unit is the provider; claim-level
+ring detection cannot be evaluated on these data.
 
-\textit{2. HGTConv Layers}:\newline
-Two stacked HGTConv blocks with multi-head attention ($h=4$ heads, $d_h=128/4=32$ per head). For each edge type $(s, r, t)$ (source type $s$, relation $r$, target type $t$), scaled dot-product attention computes:\newline
-$$\alpha_{s,r,t} = \text{softmax}\left(\frac{(\mathbf{W}^Q_t \mathbf{h}_t) (\mathbf{W}^K_s \mathbf{h}_s)^T}{\sqrt{d_h}}\right)$$
-Messages are aggregated via:\newline
-$$\mathbf{m}^{(l+1)}_t = \text{concat}\left(\bigcup_{s,r} \alpha_{s,r,t} \mathbf{W}^V_s \mathbf{h}_s^{(l)}\right)$$
-Residual connections when dimensions match; LayerNorm + dropout (0.3).\newline
+\subsection{Features and graph}
+\textbf{P} (23 provider aggregates): claim volume and inpatient share,
+beneficiaries and claims per beneficiary, distinct attending and operating
+physicians, reimbursement totals and log-amount statistics, deductibles,
+claim duration and length of stay, diagnosis and procedure counts, share of
+claims with an operating physician, and the age, chronic-condition burden,
+mortality, renal-disease share, annual reimbursements and geographic spread
+of the provider's beneficiaries. \textbf{G} (8 label-free graph features):
+for both shared beneficiaries and shared physicians, the number of
+co-providers, the maximum Jaccard overlap with another provider, the share
+of the provider's beneficiaries (physicians) seen by other providers, and
+their mean number of providers. \textbf{L} (4 label-neighbourhood
+features): the share of co-providers that are known fraudulent
+\emph{training} providers, and an indicator of having any labelled
+co-provider, through beneficiaries and through physicians. L uses only
+training labels and never a provider's own label.
 
-\textit{3. MLP Classifier}:\newline
-Final embeddings from HGTConv layer 2 fed to two-layer MLP: $128 \to 64 \to 2$ (logits for binary classification).\newline
+The heterogeneous graph has provider, beneficiary and physician nodes, with
+relations \emph{serves} (provider--beneficiary, 363{,}300 edges) and
+\emph{employs} (provider--physician) plus reverse relations. Physicians
+working for a single provider carry no cross-provider information and are
+summarised in P rather than kept as nodes, leaving 7{,}685 shared physicians
+(16{,}287 edges). Provider nodes carry P (or P+G for the hybrids),
+beneficiary nodes 22 demographic and clinical attributes, and physician nodes
+their claim and provider counts. HAN uses the provider-only meta-paths
+provider--beneficiary--provider and provider--physician--provider.
 
-\textit{Training}:\newline
-AdamW optimizer: learning rate $10^{-3}$, weight decay $10^{-4}$. Cosine annealing schedule over 100 epochs. Weighted cross-entropy loss with weights $w_c = \frac{N}{2 N_c}$ (accounting for class imbalance). Gradient clipping: max norm 1.0.\newline
+\subsection{Protocol}
+All providers' claims are observed and define the graph; labels of
+validation and test providers are hidden. This matches an audit in which
+claims are available for every provider but only some providers have been
+investigated. Providers are assigned to five stratified folds; in rotation
+$k$, fold $k$ is the test set, fold $k+1$ the validation set and the
+remaining three folds the training set, so every provider is tested exactly
+once. Hyperparameters are selected once, with the same budget of six
+configurations per method, on a separate stratified 60/20/20 split
+(seed~1000), and then fixed for the five rotations. Graph models are
+trained full-batch for at most 100 epochs with early stopping (patience 10)
+on validation AP. Metrics are AP, ROC-AUC, F1 at the validation-selected
+threshold, and recall among the top 10\% of providers by score (the label
+prevalence is 9.4\%). Methods are compared with paired $t$-tests over the
+five rotations (Holm-adjusted); with five rotations these tests have
+limited power and are interpreted together with effect sizes.
+
+
+\section{Results on the Controlled Benchmark}\label{sec:results}
+
+Each test period contains on average 4{,}924 claims, of which 384 belong to
+four unseen rings and 133 are isolated fraud, so the chance levels of ring AP
+and isolated AP are 0.080 and 0.029. Table~\ref{tab:regime_ringap} reports
+ring AP for every method and regime, Fig.~\ref{fig:regime} shows the main
+methods with 95\% intervals, and Fig.~\ref{fig:delta} summarises paired
+differences. Table~\ref{tab:pooled} pools the paired differences over all 54
+worlds.
 
 \begin{table}[h]
-\caption{HGTFraudDetector Architecture Summary}\label{tab:architecture}%
-\begin{tabular}{@{}lllll@{}}
+\caption{Ring-fraud detection on unseen test rings: average precision of ring versus legitimate claims (chance level 0.08), mean over six worlds per regime. Bold: best per regime. Standard deviations are in the supplementary results files.}\label{tab:regime_ringap}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccccccc@{}}
 \toprule
-Component & Configuration & Input Dims & Output Dims & Parameters \\
+ & \multicolumn{3}{c}{$\delta=0$} & \multicolumn{3}{c}{$\delta=1$} & \multicolumn{3}{c}{$\delta=2$} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+Method / $s$ & 0.1 & 0.5 & 0.9 & 0.1 & 0.5 & 0.9 & 0.1 & 0.5 & 0.9 \\
 \midrule
-Input Projection (Patient) & Linear + ELU & 4 & 128 & 512 \\
-Input Projection (Doctor) & Linear + ELU & 3 & 128 & 384 \\
-Input Projection (Hospital) & Linear + ELU & 2 & 128 & 256 \\
-Input Projection (Claim) & Linear + ELU & 9 & 128 & 1152 \\
-HGTConv Layer 1 & 4 heads, $d=128$ & 128 per type & 128 per type & Multi-relational \\
-HGTConv Layer 2 & 4 heads, $d=128$ & 128 per type & 128 per type & Multi-relational \\
-LayerNorm + Residual & Per layer & 128 & 128 & Drop $p=0.3$ \\
-MLP Classifier & $128 \to 64 \to 2$ & 128 & 2 & ReLU, Drop $p=0.3$ \\
+GB-C & 0.084 & 0.086 & 0.087 & 0.329 & 0.326 & 0.334 & 0.805 & 0.818 & 0.809 \\
+MLP-C & 0.088 & 0.087 & 0.095 & 0.353 & 0.358 & 0.360 & 0.803 & 0.817 & 0.808 \\
+LR-CA & 0.923 & 0.888 & 0.868 & 0.968 & 0.958 & 0.952 & 0.988 & 0.986 & 0.987 \\
+RF-CA & 0.875 & 0.838 & 0.844 & 0.957 & 0.924 & 0.941 & 0.985 & 0.983 & 0.986 \\
+GB-CA & 0.925 & 0.905 & 0.889 & 0.966 & 0.938 & 0.944 & 0.985 & 0.986 & 0.989 \\
+GB-CAG & 0.930 & 0.983 & \textbf{0.990} & 0.960 & 0.976 & 0.992 & 0.990 & 0.995 & 0.994 \\
+\midrule
+SAGE & 0.938 & 0.963 & 0.976 & 0.973 & 0.986 & 0.991 & 0.994 & 0.993 & 0.994 \\
+RGCN & 0.933 & 0.953 & 0.954 & 0.970 & 0.982 & 0.986 & \textbf{0.995} & 0.994 & 0.996 \\
+HAN & 0.908 & 0.906 & 0.921 & 0.957 & 0.964 & 0.969 & 0.988 & 0.989 & 0.989 \\
+Simple-HGN & 0.915 & 0.960 & 0.957 & 0.966 & 0.980 & 0.982 & 0.992 & 0.992 & 0.993 \\
+HGT & 0.910 & 0.948 & 0.949 & 0.959 & 0.976 & 0.984 & 0.994 & 0.995 & 0.996 \\
+\midrule
+SAGE+AG & \textbf{0.973} & \textbf{0.985} & 0.983 & 0.972 & 0.984 & \textbf{0.995} & 0.994 & \textbf{0.996} & \textbf{0.997} \\
+HGT+AG & 0.964 & 0.984 & 0.990 & \textbf{0.974} & \textbf{0.986} & 0.995 & 0.994 & 0.994 & 0.996 \\
+Overlap score & 0.254 & 0.937 & 0.985 & 0.296 & 0.922 & 0.989 & 0.341 & 0.932 & 0.981 \\
 \botrule
 \end{tabular}
 \end{table}
 
-\section{Deployment Infrastructure}\label{sec5}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_regime_ring_ap.pdf}
+\caption{Ring AP on unseen test rings by feature shift $\delta$ and
+structural density $s$ (mean and 95\% $t$-interval over six worlds). GB-CA:
+gradient boosting on claim and aggregate features; GB-CAG: plus engineered
+graph features; HGT+AG: HGT whose claim nodes also receive the A and G
+features. Feature-only models (GB-C, MLP-C) lie far below the plotted range
+(Table~\ref{tab:regime_ringap}).}
+\label{fig:regime}
+\end{figure}
 
-\textbf{A. FastAPI Backend}\newline
-\texttt{backend/main.py} exposes 8 RESTful APIs:\newline
+\subsection{Claim features alone do not reveal rings}
+When ring claims are drawn like legitimate claims ($\delta=0$), models that
+see only the claim's own attributes perform at chance (GB-C 0.084--0.087,
+MLP-C 0.087--0.095). As $\delta$ grows their ring AP rises to about 0.33
+($\delta=1$) and 0.81 ($\delta=2$). This confirms that the benchmark
+separates the two sources of evidence as intended.
 
-\textit{POST /predict}\: Single claim prediction. Request: claim JSON. Response: fraud probability, binary label, risk tier (LOW / MEDIUM / HIGH), SHAP values (optional).\newline
-\textit{POST /predict/batch}\: Batch predictions ($N$ claims).\newline
-\textit{POST /upload}\: CSV file upload for bulk scoring.\newline
-\textit{GET /stats}\: Model metrics (accuracy, F1, precision, recall, AUC), throughput, latency percentiles.\newline
-\textit{GET /alerts}\: Recent high-risk claims ($>0.75$ probability).\newline
-\textit{GET /graph/data}\: Graph adjacency matrix (NetworkX format) for visualization.\newline
-\textit{GET /simulate}\: Stream of synthetic claims (testing mode).\newline
-\textit{GET /health}\: Liveness and readiness probes.\newline
+\subsection{Most ring evidence is captured by entity aggregates}
+Adding per-period aggregates of the claim's patient, doctor and hospital
+(GB-CA) raises ring AP at $\delta=0$ to 0.889--0.925. Ring patients file
+more claims and see more doctors than typical patients, and ring doctors
+file bursts of claims; these degree and volume signals are present in every
+regime by design and are captured by simple counts. The remaining gap is
+where coordination structure matters.
 
-\textit{Risk Classification}:\newline
-LOW: probability $< 0.45$ (routine processing).\newline
-MEDIUM: $0.45 \leq p \leq 0.75$ (manual review queue).\newline
-HIGH: $p > 0.75$ (automatic block-and-review, alerts sent).\newline
+\subsection{Coordination structure helps only when the ring block is dense}
+Engineered graph features add little at low density but substantially at
+moderate and high density: at $\delta=0$, GB-CAG improves on GB-CA by
+$+0.005$ ($s=0.1$, n.s.), $+0.078$ ($s=0.5$) and $+0.101$ ($s=0.9$; Holm
+$p=0.003$). The unsupervised overlap score tells the same story: it is weak
+at $s=0.1$ (0.254) but reaches 0.937 and 0.985 at $s=0.5$ and $0.9$ without
+any training. GNNs show the same pattern: SAGE improves on GB-CA by
+$+0.087$ at $\delta=0$, $s=0.9$ (Holm $p=0.003$). Pooled over all worlds,
+every graph-aware method except HAN outperforms GB-CA (GB-CAG $+0.031$, SAGE
+$+0.031$, RGCN $+0.026$, Simple-HGN $+0.024$, HGT $+0.021$, hybrids $+0.039$;
+all Holm $p<0.001$; HAN $+0.007$, n.s.). When ring claims are strongly anomalous
+($\delta=2$), all methods that see claim and aggregate features exceed 0.98
+and the differences become negligible.
 
-\textit{Security}:\newline
-JWT authentication (backend/security.py). API keys issued via /token endpoint. Rate limiting (SlowAPI): 100 requests/minute per IP.\newline
+\subsection{GNNs do not outperform gradient boosting with graph features}
+The central comparison is between message passing and the same structural
+information supplied as engineered features. Pooled over the 54 worlds,
+heterogeneous GraphSAGE matches GB-CAG ($\Delta=-0.0001$, 95\% CI
+$[-0.005, 0.005]$), RGCN is not significantly different ($-0.005$), and
+Simple-HGN ($-0.008$, Holm $p=0.024$), HGT ($-0.011$, $[-0.020,-0.002]$,
+Holm $p=0.060$) and HAN ($-0.024$, Holm $p<0.001$) are lower. Within single
+regimes, where each test has only six worlds, no GNN is significantly
+better than GB-CAG in any regime; SAGE, HAN and Simple-HGN are significantly
+worse at $\delta=0$, $s=0.5$, and SAGE and Simple-HGN at $\delta=0$, $s=0.9$
+(Holm-adjusted within each nine-regime family).
 
-\textit{Model Management}:\newline
-ProductionFraudPredictor (singleton) loads models, caches feature statistics (training mean, std), and routes predictions. All models serialized with joblib.\newline
+The hybrids, which add message passing on top of the engineered features,
+gain a small but consistent amount over GB-CAG (SAGE+AG $+0.008$
+$[0.003, 0.013]$, Holm $p=0.013$; HGT+AG $+0.008$ $[0.003, 0.013]$, Holm
+$p=0.019$), largest in the sparse-structure, no-feature-signal regime
+($\delta=0$, $s=0.1$: SAGE+AG $+0.043$, unadjusted $p=0.011$, Holm $p=0.61$).
+Message passing therefore carries a little information beyond our
+engineered features, but in this benchmark it does not replace them.
 
-\textit{Logging}:\newline
-Structured JSON logs (backend/logging\_config.py). SQLite database (backend/database/models.py) stores audit trail: prediction ID, timestamp, claim features, prediction, risk tier, user, outcome (for validation).\newline
-
-\textbf{B. Production Hardening}\newline
-\texttt{backend/production\_hardening.py} integrates:\newline
-
-(1) \textit{DriftDetector}\: Kolmogorov-Smirnov test on feature distributions (train vs. recent predictions). Alerts when $\text{KS} > 0.15$. Triggers retraining workflow.\newline
-(2) \textit{QualityMonitor}\: Validates incoming data (range checks, missing values, outlier detection).\newline
-(3) \textit{PerformanceMonitor}\: Tracks inference-time metrics (precision, recall on flagged claims).\newline
-(4) \textit{ComplianceManager}\: GDPR/HIPAA enforcement (data retention policies, PII masking in logs).\newline
-(5) \textit{ExplainableAIManager}\: SHAP TreeExplainer for Random Forest, permutation importance for GNN.\newline
-
-\textbf{C. SHAP Explainability}\newline
-\texttt{backend/explainable\_ai.py} provides feature contributions for each prediction:\newline
-
-Random Forest: TreeExplainer computes Shapley values efficiently.\newline
-Claim: Ranks features by absolute SHAP value. Top-5 features returned in response.\newline
-Example output:\newline
-\begin{verbatim}
-[
-  ("claim_amount", +0.32),
-  ("num_procedures", +0.18),
-  ("days_in_hospital", +0.12),
-  ("amount_vs_doctor_avg", +0.08),
-  ("doctor_fraud_rate", +0.06)
-]
-\end{verbatim}
-
-\textbf{D. Streamlit Dashboard}\newline
-\texttt{frontend/app.py} provides 6 interactive pages:\newline
-
-(1) \textit{Dashboard}\: KPIs (accuracy, AUC, P99 latency), system status, model architecture diagram.\newline
-(2) \textit{Single Claim}\: Interactive form. Enter claim details, request prediction + SHAP explanation. Display risk gauge (green/yellow/red) and SHAP waterfall.\newline
-(3) \textit{Graph Explorer}\: NetworkX-based heterogeneous graph visualization (nodes: patients, doctors, hospitals, claims; edges colored by type). Interactive node selection to highlight subgraphs.\newline
-(4) \textit{Bulk Upload}\: CSV upload, batch scoring, summary statistics (fraud rate, risk tier distribution).\newline
-(5) \textit{Model Analytics}\: Comparison visualizations (confusion matrices, ROC curves, F1 vs. threshold) for all 4 models.\newline
-(6) \textit{Live Feed}\: Real-time claim stream from /simulate endpoint with live predictions.\newline
-
-Authentication: JWT token fetched on app launch, auto-refreshed.\newline
-
-\textbf{E. Containerization}\newline
-\texttt{docker/docker-compose.yml} orchestrates services:\newline
-
-\textit{Dockerfile.api}\: Python 3.11, PyTorch, torch-geometric, FastAPI. Runs backend/main.py.\newline
-\textit{Dockerfile.frontend}\: Python 3.11, Streamlit, dependencies. Runs frontend/app.py.\newline
-\textit{docker-compose.yml}\: Defines two services (api, frontend), volumes (models/, fraud\_detection.db), health checks, networking.\newline
-
-Build and run:\newline
-\texttt{docker-compose up --build}\newline
-
-\textbf{F. Monitoring and Retraining}\newline
-Prometheus metrics endpoint (/metrics) exposes:\newline
-prediction\_latency (histogram), prediction\_throughput (counter), error\_rate, model\_inference\_time.\newline
-
-ModelRegistry (backend/model\_registry.py) tracks all model versions: artifact paths, performance metrics, deployment checksums, timestamps.\newline
-
-Retraining trigger: Manual via /retrain endpoint or automatic when drift exceeds threshold.\newline
-
-\section{Experimental Evaluation}\label{sec6}
-
-\textbf{A. Experimental Setup}\newline
-Dataset: 2,100 claims (500 patients, 50 doctors, 20 hospitals, 18\% fraud rate).\newline
-Split: Temporal (sorted by date) $\to$ 60\% train / 20\% val / 20\% test, stratified by label.\newline
-Features: 36-dimensional (claim properties + engineered aggregates).\newline
-Graph: HeteroData with 4 node types, 3 edge types, temporal ordering preserved.\newline
-Reproducibility: Random seed 42.\newline
-
-\textbf{B. Critical Data Leakage Fix}\newline
-\textit{Before Fix:} Feature engineering on entire dataset before split. Baseline models achieved $>99.9\%$ accuracy — indicating that aggregation features leaked target information.\newline
-
-\textit{After Fix:} Split first, compute statistics on training set only. Results are realistic and model-differentiating.\newline
-
-\textbf{C. Results}\newline
 \begin{table}[h]
-\caption{Model Performance (After Data Leakage Fix)}\label{tab:results}
-\begin{tabular}{@{}lccccc@{}}
+\caption{Paired difference in average precision versus GB-CAG, pooled over all 54 worlds: mean $\Delta$ $\pm$ half-width of the 95\% $t$-interval, and Holm-adjusted paired $t$-test $p$ (within each metric).}\label{tab:pooled}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccccc@{}}
 \toprule
-Model & Accuracy (\%) & Precision (\%) & Recall (\%) & F1 (\%) & AUC-ROC \\
+ & \multicolumn{2}{c}{Ring AP} & \multicolumn{2}{c}{Isolated AP} & \multicolumn{2}{c}{Overall AP} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Method & $\Delta \pm$ CI & $p$ & $\Delta \pm$ CI & $p$ & $\Delta \pm$ CI & $p$ \\
 \midrule
-Logistic Regression & 94.55 & 89.23 & 92.30 & 90.73 & 0.965 \\
-Random Forest & 98.95 & 97.88 & 99.12 & 98.50 & 0.998 \\
-Gradient Boosting & 99.05 & 98.22 & 99.45 & 98.83 & 0.997 \\
-HGT (Fraud-Guard) & 95.35 & 91.67 & 88.45 & 90.03 & 0.980 \\
-\bottomrule
+SAGE & $0.000$ $\pm$ 0.005 & 0.957 & $-0.085$ $\pm$ 0.019 & $<$0.001 & $-0.007$ $\pm$ 0.004 & 0.009 \\
+RGCN & $-0.005$ $\pm$ 0.007 & 0.277 & $-0.106$ $\pm$ 0.021 & $<$0.001 & $-0.013$ $\pm$ 0.005 & $<$0.001 \\
+HAN & $-0.024$ $\pm$ 0.010 & $<$0.001 & $-0.147$ $\pm$ 0.024 & $<$0.001 & $-0.030$ $\pm$ 0.008 & $<$0.001 \\
+Simple-HGN & $-0.008$ $\pm$ 0.006 & 0.024 & $-0.094$ $\pm$ 0.023 & $<$0.001 & $-0.014$ $\pm$ 0.005 & $<$0.001 \\
+HGT & $-0.011$ $\pm$ 0.009 & 0.060 & $-0.118$ $\pm$ 0.023 & $<$0.001 & $-0.018$ $\pm$ 0.007 & $<$0.001 \\
+SAGE+AG & $+0.008$ $\pm$ 0.005 & 0.013 & $-0.078$ $\pm$ 0.015 & $<$0.001 & $0.000$ $\pm$ 0.003 & 0.930 \\
+HGT+AG & $+0.008$ $\pm$ 0.005 & 0.019 & $-0.112$ $\pm$ 0.018 & $<$0.001 & $-0.002$ $\pm$ 0.003 & 0.388 \\
+MLP-C & $-0.560$ $\pm$ 0.079 & $<$0.001 & $-0.019$ $\pm$ 0.015 & 0.015 & $-0.402$ $\pm$ 0.062 & $<$0.001 \\
+\botrule
 \end{tabular}
 \end{table}
 
-\textit{Interpretation}:\newline
-Random Forest and Gradient Boosting excel (F1 $\approx 99\%$) due to superior tree-based feature interaction modeling on tabular data.\newline
-Logistic Regression achieves $90.73\%$ F1, capturing primary linear patterns.\newline
-HGT achieves $95.35\%$ accuracy and $0.980$ AUC. On synthetic data where tabular features dominate, GNN performance is modest. However, on real datasets (CMS Medicare) with provider ring behavior, GNNs typically achieve F1 $0.85\text{--}0.92$, outperforming baselines.\newline
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_delta_heatmaps.pdf}
+\caption{Mean paired difference in ring AP (six worlds per cell). Left and
+middle: HGT and SAGE versus gradient boosting with engineered graph
+features. Right: HGT versus gradient boosting without graph features.
+$^{*}$Holm-adjusted $p<0.05$ within the nine-regime family.}
+\label{fig:delta}
+\end{figure}
 
-\textbf{D. Feature Importance (SHAP Analysis)}\newline
-SHAP TreeExplainer on Random Forest model identifies:\newline
-(1) \textit{claim\_amount}: Fraudsters inflate amounts. SHAP contribution: $\approx 32\%$.\newline
-(2) \textit{num\_procedures}: Excessive procedures indicate fraud. $\approx 18\%$.\newline
-(3) \textit{days\_in\_hospital}: Extended stays correlate with fraud. $\approx 12\%$.\newline
-(4) \textit{amount\_vs\_doctor\_avg}: Cross-entity ratios (comparing claim to doctor's historical average). $\approx 8\%$.\newline
-(5) \textit{doctor\_fraud\_rate}: Historical fraud rate per provider. $\approx 6\%$.\newline
+\subsection{Message passing dilutes claim-level anomalies}
+Isolated fraud shows the opposite pattern (Table~\ref{tab:regime_isoap}).
+Every GNN is significantly worse than GB-CAG, by 0.085 (SAGE) to 0.147
+(HAN) AP pooled (all Holm $p<0.001$), with HAN and HGT the weakest. The MLP control, which receives exactly the claim inputs of the
+GNNs but no messages, comes within 0.019 of GB-CAG. Aggregating a claim's
+representation with those of its neighbours, which are overwhelmingly
+legitimate, blurs the claim's own anomaly; the hybrids, whose claim nodes
+also see the engineered ratios, recover little of the gap. On all fraud
+combined (overall AP), GB-CAG is better than every pure GNN (by 0.007--0.030,
+all Holm $p<0.01$) and indistinguishable from the hybrids.
 
-Cross-entity features account for $15\text{--}20\%$ of SHAP contribution, validating relational reasoning in fraud detection.\newline
+\begin{table}[h]
+\caption{Isolated-fraud detection: average precision of isolated-fraud versus legitimate claims (chance level 0.03), mean over six worlds per regime. Bold: best per regime.}\label{tab:regime_isoap}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccccccc@{}}
+\toprule
+ & \multicolumn{3}{c}{$\delta=0$} & \multicolumn{3}{c}{$\delta=1$} & \multicolumn{3}{c}{$\delta=2$} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+Method / $s$ & 0.1 & 0.5 & 0.9 & 0.1 & 0.5 & 0.9 & 0.1 & 0.5 & 0.9 \\
+\midrule
+GB-C & 0.471 & 0.473 & 0.477 & 0.560 & 0.556 & 0.557 & 0.644 & 0.649 & 0.633 \\
+MLP-C & 0.542 & 0.539 & 0.545 & \textbf{0.624} & \textbf{0.614} & 0.623 & 0.651 & \textbf{0.667} & 0.656 \\
+LR-CA & 0.375 & 0.313 & 0.292 & 0.556 & 0.549 & 0.526 & \textbf{0.672} & 0.665 & \textbf{0.662} \\
+RF-CA & 0.551 & 0.506 & 0.469 & 0.586 & 0.560 & 0.547 & 0.626 & 0.608 & 0.604 \\
+GB-CA & 0.502 & 0.496 & 0.477 & 0.586 & 0.525 & 0.540 & 0.643 & 0.611 & 0.627 \\
+GB-CAG & \textbf{0.575} & \textbf{0.613} & \textbf{0.628} & 0.604 & 0.605 & \textbf{0.629} & 0.660 & 0.662 & 0.655 \\
+\midrule
+SAGE & 0.447 & 0.448 & 0.509 & 0.536 & 0.548 & 0.555 & 0.615 & 0.605 & 0.602 \\
+RGCN & 0.428 & 0.425 & 0.474 & 0.499 & 0.516 & 0.512 & 0.609 & 0.602 & 0.607 \\
+HAN & 0.375 & 0.371 & 0.408 & 0.472 & 0.467 & 0.466 & 0.590 & 0.576 & 0.581 \\
+Simple-HGN & 0.408 & 0.401 & 0.484 & 0.537 & 0.518 & 0.534 & 0.638 & 0.639 & 0.625 \\
+HGT & 0.344 & 0.379 & 0.455 & 0.500 & 0.498 & 0.537 & 0.622 & 0.626 & 0.605 \\
+\midrule
+SAGE+AG & 0.457 & 0.503 & 0.586 & 0.493 & 0.548 & 0.582 & 0.582 & 0.584 & 0.598 \\
+HGT+AG & 0.378 & 0.454 & 0.553 & 0.444 & 0.498 & 0.566 & 0.549 & 0.576 & 0.604 \\
+Overlap score & 0.027 & 0.027 & 0.027 & 0.027 & 0.027 & 0.027 & 0.027 & 0.027 & 0.027 \\
+\botrule
+\end{tabular}
+\end{table}
 
-\textbf{E. Deployment Performance}\newline
-Measured on production backend (backend/main.py) with real API requests:\newline
-Single prediction (warm cache): $<100$ms P99 latency, $\approx 10$ms average.\newline
-Batch predictions ($N=100$): $<2$ms per claim average.\newline
-Throughput: $5000+$ predictions/second on 4-core hardware.\newline
-No data leakage; reproducible across deployments.\newline
+\subsection{Cost}
+Median training time per world (Intel Core i7-1068NG7 laptop CPU, two
+threads per job with several jobs in parallel, so times are indicative) was
+3~s for GB-CAG, 39~s for SAGE, 56~s for RGCN, 86~s for HAN, 126~s for HGT and
+144~s for Simple-HGN; scoring a test period took at most 0.25~s for any
+method.
 
-\section{Discussion}\label{sec7}
 
-\textbf{A. Data Leakage Lessons}\newline
-The initial $>99.9\%$ accuracy revealed a critical machine learning pitfall: computing features on the full dataset before temporal split. This allowed target information to implicitly leak into training. The fix (split-before-engineer) ensures information barriers and produces realistic metrics.\newline
+\section{Mechanism and Memorisation}\label{sec:mechanism}
 
-For practitioners: Always split data \textit{temporally first}, compute statistics on training set only, apply statistics to validation/test. This is especially critical in healthcare where temporal ordering and causality matter.\newline
+\subsection{What the models rely on}
+Table~\ref{tab:ablation} and Fig.~\ref{fig:ablation} report ablations in the
+regime where structure matters most ($\delta=0$, $s=0.9$).
+Degree-preserving rewiring---permuting which doctor bills each claim within a
+period, which keeps every patient's and doctor's claim volume but destroys
+the ring's co-occurrence block---reduces every graph-aware method to the same
+level (0.757--0.770), close to gradient boosting without graph features after
+rewiring (0.748). The GNNs therefore do exploit coordination structure, and
+once it is removed nothing distinguishes them from a model that sees volume
+alone.
 
-\textbf{B. HGT vs. Classical ML}\newline
-Ensemble methods (Random Forest, Gradient Boosting) dominate on synthetic data where tabular features are rich. GNNs excel when relational fraud (rings, collusion) is primary, which is more common in real-world healthcare data.\newline
+Depth matters: with a single message-passing layer, ring AP falls by 0.135
+(SAGE) and 0.161 (HGT); two and three layers perform alike. Removing the
+direct patient--doctor relation costs little ($-0.016$ and $-0.047$, not
+significant after correction), because two-hop paths through claim nodes
+carry the same information. The largest effect is specific to HGT: without
+degree encodings its ring AP drops from 0.949 to 0.569 ($-0.379$, Holm
+$p=0.001$), whereas sum-aggregating SAGE changes little ($-0.029$, n.s.).
+Softmax attention normalises over neighbours and so cannot count them;
+supplying counts as input features, or aggregating by summation, restores
+the signal~\cite{xu2019gin}.
 
-Recommendation for real deployments: Use ensemble for baseline scoring; employ HGT for secondary contextual analysis and to flag provider rings.\newline
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_ablation.pdf}
+\caption{Mechanism ablations at $\delta=0$, $s=0.9$ (mean and 95\%
+$t$-interval over six worlds). Rewiring preserves every node's degree but
+destroys the ring block.}
+\label{fig:ablation}
+\end{figure}
 
-\textbf{C. Limitations and Future Work}\newline
-(1) \textit{Synthetic Data Distribution}: Synthetic data lacks real-world complexity. Future work should evaluate on public datasets (CMS Medicare, Kaggle).\newline
-(2) \textit{Transductive Learning}: HGT in transductive mode requires full graph for inference, limiting applicability to streaming scenarios. Future: Inductive GNNs with neighbor sampling.\newline
-(3) \textit{Temporal Dynamics}: Current model is static. Future: Temporal GNNs or sequential architectures to capture fraud evolution.\newline
-(4) \textit{Explainability Trade-off}: SHAP on GNN incurs computational overhead. Future: Develop scalable GNN explanation methods.\newline
+\begin{table}[h]
+\caption{Mechanism ablations at $\delta=0$, $s=0.9$ (six worlds): ring AP and paired change from the full model (Holm-adjusted $p$ over all ablations). The tuned GNNs use three layers.}\label{tab:ablation}
+\scriptsize
+\begin{tabular}{@{}llcc@{}}
+\toprule
+Method & Variant & Ring AP & $\Delta$ vs.\ full \\
+\midrule
+GB-CA & Full model & 0.889 $\pm$ 0.026 & -- \\
+ & Degree-preserving rewiring & 0.748 $\pm$ 0.027 & $-0.141$; $p=0.009$ \\
+ & + ring identifier (legacy leak) & 1.000 $\pm$ 0.000 & $+0.111$; $p=0.001$ \\
+\midrule
+GB-CAG & Full model & 0.990 $\pm$ 0.008 & -- \\
+ & Degree-preserving rewiring & 0.757 $\pm$ 0.046 & $-0.232$; $p<0.001$ \\
+\midrule
+SAGE & Full model & 0.976 $\pm$ 0.013 & -- \\
+ & Degree-preserving rewiring & 0.759 $\pm$ 0.034 & $-0.217$; $p<0.001$ \\
+ & No patient--doctor relation & 0.960 $\pm$ 0.019 & $-0.016$; $p=0.138$ \\
+ & No degree encodings & 0.947 $\pm$ 0.037 & $-0.029$; $p=0.232$ \\
+ & 1 message-passing layer & 0.841 $\pm$ 0.034 & $-0.135$; $p<0.001$ \\
+ & 2 layers & 0.957 $\pm$ 0.023 & $-0.019$; $p=0.138$ \\
+\midrule
+HGT & Full model & 0.949 $\pm$ 0.052 & -- \\
+ & Degree-preserving rewiring & 0.770 $\pm$ 0.029 & $-0.179$; $p=0.014$ \\
+ & No patient--doctor relation & 0.902 $\pm$ 0.055 & $-0.047$; $p=0.138$ \\
+ & No degree encodings & 0.569 $\pm$ 0.110 & $-0.379$; $p=0.001$ \\
+ & 1 message-passing layer & 0.788 $\pm$ 0.052 & $-0.161$; $p=0.009$ \\
+ & 2 layers & 0.947 $\pm$ 0.035 & $-0.001$; $p=0.880$ \\
+ & No reverse relations (legacy graph) & 0.772 $\pm$ 0.024 & $-0.177$; $p=0.010$ \\
+\botrule
+\end{tabular}
+\end{table}
 
-\section{Conclusion}\label{sec8}
+\subsection{Two evaluation pitfalls, quantified}
+The same experiment quantifies two defects that are easy to introduce. Adding
+the generator's ring identifier to the feature set---a column that is
+non-zero only for ring claims---raises gradient boosting from 0.889 to a
+perfect 1.000. Building the heterogeneous graph with one-directional
+relations only (patient$\to$claim$\to$doctor$\to$hospital) leaves claim nodes
+reachable only from patients, so doctor context never reaches them; HGT then
+loses 0.177 AP. Both defects produce plausible-looking numbers and neither is
+caught by aggregate metrics alone; the tests listed in
+Section~\ref{sec:repro} detect both.
 
-Fraud-Guard is a production-grade, plug-and-play system for healthcare fraud detection combining Heterogeneous Graph Transformer models, ensemble classifiers, and comprehensive MLOps infrastructure. The key innovation is the data leakage fix: splitting temporally before aggregate feature engineering, ensuring realistic model performance (99.05\% F1 for Gradient Boosting, 95.35\% accuracy for HGT) vs. spurious $>99.9\%$ from previous leaky pipelines.\newline
+\subsection{Recognising known members is not detecting rings}
+Table~\ref{tab:protocol} and Fig.~\ref{fig:protocolres} compare new rings (emergent protocol) with rings
+whose members recur from training (persistent protocol). The MLP control,
+which sees only the claim and the static attributes of its patient, doctor
+and hospital, rises from chance to 0.692 ($s=0.1$) and 0.591 ($s=0.9$) when
+rings recur: it identifies the members from their attributes. HGT gains
+0.056 at $s=0.1$ (95\% CI $[0.029, 0.084]$), and gradient boosting with
+aggregates gains 0.035--0.063, while the unsupervised overlap score, which
+cannot memorise, is unchanged. Evaluations in which test rings share members
+with training rings therefore overstate how well a model detects
+coordination, by an amount that differs between methods and can reorder
+them.
 
-The system includes:\newline
-• FastAPI backend with 8 endpoints, JWT auth, rate limiting.\newline
-• SHAP explainability for every prediction.\newline
-• Production monitoring (drift detection, quality checks, compliance logging).\newline
-• Streamlit dashboard with graph visualization and batch scoring.\newline
-• Docker Compose for reproducible deployment.\newline
-• $<100$ms latency and $5000+$ predictions/second throughput.\newline
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_protocol.pdf}
+\caption{Ring AP on new versus recurring rings ($\delta=0$, six worlds).}
+\label{fig:protocolres}
+\end{figure}
 
-Fraud-Guard demonstrates that Heterogeneous Graph Neural Networks can effectively model complex relationships in fraud detection, particularly when relational patterns (provider rings, collusion) dominate. Future work includes evaluation on real-world datasets, inductive learning for streaming scenarios, and temporal GNN variants to capture fraud evolution.\newline
+\begin{table}[h]
+\caption{Ring AP when test rings are new (emergent) versus recurring members of training rings (persistent), $\delta=0$, six worlds each; gain = persistent $-$ emergent (paired over worlds, 95\% $t$-interval). The overlap score is unsupervised and cannot memorise.}\label{tab:protocol}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lccp{2.2cm}ccp{2.2cm}@{}}
+\toprule
+ & \multicolumn{3}{c}{$s=0.1$} & \multicolumn{3}{c}{$s=0.9$} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Method & new & recurring & gain & new & recurring & gain \\
+\midrule
+MLP-C & 0.088 & 0.692 & $+0.604$ [$+0.523$, $+0.685$] & 0.095 & 0.591 & $+0.496$ [$+0.416$, $+0.577$] \\
+GB-CA & 0.925 & 0.959 & $+0.035$ [$+0.014$, $+0.055$] & 0.889 & 0.952 & $+0.063$ [$+0.034$, $+0.092$] \\
+GB-CAG & 0.930 & 0.955 & $+0.025$ [$-0.012$, $+0.062$] & 0.990 & 0.994 & $+0.005$ [$-0.002$, $+0.012$] \\
+SAGE & 0.938 & 0.969 & $+0.031$ [$-0.019$, $+0.081$] & 0.976 & 0.978 & $+0.002$ [$-0.015$, $+0.020$] \\
+HGT & 0.910 & 0.967 & $+0.056$ [$+0.029$, $+0.084$] & 0.949 & 0.981 & $+0.032$ [$-0.017$, $+0.082$] \\
+Overlap score & 0.254 & 0.256 & $+0.002$ [$-0.137$, $+0.142$] & 0.985 & 0.991 & $+0.006$ [$-0.009$, $+0.020$] \\
+\botrule
+\end{tabular}
+\end{table}
 
-\section{References}\label{sec9}
 
-[1] Z. Hu, Y. Dong, K. Wang, and Y. Sun, ``Heterogeneous graph transformer,'' in Proc. WWW, 2020, pp. 2704--2710.\newline\newline
-[2] R. A. Bauder and T. M. Khoshgoftaar, ``Medicare fraud detection using machine learning methods,'' in Proc. IEEE ICMLA, 2017, pp. 858--865.\newline\newline
-[3] T. Pourhabibi, K.-L. Ong, B. H. Kam, and Y. L. Boo, ``Fraud detection: A systematic literature review of graph-based anomaly detection approaches,'' Decision Support Systems, vol. 133, 2020.\newline\newline
-[4] L. Akoglu, H. Tong, and D. Koutra, ``Graph-based anomaly detection and description: A survey,'' Data Mining and Knowledge Discovery, vol. 29, no. 3, pp. 626--688, 2015.\newline\newline
-[5] Y. Liu, X. Ao, Z. Qin, J. Chi, J. Feng, H. Yang, and Q. He, ``Pick and choose: A GNN-based imbalanced learning approach for fraud detection,'' in Proc. WWW, 2021, pp. 3168--3177.\newline\newline
-[6] X. Wang, H. Ji, C. Shi, B. Wang, Y. Ye, P. Cui, and P. S. Yu, ``Heterogeneous graph attention network,'' in Proc. WWW, 2019, pp. 2022--2032.\newline\newline
-[7] S. M. Lundberg and S.-I. Lee, ``A unified approach to interpreting model predictions,'' in Proc. NeurIPS, 2017, pp. 4765--4774.\newline\newline
-[8] Z. Ying, D. Bourgeois, J. You, M. Zitnik, and J. Leskovec, ``GNNExplainer: Generating explanations for graph neural networks,'' in Proc. NeurIPS, 2019, pp. 9240--9251.\newline\newline
-[9] M. Fey and J. E. Lenssen, ``Fast graph representation learning with PyTorch Geometric,'' ICLR Workshop on Representation Learning on Graphs and Manifolds, 2019.\newline\newline
-[10] S. Tiong, I. Shi, J. Thomas, and P. B. Bhanu, ``Predicting healthcare fraud in Medicaid: A multidimensional data model and analysis for fraud detection,'' Procedia Computer Science, vol. 181, pp. 452--460, 2021.\newline\newline
-[11] A. Shrikumar, A. Greenside, and A. Kundaje, ``Learning important features through propagating activation differences,'' in Proc. ICML, 2017, pp. 3145--3153.\newline\newline
-[12] C. Molnar, ``Interpretable machine learning: A guide for making ML more interpretable,'' 2021. [Online]. Available: https://christophm.github.io/interpretable-ml-book\newline
+\section{Results on Real Data}\label{sec:realresults}
+
+Table~\ref{tab:kaggle} and Fig.~\ref{fig:kaggle} report provider-level
+results over the five rotations (1{,}082 test providers each, about 101
+fraudulent). Gradient boosting on provider aggregates (GB-P) has the highest
+AP ($0.704\pm0.045$). Adding label-free graph features (GB-PG, $-0.009$,
+95\% CI $[-0.029, 0.011]$) or graph and label-neighbourhood features
+(GB-PGL, $-0.007$ $[-0.021, 0.007]$) does not improve it. Every GNN has lower
+AP than GB-P, by $-0.029$ (HGT) to $-0.083$ (RGCN); with five rotations most
+of these differences are not significant after Holm adjustment over all 24
+comparisons, the exception being SAGE+G ($-0.051$, Holm $p=0.021$). The
+hybrids, which give the GNN the provider and graph features, are no better
+than the plain GNNs. ROC-AUC lies between 0.927 and 0.942 for all methods and
+recall among the top 10\% of providers between 0.59 and 0.64, so the methods
+rank providers similarly; the AP differences come from the top of the
+ranking. Under the same parallel load as before, median training time per
+rotation was 2--15 minutes for the GNNs (range 1.4--24 minutes) against 7~s
+for GB-P.
+
+\begin{table}[h]
+\caption{Provider-level fraud detection on the public Medicare-style provider dataset (5-fold rotation; mean $\pm$ s.d. over folds). F1 at the validation-selected threshold; Recall@10\% = share of fraudulent providers among the top 10\% scored.}\label{tab:kaggle}
+\footnotesize
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Method & AP & ROC-AUC & F1 & Recall@10\% \\
+\midrule
+LR-P & 0.678 $\pm$ 0.041 & 0.940 $\pm$ 0.017 & 0.617 $\pm$ 0.030 & 0.644 $\pm$ 0.023 \\
+RF-P & 0.681 $\pm$ 0.049 & 0.942 $\pm$ 0.017 & 0.624 $\pm$ 0.031 & 0.644 $\pm$ 0.025 \\
+\textbf{GB-P} & 0.704 $\pm$ 0.045 & 0.939 $\pm$ 0.020 & 0.624 $\pm$ 0.028 & 0.636 $\pm$ 0.027 \\
+GB-PG & 0.695 $\pm$ 0.040 & 0.937 $\pm$ 0.019 & 0.600 $\pm$ 0.043 & 0.642 $\pm$ 0.024 \\
+GB-PGL & 0.697 $\pm$ 0.042 & 0.937 $\pm$ 0.019 & 0.595 $\pm$ 0.045 & 0.634 $\pm$ 0.019 \\
+MLP-P & 0.685 $\pm$ 0.052 & 0.940 $\pm$ 0.019 & 0.613 $\pm$ 0.028 & 0.642 $\pm$ 0.032 \\
+SAGE & 0.664 $\pm$ 0.047 & 0.938 $\pm$ 0.018 & 0.605 $\pm$ 0.036 & 0.624 $\pm$ 0.046 \\
+RGCN & 0.621 $\pm$ 0.054 & 0.927 $\pm$ 0.019 & 0.578 $\pm$ 0.029 & 0.593 $\pm$ 0.029 \\
+HAN & 0.666 $\pm$ 0.046 & 0.938 $\pm$ 0.018 & 0.583 $\pm$ 0.028 & 0.636 $\pm$ 0.045 \\
+Simple-HGN & 0.670 $\pm$ 0.057 & 0.939 $\pm$ 0.020 & 0.600 $\pm$ 0.037 & 0.630 $\pm$ 0.036 \\
+HGT & 0.676 $\pm$ 0.058 & 0.939 $\pm$ 0.019 & 0.613 $\pm$ 0.051 & 0.640 $\pm$ 0.051 \\
+SAGE+G & 0.653 $\pm$ 0.048 & 0.937 $\pm$ 0.018 & 0.612 $\pm$ 0.040 & 0.623 $\pm$ 0.031 \\
+HGT+G & 0.648 $\pm$ 0.032 & 0.933 $\pm$ 0.014 & 0.589 $\pm$ 0.022 & 0.615 $\pm$ 0.035 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.6\textwidth]{fig_kaggle_ap.pdf}
+\caption{Provider-level AP on the real data (mean and 95\% $t$-interval over
+five rotations). Blue: tabular; orange: GNN; aqua: hybrid; gray: MLP.}
+\label{fig:kaggle}
+\end{figure}
+
+The graph statistics explain why. Almost every provider (99.5\%) shares
+beneficiaries with other providers (median 30 co-providers), but labels are
+not assortative through this relation: on average 23.9\% of a fraudulent
+provider's co-providers are labelled fraudulent, against 25.3\% for a
+legitimate provider (both well above the 9.4\% base rate because shared
+beneficiaries concentrate on large providers). Shared physicians show mild
+assortativity (19.1\% versus 14.2\%) but connect only 73\% of providers,
+with a median of two co-providers. Fraudulent providers are, however, much
+larger (median 156 versus 27 claims), a volume signal that provider
+aggregates capture directly. In the terms of our benchmark, these data
+resemble the low-density regime, where structure added nothing beyond
+per-entity aggregates. The labels mark potentially fraudulent providers
+without identifying rings, so the absence of a graph benefit here does not
+show that rings are absent from Medicare data; it shows that this public
+labelling contains no exploitable relational signal for the models tested.
+
+
+\section{Discussion}\label{sec:discussion}
+
+\subsection{When does relational structure help?}
+Three conditions emerge from the controlled study. First, coordination must
+leave a structural trace beyond volume: at low block density, rings were
+detected mainly through the elevated utilisation of their members, which
+per-entity counts capture. Second, the trace must be dense enough to
+distinguish a ring from ordinary shared care: graph information added
+0.04--0.10 AP at moderate and high density (most when ring claims looked
+legitimate) but nothing measurable at low density. Third, the claims must not already be anomalous on their own: when
+ring claims were strongly upcoded ($\delta=2$), every model with claim and
+aggregate features exceeded 0.98 AP and structure became redundant.
+
+\subsection{Why GNNs did not beat engineered graph features}
+When structure did help, gradient boosting with a handful of shared-patient
+statistics captured it as well as or better than the best GNN. The mechanism
+analyses suggest why. The useful signal here is largely
+\emph{counting}---how many of a patient's doctors also share other
+patients---and attention- or mean-based aggregators cannot count: HGT lost
+most of its ring detection without degree encodings, whereas sum-aggregating
+GraphSAGE barely changed (Section~\ref{sec:mechanism}). This mirrors the
+expressiveness argument for sum aggregation~\cite{xu2019gin}. GNNs also
+dilute claim-level anomalies through neighbourhood averaging, which made
+them markedly worse on isolated fraud, and they readily memorise the
+attributes of training-ring members, which inflates performance when rings
+recur but does not transfer to new rings. Hybrids that combine message
+passing with engineered features recovered a small, consistent gain over
+gradient boosting on ring fraud, indicating that the GNN extracted some
+structure our features miss, at 9--40 times the training cost.
+
+These findings are consistent with evidence from other domains that tree
+ensembles with neighbourhood features are strong graph anomaly
+detectors~\cite{weber2019elliptic,tang2023gadbench}, and extend it to
+heterogeneous patient--provider claim graphs with controlled typologies.
+
+\subsection{Real data}
+On the public provider-labelled data, gradient boosting on provider
+aggregates was the strongest method, and neither engineered graph features,
+label-neighbourhood features nor any GNN improved on it. The labels are not
+assortative through shared beneficiaries, and fraudulent providers differ
+mainly in volume, so the data sit in the regime where our benchmark also
+found no benefit from structure. This is consistent with the controlled
+results but is not an independent confirmation of the dense-ring regime:
+validating that regime requires real data with labelled collusion, which are
+not publicly available.
+
+\subsection{Practical recommendations}
+\begin{itemize}
+\item Start with gradient boosting on claim features, per-entity aggregates
+  and a small set of shared-patient graph features; on our benchmark this was
+  never significantly worse than any pure GNN, within 0.01 AP of the hybrids
+  on average, and far cheaper.
+\item Evaluate on rings (or providers) that do not appear in training, and
+  compare against a no-graph control with identical inputs; otherwise
+  memorisation of known members can masquerade as relational learning.
+\item If a GNN is used, include reverse relations, verify that information
+  reaches the classified nodes, and give attention-based architectures
+  structural (degree) encodings or prefer sum aggregation.
+\item Keep isolated-fraud detection on a claim-level model; message passing
+  degraded it consistently.
+\end{itemize}
+
+\subsection{Limitations}\label{sec:limitations}
+The controlled findings hold for our generator. Its distributions are
+simple, labels are noise-free and immediate, rings are static during their
+active period and of a single size, and ring prevalence (about 8\% of
+test-period claims) is far above realistic levels so that each world has
+enough positives for stable estimates. Ring members also carry a volume
+signal in every regime, so our regimes vary the \emph{additional} structural
+evidence rather than all structural evidence. We tuned each method once, on
+development worlds from a single regime ($\delta=0.5$, $s=0.5$); per-regime
+tuning could change small differences. Six worlds per regime give limited
+power within a regime, which is why we emphasise pooled comparisons. Graph
+models were trained full-batch on graphs of about 11{,}000 nodes per period;
+larger graphs would need sampling-based training~\cite{hamilton2017sage}.
+On the real data, labels are per provider and of undocumented provenance,
+the observation window is a single year, and hyperparameters were selected
+on a split whose validation providers overlap the evaluation test folds;
+this overlap affects all methods equally but may favour each slightly.
+Finally, the benchmark does not model adaptive fraudsters, temporal ring
+dynamics, which temporal graph models target~\cite{rossi2020tgn}, or
+realistic coding semantics such as those of synthetic health
+records~\cite{walonoski2018synthea}.
+
+
+\section{Reproducibility}\label{sec:repro}
+All results are produced by one released package from raw inputs. Every run
+writes a record containing the git commit, a hash of its configuration, the
+hashes of the generated claim and ground-truth tables, the library versions
+and the per-claim (or per-provider) test predictions; the tables and figures
+of this paper are generated from these records by a single script. Automated
+tests, run in continuous integration, check that (i) no ground-truth column
+reaches any feature matrix and features are invariant to permuting the labels;
+(ii) a period's features and graph are unchanged when claims of other periods
+are perturbed; (iii) emergent rings in different splits share no doctor or
+patient; (iv) at $\delta=0$ ring claims are distributed like legitimate
+claims; (v) features, graphs and labels stay aligned by claim identifier; and
+(vi) for every GNN, perturbing doctor features changes claim logits, so
+relational information actually reaches the classified nodes. A checklist
+mapping this study to the REFORMS recommendations~\cite{kapoor2024reforms}
+and a datasheet for the generator~\cite{gebru2021datasheets} are included in
+the repository.
+
+\section{Conclusion}\label{sec:conclusion}
+We asked when relational structure helps healthcare fraud detection and
+answered it with a benchmark that varies the feature-level and structural
+signal of provider rings independently, tests on rings never seen in
+training, and checks the conclusions on public real data. Structure helped
+only when rings formed dense doctor--patient blocks, and in that regime a
+gradient-boosting model with a handful of engineered shared-patient features
+matched or outperformed five heterogeneous GNNs at a fraction of the cost;
+adding message passing on top of those features gained little. GNNs
+generalised to new rings only with reverse relations, sufficient depth and
+counting ability, degraded isolated-fraud detection, and could memorise known
+ring members in ways that inflate conventional evaluations. On provider-labelled
+real data no graph-based method improved on tabular aggregates. We recommend
+that graph models for claims fraud be justified against a graph-augmented
+tabular baseline and a no-graph control, on entities unseen in training. The
+benchmark, code and tests are released to support such comparisons; the most
+valuable next step is real data with labelled collusive schemes.
+
+\backmatter
+
+\bmhead{Supplementary information}
+The repository contains the per-world results (including standard
+deviations, F1, ROC-AUC and recall at a fixed investigation budget for every
+regime and method), the tuning logs and the test predictions underlying every
+table and figure.
+
+\section*{Declarations}
+
+\begin{itemize}
+\item \textbf{Funding.} The authors did not receive support from any organization for the submitted work.
+\item \textbf{Competing interests.} The authors declare no competing interests.
+\item \textbf{Ethics approval and consent to participate.} Not applicable: the
+  study uses synthetic data and a public, de-identified dataset released under
+  a CC0 licence; no human participants were involved.
+\item \textbf{Consent for publication.} Not applicable.
+\item \textbf{Data availability.} The synthetic benchmark is generated by the
+  released code from fixed seeds. The real-world data are available from
+  Kaggle~\cite{kaggle2019} under CC0; file checksums are listed in the
+  repository.
+\item \textbf{Code availability.} Code, configurations, tests and result
+  records are available at \url{https://github.com/akshay-hudev/Fraud-Guard}
+  (directory \texttt{research/}) under the MIT licence. An archived release
+  with a DOI will be provided upon acceptance.
+\item \textbf{Author contribution.} H M Akshay: conceptualization,
+  methodology, software, investigation, formal analysis, data curation,
+  visualization and writing---original draft. Gaurav S B, Eshita Narayana
+  and Harshita Srivastava: methodology, investigation, formal analysis and
+  writing---original draft. Malini M Patil: supervision and writing---review
+  and editing. All authors read and approved the final manuscript.
+\end{itemize}
+
+\begin{appendices}
+
+\section{Generator parameters and hyperparameters}\label{app:hyperparams}
+
+\begin{table}[h]
+\caption{Generator parameters (defaults in \texttt{research/synth/generator.py}).}\label{tab:generator}
+\scriptsize
+\begin{tabular}{@{}p{4.6cm}p{7.2cm}@{}}
+\toprule
+Parameter & Value \\
+\midrule
+Patients / doctors / hospitals / regions / specialties & 6{,}000 / 300 / 40 / 5 / 8 \\
+Audit periods & 4 $\times$ 6 months (train: 1--2, validation: 3, test: 4) \\
+Legitimate claims per patient & Poisson(gamma rate; mean 3, shape 1.5) over 24 months \\
+Share of legitimate claims with a regular doctor & 0.85 (1--3 regular doctors per patient, same region) \\
+Claim amount & log-normal: specialty mean + $0.15\,(\text{procedures}-1)$ + $0.8\,\text{inpatient}$, s.d.\ 0.6 \\
+Isolated fraud & 3\% of legitimate volume; feature shift 2.0 \\
+Ring size & 4 doctors, 12 recruited patients (utilisation-weighted) \\
+Ring volume & 16 claims per month during activity; monthly burst days \\
+Rings per period & 4 (emergent: new members each period; persistent: same 4 rings) \\
+Feature shift $\delta$ & 0, 1, 2 (development worlds: 0.5) \\
+Structural density $s$ & 0.1, 0.5, 0.9 (development worlds: 0.5) \\
+Worlds per regime & 6 (seeds 1--6); development worlds: seeds 901, 902 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\caption{Selected hyperparameters (equal budget per method; hybrids inherit their base configuration; methods sharing a search space were offered the same candidate configurations). Synthetic: tuned on development worlds; real data: tuned on a separate split.}\label{tab:hyperparams}
+\scriptsize
+\begin{tabular}{@{}p{2.2cm}p{5.0cm}p{5.0cm}@{}}
+\toprule
+Method & Synthetic benchmark & Real data \\
+\midrule
+LR & C=100 & C=1 \\
+RF & max depth=16; max features=sqrt; min samples leaf=3; n estimators=300 & max depth=16; max features=0.3; min samples leaf=10; n estimators=300 \\
+GB (C) & l2=0; learning rate=0.03; max iter=200; max leaf nodes=15; min samples leaf=10 & -- \\
+GB (C+A / P) & l2=1; learning rate=0.1; max iter=200; max leaf nodes=63; min samples leaf=50 & l2=0; learning rate=0.03; max iter=200; max leaf nodes=15; min samples leaf=50 \\
+GB (C+A+G / P+G) & l2=1; learning rate=0.1; max iter=400; max leaf nodes=15; min samples leaf=20 & l2=0; learning rate=0.03; max iter=200; max leaf nodes=15; min samples leaf=50 \\
+GB (P+G+L) & -- & l2=0; learning rate=0.03; max iter=200; max leaf nodes=15; min samples leaf=50 \\
+MLP & dropout=0.3; hidden=128; layers=2; lr=0.001; weight decay=1e-05 & dropout=0.3; hidden=128; layers=2; lr=0.001; weight decay=1e-05 \\
+SAGE & aggr=sum; dropout=0.1; hidden=32; layers=3; lr=0.003; weight decay=0.001 & aggr=mean; dropout=0.3; hidden=64; layers=3; lr=0.003; weight decay=0.0001 \\
+RGCN & aggr=sum; dropout=0.3; hidden=64; layers=2; lr=0.003; weight decay=0.001 & aggr=sum; dropout=0.3; hidden=64; layers=2; lr=0.01; weight decay=0.001 \\
+HAN & dropout=0.3; heads=4; hidden=32; layers=3; lr=0.01; weight decay=1e-05 & dropout=0.1; heads=2; hidden=64; layers=2; lr=0.003; weight decay=0.0001 \\
+Simple-HGN & dropout=0.3; heads=4; hidden=64; layers=3; lr=0.003; weight decay=0.0001 & dropout=0.1; heads=4; hidden=64; layers=2; lr=0.01; weight decay=0.001 \\
+HGT & dropout=0.3; heads=4; hidden=32; layers=3; lr=0.01; weight decay=1e-05 & dropout=0.1; heads=4; hidden=64; layers=2; lr=0.01; weight decay=0.001 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\end{appendices}
+
+
+\begin{thebibliography}{99}
+
+\bibitem{nhcaa}
+National Health Care Anti-Fraud Association: The Challenge of Health Care Fraud.
+\url{https://www.nhcaa.org/tools-insights/about-health-care-fraud/the-challenge-of-health-care-fraud/}.
+Accessed 20 October 2026
+
+\bibitem{bauder2017}
+Bauder, R.A., Khoshgoftaar, T.M.: Medicare fraud detection using machine learning methods.
+In: Proc. 16th IEEE International Conference on Machine Learning and Applications (ICMLA), pp. 858--865 (2017)
+
+\bibitem{herland2018}
+Herland, M., Khoshgoftaar, T.M., Bauder, R.A.: Big data fraud detection using multiple Medicare data sources.
+Journal of Big Data \textbf{5}, 29 (2018)
+
+\bibitem{johnson2019}
+Johnson, J.M., Khoshgoftaar, T.M.: Medicare fraud detection using neural networks.
+Journal of Big Data \textbf{6}, 63 (2019)
+
+\bibitem{thornton2013}
+Thornton, D., Mueller, R.M., Schoutsen, P., van Hillegersberg, J.: Predicting healthcare fraud in Medicaid:
+a multidimensional data model and analysis techniques for fraud detection.
+Procedia Technology \textbf{9}, 1252--1264 (2013)
+
+\bibitem{akoglu2015}
+Akoglu, L., Tong, H., Koutra, D.: Graph based anomaly detection and description: a survey.
+Data Mining and Knowledge Discovery \textbf{29}(3), 626--688 (2015)
+
+\bibitem{pourhabibi2020}
+Pourhabibi, T., Ong, K.-L., Kam, B.H., Boo, Y.L.: Fraud detection: a systematic literature review of
+graph-based anomaly detection approaches. Decision Support Systems \textbf{133}, 113303 (2020). \url{https://doi.org/10.1016/j.dss.2020.113303}
+
+\bibitem{akoglu2010oddball}
+Akoglu, L., McGlohon, M., Faloutsos, C.: OddBall: spotting anomalies in weighted graphs.
+In: Advances in Knowledge Discovery and Data Mining (PAKDD), LNCS, vol. 6119, pp. 410--421. Springer (2010)
+
+\bibitem{beutel2013copycatch}
+Beutel, A., Xu, W., Guruswami, V., Palow, C., Faloutsos, C.: CopyCatch: stopping group attacks by spotting
+lockstep behavior in social networks. In: Proc. 22nd International Conference on World Wide Web (WWW), pp. 119--130 (2013)
+
+\bibitem{hooi2016fraudar}
+Hooi, B., Song, H.A., Beutel, A., Shah, N., Shin, K., Faloutsos, C.: FRAUDAR: bounding graph fraud in the face
+of camouflage. In: Proc. 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, pp. 895--904 (2016)
+
+\bibitem{wang2019fdgars}
+Wang, J., Wen, R., Wu, C., Huang, Y., Xiong, J.: FdGars: fraudster detection via graph convolutional networks in
+online app review system. In: Companion Proceedings of the 2019 World Wide Web Conference, pp. 310--316 (2019)
+
+\bibitem{zhang2019player2vec}
+Zhang, Y., Fan, Y., Ye, Y., Zhao, L., Shi, C.: Key player identification in underground forums over attributed
+heterogeneous information network embedding framework. In: Proc. 28th ACM International Conference on
+Information and Knowledge Management (CIKM), pp. 549--558 (2019)
+
+\bibitem{dou2020care}
+Dou, Y., Liu, Z., Sun, L., Deng, Y., Peng, H., Yu, P.S.: Enhancing graph neural network-based fraud detectors
+against camouflaged fraudsters. In: Proc. 29th ACM International Conference on Information and Knowledge
+Management (CIKM), pp. 315--324 (2020)
+
+\bibitem{liu2021pcgnn}
+Liu, Y., Ao, X., Qin, Z., Chi, J., Feng, J., Yang, H., He, Q.: Pick and choose: a GNN-based imbalanced learning
+approach for fraud detection. In: Proc. Web Conference 2021 (WWW), pp. 3168--3177 (2021)
+
+\bibitem{tang2022bwgnn}
+Tang, J., Li, J., Gao, Z., Li, J.: Rethinking graph neural networks for anomaly detection.
+In: Proc. 39th International Conference on Machine Learning (ICML), PMLR, vol. 162, pp. 21076--21089 (2022)
+
+\bibitem{schlichtkrull2018}
+Schlichtkrull, M., Kipf, T.N., Bloem, P., van den Berg, R., Titov, I., Welling, M.: Modeling relational data
+with graph convolutional networks. In: The Semantic Web (ESWC 2018), LNCS, vol. 10843, pp. 593--607. Springer (2018)
+
+\bibitem{wang2019han}
+Wang, X., Ji, H., Shi, C., Wang, B., Ye, Y., Cui, P., Yu, P.S.: Heterogeneous graph attention network.
+In: Proc. World Wide Web Conference (WWW), pp. 2022--2032 (2019)
+
+\bibitem{hu2020hgt}
+Hu, Z., Dong, Y., Wang, K., Sun, Y.: Heterogeneous graph transformer.
+In: Proc. Web Conference 2020 (WWW), pp. 2704--2710 (2020)
+
+\bibitem{lv2021}
+Lv, Q., Ding, M., Liu, Q., Chen, Y., Feng, W., He, S., Zhou, C., Jiang, J., Dong, Y., Tang, J.: Are we really
+making much progress? Revisiting, benchmarking and refining heterogeneous graph neural networks.
+In: Proc. 27th ACM SIGKDD Conference on Knowledge Discovery and Data Mining, pp. 1150--1160 (2021)
+
+\bibitem{hamilton2017sage}
+Hamilton, W.L., Ying, R., Leskovec, J.: Inductive representation learning on large graphs.
+In: Advances in Neural Information Processing Systems 30 (NeurIPS), pp. 1024--1034 (2017)
+
+\bibitem{xu2019gin}
+Xu, K., Hu, W., Leskovec, J., Jegelka, S.: How powerful are graph neural networks?
+In: International Conference on Learning Representations (ICLR) (2019)
+
+\bibitem{weber2019elliptic}
+Weber, M., Domeniconi, G., Chen, J., Weidele, D.K.I., Bellei, C., Robinson, T., Leiserson, C.E.: Anti-money
+laundering in Bitcoin: experimenting with graph convolutional networks for financial forensics.
+KDD Workshop on Anomaly Detection in Finance (2019). arXiv:1908.02591
+
+\bibitem{tang2023gadbench}
+Tang, J., Hua, F., Gao, Z., Zhao, P., Li, J.: GADBench: revisiting and benchmarking supervised graph anomaly
+detection. In: Advances in Neural Information Processing Systems 36 (NeurIPS), Datasets and Benchmarks Track (2023)
+
+\bibitem{grinsztajn2022}
+Grinsztajn, L., Oyallon, E., Varoquaux, G.: Why do tree-based models still outperform deep learning on typical
+tabular data? In: Advances in Neural Information Processing Systems 35 (NeurIPS), Datasets and Benchmarks Track (2022)
+
+\bibitem{altman2023aml}
+Altman, E., Blanu\v{s}a, J., von Nieder\"ausern, L., Egressy, B., Anghel, A., Atasu, K.: Realistic synthetic
+financial transactions for anti-money laundering models. In: Advances in Neural Information Processing
+Systems 36 (NeurIPS), Datasets and Benchmarks Track (2023)
+
+\bibitem{jesus2022baf}
+Jesus, S., Pombal, J., Alves, D., Cruz, A., Saleiro, P., Ribeiro, R., Gama, J., Bizarro, P.: Turning the tables:
+biased, imbalanced, dynamic tabular datasets for ML evaluation. In: Advances in Neural Information Processing
+Systems 35 (NeurIPS), Datasets and Benchmarks Track (2022)
+
+\bibitem{kaufman2012leakage}
+Kaufman, S., Rosset, S., Perlich, C., Stitelman, O.: Leakage in data mining: formulation, detection, and avoidance.
+ACM Transactions on Knowledge Discovery from Data \textbf{6}(4), 15 (2012)
+
+\bibitem{kapoor2023leakage}
+Kapoor, S., Narayanan, A.: Leakage and the reproducibility crisis in machine-learning-based science.
+Patterns \textbf{4}(9), 100804 (2023)
+
+\bibitem{shchur2018pitfalls}
+Shchur, O., Mumme, M., Bojchevski, A., G\"unnemann, S.: Pitfalls of graph neural network evaluation.
+NeurIPS Workshop on Relational Representation Learning (2018). arXiv:1811.05868
+
+\bibitem{saito2015pr}
+Saito, T., Rehmsmeier, M.: The precision-recall plot is more informative than the ROC plot when evaluating
+binary classifiers on imbalanced datasets. PLoS ONE \textbf{10}(3), e0118432 (2015)
+
+\bibitem{demsar2006}
+Dem\v{s}ar, J.: Statistical comparisons of classifiers over multiple data sets.
+Journal of Machine Learning Research \textbf{7}, 1--30 (2006)
+
+\bibitem{holm1979}
+Holm, S.: A simple sequentially rejective multiple test procedure.
+Scandinavian Journal of Statistics \textbf{6}(2), 65--70 (1979)
+
+\bibitem{ke2017lightgbm}
+Ke, G., Meng, Q., Finley, T., Wang, T., Chen, W., Ma, W., Ye, Q., Liu, T.-Y.: LightGBM: a highly efficient
+gradient boosting decision tree. In: Advances in Neural Information Processing Systems 30 (NeurIPS), pp. 3146--3154 (2017)
+
+\bibitem{pedregosa2011}
+Pedregosa, F., et al.: Scikit-learn: machine learning in Python.
+Journal of Machine Learning Research \textbf{12}, 2825--2830 (2011)
+
+\bibitem{fey2019}
+Fey, M., Lenssen, J.E.: Fast graph representation learning with PyTorch Geometric.
+ICLR Workshop on Representation Learning on Graphs and Manifolds (2019). arXiv:1903.02428
+
+\bibitem{kaggle2019}
+Gupta, R.A.: Healthcare Provider Fraud Detection Analysis (dataset). Kaggle (2019).
+\url{https://www.kaggle.com/datasets/rohitrox/healthcare-provider-fraud-detection-analysis}. CC0 1.0. Accessed 20 October 2026
+
+\bibitem{walonoski2018synthea}
+Walonoski, J., Kramer, M., Nichols, J., Quina, A., Moesel, C., Hall, D., Duffett, C., Dube, K., Gallagher, T.,
+McLachlan, S.: Synthea: an approach, method, and software mechanism for generating synthetic patients and the
+synthetic electronic health care record. Journal of the American Medical Informatics Association \textbf{25}(3), 230--238 (2018)
+
+\bibitem{rossi2020tgn}
+Rossi, E., Chamberlain, B., Frasca, F., Eynard, D., Monti, F., Bronstein, M.: Temporal graph networks for deep
+learning on dynamic graphs. arXiv:2006.10637 (2020)
+
+\bibitem{gebru2021datasheets}
+Gebru, T., Morgenstern, J., Vecchione, B., Vaughan, J.W., Wallach, H., Daum\'e III, H., Crawford, K.:
+Datasheets for datasets. Communications of the ACM \textbf{64}(12), 86--92 (2021)
+
+\bibitem{kapoor2024reforms}
+Kapoor, S., Cantrell, E.M., Peng, K., et al.: REFORMS: consensus-based recommendations for machine-learning-based
+science. Science Advances \textbf{10}(18), eadk3452 (2024)
+
+\end{thebibliography}
+
 
 \end{document}

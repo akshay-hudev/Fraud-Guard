@@ -68,3 +68,9 @@ training/notebooks/.ipynb_checkpoints/
 !data/processed/label_encoders.pkl
 htmlcov/
 .pytest_cache/
+
+# Research pipeline
+.venv-research/
+data/external/
+results/**/predictions/
+results/**/cache/

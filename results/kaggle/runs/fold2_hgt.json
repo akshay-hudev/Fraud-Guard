@@ -1,0 +1,63 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-22T06:51:33+00:00",
+    "git": {
+      "commit": "f16ccc7f4fa0779c2850d212f805027ca357db07",
+      "dirty": true
+    },
+    "config_hash": "9a5e49ca9b6a48e6",
+    "config": {
+      "fold": 2,
+      "methods": [
+        "HGT"
+      ]
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "hyperparameters": {
+      "HGT": {
+        "dropout": 0.1,
+        "heads": 4,
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.01,
+        "weight_decay": 0.001
+      }
+    },
+    "data": {
+      "n_providers": 5410,
+      "n_fraud": 506,
+      "P_hash": "11c2c5f183b47228",
+      "files": "data/external/kaggle_provider_fraud"
+    }
+  },
+  "rows": [
+    {
+      "method": "HGT",
+      "fold": 2,
+      "ap": 0.7508542595111519,
+      "roc_auc": 0.9645946246000747,
+      "f1": 0.6976744186046512,
+      "precision": 0.6578947368421053,
+      "recall": 0.7425742574257426,
+      "recall_at_10pct": 0.7029702970297029,
+      "threshold": 0.7822374701499939,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.6876588355035405,
+      "train_seconds": 1458.8048901557922,
+      "infer_seconds": 5.175244092941284,
+      "best_epoch": 18
+    }
+  ]
+}

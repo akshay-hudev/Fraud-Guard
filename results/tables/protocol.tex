@@ -1,0 +1,19 @@
+\begin{table}[h]
+\caption{Ring AP when test rings are new (emergent) versus recurring members of training rings (persistent), $\delta=0$, six worlds each; gain = persistent $-$ emergent (paired over worlds, 95\% $t$-interval). The overlap score is unsupervised and cannot memorise.}\label{tab:protocol}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lccp{2.2cm}ccp{2.2cm}@{}}
+\toprule
+ & \multicolumn{3}{c}{$s=0.1$} & \multicolumn{3}{c}{$s=0.9$} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Method & new & recurring & gain & new & recurring & gain \\
+\midrule
+MLP-C & 0.088 & 0.692 & $+0.604$ [$+0.523$, $+0.685$] & 0.095 & 0.591 & $+0.496$ [$+0.416$, $+0.577$] \\
+GB-CA & 0.925 & 0.959 & $+0.035$ [$+0.014$, $+0.055$] & 0.889 & 0.952 & $+0.063$ [$+0.034$, $+0.092$] \\
+GB-CAG & 0.930 & 0.955 & $+0.025$ [$-0.012$, $+0.062$] & 0.990 & 0.994 & $+0.005$ [$-0.002$, $+0.012$] \\
+SAGE & 0.938 & 0.969 & $+0.031$ [$-0.019$, $+0.081$] & 0.976 & 0.978 & $+0.002$ [$-0.015$, $+0.020$] \\
+HGT & 0.910 & 0.967 & $+0.056$ [$+0.029$, $+0.084$] & 0.949 & 0.981 & $+0.032$ [$-0.017$, $+0.082$] \\
+Overlap score & 0.254 & 0.256 & $+0.002$ [$-0.137$, $+0.142$] & 0.985 & 0.991 & $+0.006$ [$-0.009$, $+0.020$] \\
+\botrule
+\end{tabular}
+\end{table}

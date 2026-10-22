@@ -55,7 +55,7 @@ from backend.schemas import (
 setup_logging()
 logger = AppLogger(__name__)
 settings = get_settings()
-USE_INDUCTIVE_MODE = os.getenv("USE_INDUCTIVE_MODE", "true").lower() in {"1", "true", "yes"}
+USE_INDUCTIVE_MODE = os.getenv("USE_INDUCTIVE_MODE", "false").lower() in {"1", "true", "yes"}
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -70,11 +70,9 @@ class AppState:
 
 def _load_historical_graph() -> Optional[Dict[str, Any]]:
     graph_candidates = [
-        "training/data/processed/hetero_graph.pt",
         "data/processed/hetero_graph.pt",
     ]
     mapping_candidates = [
-        "training/data/processed/graph_mappings.json",
         "data/processed/graph_mappings.json",
     ]
     try:
@@ -445,16 +443,9 @@ async def model_stats():
                 with open(p) as f:
                     results[name] = json.load(f)
 
-        if not results:
-            # Default mock results so dashboard always renders
-            results = {
-                "logistic_regression": {"accuracy": 0.881, "precision": 0.723, "recall": 0.694, "f1": 0.708, "roc_auc": 0.852},
-                "random_forest":       {"accuracy": 0.934, "precision": 0.881, "recall": 0.810, "f1": 0.844, "roc_auc": 0.961},
-                "gradient_boosting":   {"accuracy": 0.929, "precision": 0.854, "recall": 0.823, "f1": 0.839, "roc_auc": 0.958},
-                "gnn_hgt":             {"accuracy": 0.957, "precision": 0.910, "recall": 0.884, "f1": 0.897, "roc_auc": 0.980},
-            }
-
-    best_model = max(results, key=lambda k: results[k].get("f1", 0))
+    # Only evaluated models are reported; there are no placeholder metrics.
+    results = {k: v for k, v in results.items() if v}
+    best_model = max(results, key=lambda k: results[k].get("f1", 0)) if results else None
     return {
         "model_performance": results,
         "best_model": best_model,

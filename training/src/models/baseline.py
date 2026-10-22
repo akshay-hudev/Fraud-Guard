@@ -21,6 +21,7 @@ from src.utils.metrics import (
     compute_binary_metrics,
     evaluate_per_ring,
     evaluate_ring_fraud_units,
+    load_split_claims,
     save_json,
 )
 
@@ -250,23 +251,13 @@ class BaselineTrainer:
                 )
                 ring_claim_recall["HGT"] = float(report.get("ring_claim_recall", 0.0))
                 ring_doctor_recall["HGT"] = float(report.get("ring_doctor_recall", 0.0))
-            else:
-                ring_claim_recall["HGT"] = 0.0
-                ring_doctor_recall["HGT"] = 0.0
 
             os.makedirs("logs", exist_ok=True)
             with open("logs/ring_fraud_evaluation.json", "w") as f:
                 json.dump({
-                    "ring_claim_recall": {
-                        "HGT": float(ring_claim_recall.get("HGT", 0.0)),
-                        "GB": float(ring_claim_recall.get("GB", 0.0)),
-                        "RF": float(ring_claim_recall.get("RF", 0.0)),
-                    },
-                    "ring_doctor_recall": {
-                        "HGT": float(ring_doctor_recall.get("HGT", 0.0)),
-                        "GB": float(ring_doctor_recall.get("GB", 0.0)),
-                        "RF": float(ring_doctor_recall.get("RF", 0.0)),
-                    },
+                    # Models without predictions are omitted, never reported as 0.0.
+                    "ring_claim_recall": ring_claim_recall,
+                    "ring_doctor_recall": ring_doctor_recall,
                     "definition": {
                         "claim_recall": "fraction of ring-member claims correctly flagged",
                         "doctor_recall": "fraction of ring doctors where >=50% claims flagged",
@@ -275,22 +266,11 @@ class BaselineTrainer:
         return test_results
 
     def _maybe_save_ring_evaluation(self, y_test: np.ndarray, pred: np.ndarray) -> None:
-        candidates = [
-            "data/processed/features_raw.csv",
-            "training/data/processed/features_raw.csv",
-            "data/processed/claims_engineered.csv",
-            "training/data/processed/claims_engineered.csv",
-        ]
-        path = next((p for p in candidates if os.path.exists(p)), None)
-        if path is None:
+        test_claims = self._load_test_claims(len(y_test))
+        if test_claims is None:
             return
         try:
-            import pandas as pd
-            claims = pd.read_csv(path)
-            if "claim_date" in claims.columns:
-                claims["claim_date"] = pd.to_datetime(claims["claim_date"])
-                claims = claims.sort_values("claim_date").reset_index(drop=True)
-            test_claims = claims.iloc[-len(y_test):].reset_index(drop=True).copy()
+            test_claims = test_claims.copy()
             test_claims["y_true"] = y_test
             evaluate_ring_fraud_units(
                 test_claims,
@@ -299,7 +279,7 @@ class BaselineTrainer:
             )
             if "ring_id" in test_claims.columns:
                 ring_labels = {
-                    str(int(ring_id)): group.index.astype(int).tolist()
+                    str(int(ring_id)): group["claim_id"].tolist()
                     for ring_id, group in test_claims[
                         test_claims["ring_id"].fillna(0).astype(int) > 0
                     ].groupby("ring_id")
@@ -370,23 +350,11 @@ class BaselineTrainer:
         return {"prediction": int(pred), "fraud_probability": float(proba or pred)}
 
     def _load_test_claims(self, n_test: int):
-        candidates = [
-            "data/processed/features_raw.csv",
-            "training/data/processed/features_raw.csv",
-            "data/processed/claims_engineered.csv",
-            "training/data/processed/claims_engineered.csv",
-        ]
-        path = next((p for p in candidates if os.path.exists(p)), None)
-        if path is None:
-            return None
-        import pandas as pd
-        claims = pd.read_csv(path)
-        if "claim_date" in claims.columns:
-            claims["claim_date"] = pd.to_datetime(claims["claim_date"])
-            claims = claims.sort_values("claim_date").reset_index(drop=True)
-        if len(claims) < n_test:
-            return None
-        test_claims = claims.iloc[-n_test:].reset_index(drop=True).copy()
+        test_claims = load_split_claims("test", "data/processed")
+        if test_claims is not None and len(test_claims) != n_test:
+            raise ValueError(
+                f"data/processed/split_claim_ids.json has {len(test_claims)} test claims, expected {n_test}"
+            )
         return test_claims
 
     def _load_gnn_predictions(self, n_test: int):

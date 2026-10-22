@@ -1,0 +1,12 @@
+# Pinned research stack (see requirements-lock.txt for the full resolved set).
+# torch 2.2.2 is the last release with Intel-macOS wheels; NumPy must stay < 2 for it.
+numpy==1.26.4
+pandas==2.2.3
+scipy==1.13.1
+scikit-learn==1.5.2
+torch==2.2.2
+torch-geometric==2.6.1
+matplotlib==3.9.2
+statsmodels==0.14.4
+pyyaml==6.0.2
+pytest==8.3.3

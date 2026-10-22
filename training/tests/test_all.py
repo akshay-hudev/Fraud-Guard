@@ -364,19 +364,25 @@ class TestAPI:
 
 class TestMetrics:
 
-    def test_mock_results_structure(self):
-        from src.utils.metrics import MOCK_RESULTS
-        for model, metrics in MOCK_RESULTS.items():
-            for key in ["accuracy", "precision", "recall", "f1", "roc_auc"]:
-                assert key in metrics, f"Missing {key} in {model}"
-                assert 0 <= metrics[key] <= 1
+    def test_no_label_derived_features(self):
+        """ring_id / fraud_prone / approved encode the label and must never be model inputs."""
+        if not os.path.exists("data/processed/feature_names.json"):
+            pytest.skip("features not generated")
+        from src.data.preprocessor import LABEL_DERIVED_COLUMNS
+        with open("data/processed/feature_names.json") as f:
+            names = json.load(f)
+        leaked = [c for c in LABEL_DERIVED_COLUMNS if c in names]
+        assert not leaked, f"Label-derived columns used as features: {leaked}"
 
-    def test_gnn_beats_baselines(self):
-        from src.utils.metrics import MOCK_RESULTS
-        gnn_f1 = MOCK_RESULTS["gnn_hgt"]["f1"]
-        for model in ["logistic_regression", "random_forest"]:
-            assert gnn_f1 > MOCK_RESULTS[model]["f1"], \
-                f"GNN F1 ({gnn_f1}) should exceed {model}"
+    def test_split_ids_align_with_arrays(self):
+        """Evaluation code aligns claims to X_test by claim_id; the ID list must match y_test."""
+        from src.utils.metrics import load_split_claims
+        test_claims = load_split_claims("test", "data/processed")
+        if test_claims is None:
+            pytest.skip("split ids not generated")
+        y_test = np.load("data/processed/y_test.npy")
+        assert len(test_claims) == len(y_test)
+        assert (test_claims["fraud_label"].to_numpy() == y_test).all()
 
     def test_comparison_json(self):
         if not os.path.exists("models/comparison.json"):

@@ -1,13 +1,11 @@
 {
   "ring_claim_recall": {
-    "HGT": 0.0,
-    "GB": 0.7143,
-    "RF": 0.7143
+    "GB": 1.0,
+    "RF": 1.0
   },
   "ring_doctor_recall": {
-    "HGT": 0.0,
-    "GB": 0.7143,
-    "RF": 0.7143
+    "GB": 1.0,
+    "RF": 1.0
   },
   "definition": {
     "claim": "fraction of ring-member claims correctly flagged",

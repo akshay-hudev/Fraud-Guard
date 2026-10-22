@@ -7,17 +7,25 @@ Streamlit Frontend Dashboard — Fixed
 """
 
 import streamlit as st
-import requests
+import requests as http_requests
 import pandas as pd
 import numpy as np
 import json
 import os
+import sys
 import time
 from datetime import datetime, timedelta
+from pathlib import Path
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import networkx as nx
+
+# Community Cloud executes this file with `frontend/` as the import root. Add
+# the repository root so sibling packages such as `backend` remain importable.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 # ── Config ─────────────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -29,7 +37,28 @@ st.set_page_config(
 
 API_BASE = os.getenv("API_BASE", "http://localhost:8000").rstrip("/")
 API_KEY  = os.getenv("API_KEY", "test_key_123")
-USE_INDUCTIVE_MODE = os.getenv("USE_INDUCTIVE_MODE", "true").lower() in {"1", "true", "yes"}
+USE_INDUCTIVE_MODE = os.getenv("USE_INDUCTIVE_MODE", "false").lower() in {"1", "true", "yes"}
+
+
+@st.cache_resource(show_spinner="Starting FraudGuard services…")
+def get_embedded_api_client():
+    """Run FastAPI in-process when no external API URL is configured.
+
+    Streamlit Community Cloud exposes one Streamlit process and does not run our
+    Docker entrypoint. TestClient preserves the existing API boundary without a
+    second listening port, and its lifespan starts the model and database once.
+    """
+    from fastapi.testclient import TestClient
+    from backend.main import app as fastapi_app
+
+    client = TestClient(fastapi_app)
+    client.__enter__()
+    return client
+
+
+# An explicit API_BASE keeps the original split-service/Docker behaviour.
+# Without it, use the embedded transport required by Streamlit Community Cloud.
+requests = http_requests if os.getenv("API_BASE") else get_embedded_api_client()
 
 
 # ── Session State (must be initialised before any widget) ─────────────────────
@@ -193,25 +222,23 @@ if page == "🏠 Dashboard":
     st.markdown(f"**AI-powered {dashboard_mode} using Graph Neural Networks**")
     st.divider()
 
-    stats = api_get("/stats") or {
-        "model_performance": {
-            "logistic_regression": {"accuracy": 0.9455, "f1": 0.797, "roc_auc": 0.9541},
-            "random_forest":       {"accuracy": 0.9895, "f1": 0.9572, "roc_auc": 0.981},
-            "gradient_boosting":   {"accuracy": 0.9905, "f1": 0.9615, "roc_auc": 0.9815},
-            "gnn_hgt":             {"accuracy": 0.9935, "f1": 0.9678, "roc_auc": 0.9884},
-        },
-        "best_model": "gnn_hgt",
-    }
-
+    # Metrics come only from the API (models/comparison.json); nothing is shown
+    # when they are unavailable, rather than placeholder numbers.
+    stats = api_get("/stats") or {}
     perf         = stats.get("model_performance", {})
-    best         = stats.get("best_model", "gnn_hgt")
-    best_metrics = perf.get(best, {})
+    best         = stats.get("best_model")
+    best_metrics = perf.get(best, {}) if best else {}
+
+    def _fmt(value, pattern):
+        return pattern.format(value) if isinstance(value, (int, float)) else "n/a"
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("🎯 Best F1",   f"{best_metrics.get('f1', 0.897):.1%}")
-    c2.metric("📈 ROC-AUC",   f"{best_metrics.get('roc_auc', 0.980):.3f}")
-    c3.metric("✅ Accuracy",   f"{best_metrics.get('accuracy', 0.957):.1%}")
-    c4.metric("🤖 Best Model", best.replace("_", " ").title())
+    c1.metric("🎯 Best F1",   _fmt(best_metrics.get("f1"), "{:.1%}"))
+    c2.metric("📈 ROC-AUC",   _fmt(best_metrics.get("roc_auc"), "{:.3f}"))
+    c3.metric("✅ Accuracy",   _fmt(best_metrics.get("accuracy"), "{:.1%}"))
+    c4.metric("🤖 Best Model", best.replace("_", " ").title() if best else "n/a")
+    if not perf:
+        st.info("Model metrics unavailable (API offline or no evaluated models).")
 
     st.divider()
 
@@ -453,16 +480,11 @@ elif page == "🕸️ Graph Explorer":
 elif page == "📊 Model Analytics":
     st.title("📊 Model Performance Analytics")
 
-    stats = api_get("/stats") or {
-        "model_performance": {
-            "logistic_regression": {"accuracy": 0.9455, "precision": 0.7616, "recall": 0.8359, "f1": 0.797, "roc_auc": 0.9541},
-            "random_forest":       {"accuracy": 0.9895, "precision": 1.0, "recall": 0.918, "f1": 0.9572, "roc_auc": 0.981},
-            "gradient_boosting":   {"accuracy": 0.9905, "precision": 1.0, "recall": 0.9258, "f1": 0.9615, "roc_auc": 0.9815},
-            "gnn_hgt":             {"accuracy": 0.9935, "precision": 0.9910, "recall": 0.9453, "f1": 0.9678, "roc_auc": 0.9884},
-        }
-    }
-
-    perf = stats["model_performance"]
+    stats = api_get("/stats") or {}
+    perf = {name: m for name, m in stats.get("model_performance", {}).items() if m}
+    if not perf:
+        st.warning("Model metrics unavailable (API offline or no evaluated models).")
+        st.stop()
     df   = pd.DataFrame([{"Model": k.replace("_"," ").title(), **v} for k, v in perf.items()])
     st.dataframe(df.style.highlight_max(subset=["accuracy","precision","recall","f1","roc_auc"],
                                         color="lightgreen"),

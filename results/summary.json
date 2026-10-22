@@ -1,0 +1,76 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-22T07:33:06+00:00",
+    "git": {
+      "commit": "f16ccc7f4fa0779c2850d212f805027ca357db07",
+      "dirty": true
+    },
+    "config_hash": "40c70da62144a4f8",
+    "config": {
+      "analysis": "analyze.py"
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    }
+  },
+  "synthetic": {
+    "n_datasets": 54,
+    "seeds_per_cell": "{(0.0, 0.1): 6, (0.0, 0.5): 6, (0.0, 0.9): 6, (1.0, 0.1): 6, (1.0, 0.5): 6, (1.0, 0.9): 6, (2.0, 0.1): 6, (2.0, 0.5): 6, (2.0, 0.9): 6}",
+    "best_method_per_cell": {
+      "0.0/0.1": "SAGE+AG",
+      "0.0/0.5": "SAGE+AG",
+      "0.0/0.9": "GB-CAG",
+      "1.0/0.1": "HGT+AG",
+      "1.0/0.5": "HGT+AG",
+      "1.0/0.9": "SAGE+AG",
+      "2.0/0.1": "RGCN",
+      "2.0/0.5": "SAGE+AG",
+      "2.0/0.9": "SAGE+AG"
+    }
+  },
+  "kaggle": {
+    "n_folds": 5,
+    "mean_ap": {
+      "GB-P": 0.704,
+      "GB-PG": 0.6947,
+      "GB-PGL": 0.6967,
+      "HAN": 0.6662,
+      "HGT": 0.6755,
+      "HGT+G": 0.6478,
+      "LR-P": 0.6785,
+      "MLP-P": 0.6849,
+      "RF-P": 0.6807,
+      "RGCN": 0.6206,
+      "SAGE": 0.6639,
+      "SAGE+G": 0.6527,
+      "SimpleHGN": 0.6702
+    }
+  },
+  "kaggle_descriptives": {
+    "n_providers": 5410,
+    "fraud_rate": 0.09353049907578559,
+    "beneficiary": {
+      "share_with_coproviders": 0.9946395563770795,
+      "median_coproviders": 30.0,
+      "fraud_share_among_coproviders_of_fraud": 0.23853255255843364,
+      "fraud_share_among_coproviders_of_nonfraud": 0.2528988795912768
+    },
+    "physician": {
+      "share_with_coproviders": 0.7260628465804067,
+      "median_coproviders": 2.0,
+      "fraud_share_among_coproviders_of_fraud": 0.19078461526625035,
+      "fraud_share_among_coproviders_of_nonfraud": 0.14241428549752713
+    },
+    "median_claims_fraud": 155.5,
+    "median_claims_nonfraud": 27.0
+  }
+}

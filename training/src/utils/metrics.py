@@ -416,6 +416,24 @@ def evaluate_ring_fraud_units(
     return report
 
 
+def load_split_claims(split: str = "test", processed_dir: str = "data/processed") -> pd.DataFrame | None:
+    """
+    Return the claims of one split, in the exact row order of X_<split>.npy.
+
+    Rows are selected by claim_id from split_claim_ids.json (written by the
+    preprocessor), never by re-sorting and slicing, which misaligns rows when
+    claim dates tie.
+    """
+    ids_path = Path(processed_dir) / "split_claim_ids.json"
+    raw_path = Path(processed_dir) / "features_raw.csv"
+    if not ids_path.exists() or not raw_path.exists():
+        return None
+    with open(ids_path) as f:
+        ids = json.load(f)[split]
+    claims = pd.read_csv(raw_path).drop_duplicates("claim_id").set_index("claim_id")
+    return claims.loc[ids].reset_index()
+
+
 def load_all_results(model_dir: str = "models") -> dict:
     """Load test metrics from all trained models."""
     results = {}
@@ -453,20 +471,3 @@ def save_comparison(results: dict, out_path: str = "models/comparison.json"):
     with open(out_path, "w") as f:
         json.dump(results, f, indent=2, default=_json_default)
     log.info("Comparison saved to %s", out_path)
-
-
-# Mock result storage for API (when models aren't fully trained yet)
-MOCK_RESULTS = {
-    "logistic_regression": {
-        "accuracy": 0.8812, "precision": 0.7231, "recall": 0.6940, "f1": 0.7083, "roc_auc": 0.8521, "auc_pr": 0.7300
-    },
-    "random_forest": {
-        "accuracy": 0.9341, "precision": 0.8812, "recall": 0.8101, "f1": 0.8441, "roc_auc": 0.9612, "auc_pr": 0.9000
-    },
-    "gradient_boosting": {
-        "accuracy": 0.9289, "precision": 0.8543, "recall": 0.8234, "f1": 0.8386, "roc_auc": 0.9580, "auc_pr": 0.8950
-    },
-    "gnn_hgt": {
-        "accuracy": 0.9571, "precision": 0.9102, "recall": 0.8843, "f1": 0.8971, "roc_auc": 0.9801, "auc_pr": 0.9300
-    },
-}

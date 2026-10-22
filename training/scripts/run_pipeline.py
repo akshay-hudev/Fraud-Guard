@@ -146,23 +146,11 @@ def _statistical_tests_for_table(seed_results: dict) -> list[dict]:
 
 
 def _load_test_claims(n_test: int):
-    candidates = [
-        "data/processed/features_raw.csv",
-        "training/data/processed/features_raw.csv",
-        "data/processed/claims_engineered.csv",
-        "training/data/processed/claims_engineered.csv",
-    ]
-    path = next((p for p in candidates if Path(p).exists()), None)
-    if path is None:
+    from src.utils.metrics import load_split_claims
+    claims = load_split_claims("test", "data/processed")
+    if claims is None or len(claims) != n_test:
         return None
-    import pandas as pd
-    claims = pd.read_csv(path)
-    if "claim_date" in claims.columns:
-        claims["claim_date"] = pd.to_datetime(claims["claim_date"])
-        claims = claims.sort_values("claim_date").reset_index(drop=True)
-    if len(claims) < n_test:
-        return None
-    return claims.iloc[-n_test:].reset_index(drop=True)
+    return claims
 
 
 def _save_per_ring_recall(y_test: np.ndarray) -> dict | None:
@@ -173,7 +161,7 @@ def _save_per_ring_recall(y_test: np.ndarray) -> dict | None:
     if test_claims is None or "ring_id" not in test_claims.columns:
         return None
     ring_labels = {
-        str(int(ring_id)): group.index.astype(int).tolist()
+        str(int(ring_id)): group["claim_id"].tolist()
         for ring_id, group in test_claims[
             test_claims["ring_id"].fillna(0).astype(int) > 0
         ].groupby("ring_id")

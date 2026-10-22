@@ -1,0 +1,186 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-22T06:02:31+00:00",
+    "git": {
+      "commit": "f16ccc7f4fa0779c2850d212f805027ca357db07",
+      "dirty": true
+    },
+    "config_hash": "529610c9076c6540",
+    "config": {
+      "budget": 6,
+      "split_seed": 1000,
+      "methods": [
+        "RGCN",
+        "SimpleHGN"
+      ]
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "data": {
+      "n_providers": 5410,
+      "n_fraud": 506,
+      "P_hash": "11c2c5f183b47228",
+      "files": "data/external/kaggle_provider_fraud"
+    }
+  },
+  "trials": {
+    "RGCN": [
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": 0.6220537063472431,
+        "seconds": 218.38964414596558
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.001,
+          "weight_decay": 1e-05
+        },
+        "val_ap": 0.609508471803775,
+        "seconds": 119.31464004516602
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.001
+        },
+        "val_ap": 0.6229373568960643,
+        "seconds": 65.36833715438843
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": 0.6401895147995571,
+        "seconds": 294.13884472846985
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.3,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.01,
+          "weight_decay": 1e-05
+        },
+        "val_ap": 0.6382207666396524,
+        "seconds": 131.65810823440552
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.01,
+          "weight_decay": 0.001
+        },
+        "val_ap": 0.647964578702749,
+        "seconds": 297.45820903778076
+      }
+    ],
+    "SimpleHGN": [
+      {
+        "hp": {
+          "dropout": 0.1,
+          "heads": 2,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": 0.6676586572685325,
+        "seconds": 284.8304591178894
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "heads": 4,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.001,
+          "weight_decay": 1e-05
+        },
+        "val_ap": 0.6677101220122112,
+        "seconds": 1188.6221642494202
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "heads": 2,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.001
+        },
+        "val_ap": 0.6517503055756518,
+        "seconds": 213.89165425300598
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "heads": 4,
+          "hidden": 64,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": 0.6348191931752393,
+        "seconds": 349.1772708892822
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "heads": 4,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.01,
+          "weight_decay": 1e-05
+        },
+        "val_ap": 0.6665165713408945,
+        "seconds": 374.16762590408325
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "heads": 4,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.01,
+          "weight_decay": 0.001
+        },
+        "val_ap": 0.6987121137541309,
+        "seconds": 252.55050086975098
+      }
+    ]
+  }
+}

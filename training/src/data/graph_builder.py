@@ -9,12 +9,15 @@ Edge types  :
   claim    → doctor      (treated_by)
   doctor   → hospital    (works_at)
   patient  → doctor      (visited)
+  plus a reverse relation for each (rev_*), so every node type receives
+  messages and doctor/hospital context can reach claim nodes.
 """
 
 import os
 import numpy as np
 import pandas as pd
 import torch
+import torch_geometric.transforms as T
 from torch_geometric.data import HeteroData
 import logging
 
@@ -24,8 +27,11 @@ log = logging.getLogger(__name__)
 class GraphBuilder:
     """Builds a PyG HeteroData graph from processed CSVs."""
 
-    def __init__(self, processed_dir: str = "data/processed"):
+    def __init__(self, processed_dir: str = "data/processed", raw_dir: str | None = None):
         self.processed_dir = processed_dir
+        # Raw CSVs live next to the processed directory (data/processed -> data/raw),
+        # independent of the current working directory.
+        self.raw_dir = raw_dir or os.path.join(os.path.dirname(os.path.abspath(processed_dir)), "raw")
 
     # ── Node feature builders ──────────────────────────────────────────────────
 
@@ -45,7 +51,7 @@ class GraphBuilder:
         feats["is_accredited"] = hospitals["is_accredited"].astype(float)
         return torch.tensor(feats.values, dtype=torch.float)
 
-    def _claim_features(self, claims: pd.DataFrame) -> torch.Tensor:
+    def _claim_features(self, claims: pd.DataFrame, train_mask: np.ndarray) -> torch.Tensor:
         num_cols = [
             "claim_amount", "num_procedures", "days_in_hospital",
             "patient_total_claims", "patient_avg_amount",
@@ -55,9 +61,10 @@ class GraphBuilder:
         # Use only columns that exist
         available = [c for c in num_cols if c in claims.columns]
         feats = claims[available].fillna(0).values
-        # Normalize claim_amount
+        # Standardise with training-claim statistics only
         feats = feats.astype(np.float32)
-        feats = (feats - feats.mean(0)) / (feats.std(0) + 1e-8)
+        mu, sd = feats[train_mask].mean(0), feats[train_mask].std(0)
+        feats = (feats - mu) / (sd + 1e-8)
         return torch.tensor(feats, dtype=torch.float)
 
     # ── Index mapping helpers ──────────────────────────────────────────────────
@@ -71,19 +78,19 @@ class GraphBuilder:
 
     def build(self) -> HeteroData:
         # Load artefacts
-        patients  = pd.read_csv(f"{self.processed_dir}/../../data/raw/patients.csv")
-        doctors   = pd.read_csv(f"{self.processed_dir}/../../data/raw/doctors.csv")
-        hospitals = pd.read_csv(f"{self.processed_dir}/../../data/raw/hospitals.csv")
+        patients  = pd.read_csv(f"{self.raw_dir}/patients.csv")
+        doctors   = pd.read_csv(f"{self.raw_dir}/doctors.csv")
+        hospitals = pd.read_csv(f"{self.raw_dir}/hospitals.csv")
 
         # Use enriched claims (has engineered features)
         claims_path = f"{self.processed_dir}/claims_engineered.csv"
         if os.path.exists(claims_path):
             claims = pd.read_csv(claims_path)
         else:
-            claims = pd.read_csv(f"{self.processed_dir}/../../data/raw/claims.csv")
+            claims = pd.read_csv(f"{self.raw_dir}/claims.csv")
         if "claim_date" in claims.columns:
             claims["claim_date"] = pd.to_datetime(claims["claim_date"])
-            claims = claims.sort_values("claim_date").reset_index(drop=True)
+            claims = claims.sort_values(["claim_date", "claim_id"], kind="stable").reset_index(drop=True)
 
         # Ensure fraud_label exists
         if "fraud_label" not in claims.columns:
@@ -98,6 +105,20 @@ class GraphBuilder:
         log.info("Graph nodes — patients: %d | doctors: %d | hospitals: %d | claims: %d",
                  len(patient_idx), len(doctor_idx), len(hospital_idx), len(claim_idx))
 
+        # ── Train / val / test masks on claims ────────────────────────────────
+        n_claims = len(claims)
+        n_train  = int(0.60 * n_claims)
+        n_val    = int(0.20 * n_claims)
+
+        train_mask = torch.zeros(n_claims, dtype=torch.bool)
+        val_mask   = torch.zeros(n_claims, dtype=torch.bool)
+        test_mask  = torch.zeros(n_claims, dtype=torch.bool)
+
+        train_mask[:n_train] = True
+        val_mask[n_train:n_train+n_val] = True
+        test_mask[n_train+n_val:] = True
+
+
         # ── Build HeteroData ──────────────────────────────────────────────────
         data = HeteroData()
 
@@ -105,7 +126,7 @@ class GraphBuilder:
         data["patient"].x  = self._patient_features(patients)
         data["doctor"].x   = self._doctor_features(doctors)
         data["hospital"].x = self._hospital_features(hospitals)
-        data["claim"].x    = self._claim_features(claims)
+        data["claim"].x    = self._claim_features(claims, train_mask.numpy())
 
         # Node labels (only claims have fraud labels)
         data["claim"].y = torch.tensor(claims["fraud_label"].values, dtype=torch.long)
@@ -153,22 +174,12 @@ class GraphBuilder:
             [src, dst], dtype=torch.long
         )
 
-        # ── Train / val / test masks on claims ────────────────────────────────
-        n_claims = len(claims)
-        n_train  = int(0.60 * n_claims)
-        n_val    = int(0.20 * n_claims)
-
-        train_mask = torch.zeros(n_claims, dtype=torch.bool)
-        val_mask   = torch.zeros(n_claims, dtype=torch.bool)
-        test_mask  = torch.zeros(n_claims, dtype=torch.bool)
-
-        train_mask[:n_train] = True
-        val_mask[n_train:n_train+n_val] = True
-        test_mask[n_train+n_val:] = True
-
         data["claim"].train_mask = train_mask
         data["claim"].val_mask   = val_mask
         data["claim"].test_mask  = test_mask
+
+        # Reverse relations so that information flows both ways along every edge.
+        data = T.ToUndirected()(data)
 
         log.info("Graph built. Saving...")
         torch.save(data, f"{self.processed_dir}/hetero_graph.pt")
@@ -188,7 +199,7 @@ class GraphBuilder:
         if "ring_id" in claims.columns:
             ring_claims = claims[claims["ring_id"].fillna(0).astype(int) > 0]
             ring_labels = {
-                str(int(ring_id)): group.index.astype(int).tolist()
+                str(int(ring_id)): group["claim_id"].tolist()
                 for ring_id, group in ring_claims.groupby("ring_id")
             }
             with open(f"{self.processed_dir}/ring_labels.json", "w") as f:

@@ -222,25 +222,23 @@ if page == "🏠 Dashboard":
     st.markdown(f"**AI-powered {dashboard_mode} using Graph Neural Networks**")
     st.divider()
 
-    stats = api_get("/stats") or {
-        "model_performance": {
-            "logistic_regression": {"accuracy": 0.9455, "f1": 0.797, "roc_auc": 0.9541},
-            "random_forest":       {"accuracy": 0.9895, "f1": 0.9572, "roc_auc": 0.981},
-            "gradient_boosting":   {"accuracy": 0.9905, "f1": 0.9615, "roc_auc": 0.9815},
-            "gnn_hgt":             {"accuracy": 0.9935, "f1": 0.9678, "roc_auc": 0.9884},
-        },
-        "best_model": "gnn_hgt",
-    }
-
+    # Metrics come only from the API (models/comparison.json); nothing is shown
+    # when they are unavailable, rather than placeholder numbers.
+    stats = api_get("/stats") or {}
     perf         = stats.get("model_performance", {})
-    best         = stats.get("best_model", "gnn_hgt")
-    best_metrics = perf.get(best, {})
+    best         = stats.get("best_model")
+    best_metrics = perf.get(best, {}) if best else {}
+
+    def _fmt(value, pattern):
+        return pattern.format(value) if isinstance(value, (int, float)) else "n/a"
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("🎯 Best F1",   f"{best_metrics.get('f1', 0.897):.1%}")
-    c2.metric("📈 ROC-AUC",   f"{best_metrics.get('roc_auc', 0.980):.3f}")
-    c3.metric("✅ Accuracy",   f"{best_metrics.get('accuracy', 0.957):.1%}")
-    c4.metric("🤖 Best Model", best.replace("_", " ").title())
+    c1.metric("🎯 Best F1",   _fmt(best_metrics.get("f1"), "{:.1%}"))
+    c2.metric("📈 ROC-AUC",   _fmt(best_metrics.get("roc_auc"), "{:.3f}"))
+    c3.metric("✅ Accuracy",   _fmt(best_metrics.get("accuracy"), "{:.1%}"))
+    c4.metric("🤖 Best Model", best.replace("_", " ").title() if best else "n/a")
+    if not perf:
+        st.info("Model metrics unavailable (API offline or no evaluated models).")
 
     st.divider()
 
@@ -482,16 +480,11 @@ elif page == "🕸️ Graph Explorer":
 elif page == "📊 Model Analytics":
     st.title("📊 Model Performance Analytics")
 
-    stats = api_get("/stats") or {
-        "model_performance": {
-            "logistic_regression": {"accuracy": 0.9455, "precision": 0.7616, "recall": 0.8359, "f1": 0.797, "roc_auc": 0.9541},
-            "random_forest":       {"accuracy": 0.9895, "precision": 1.0, "recall": 0.918, "f1": 0.9572, "roc_auc": 0.981},
-            "gradient_boosting":   {"accuracy": 0.9905, "precision": 1.0, "recall": 0.9258, "f1": 0.9615, "roc_auc": 0.9815},
-            "gnn_hgt":             {"accuracy": 0.9935, "precision": 0.9910, "recall": 0.9453, "f1": 0.9678, "roc_auc": 0.9884},
-        }
-    }
-
-    perf = stats["model_performance"]
+    stats = api_get("/stats") or {}
+    perf = {name: m for name, m in stats.get("model_performance", {}).items() if m}
+    if not perf:
+        st.warning("Model metrics unavailable (API offline or no evaluated models).")
+        st.stop()
     df   = pd.DataFrame([{"Model": k.replace("_"," ").title(), **v} for k, v in perf.items()])
     st.dataframe(df.style.highlight_max(subset=["accuracy","precision","recall","f1","roc_auc"],
                                         color="lightgreen"),

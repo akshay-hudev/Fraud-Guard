@@ -15,6 +15,11 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
 
+# Generator ground truth and post-adjudication fields. These encode the label
+# (ring_id > 0 only for ring fraud; fraud_prone marks ring members; approved is
+# decided after review) and must never reach the feature matrix.
+LABEL_DERIVED_COLUMNS = ["ring_id", "fraud_prone", "approved"]
+
 
 class FraudDataPreprocessor:
     """Preprocessing pipeline: raw → clean → SPLIT → engineer (no leakage) → scale → save"""
@@ -65,13 +70,14 @@ class FraudDataPreprocessor:
 
     # ── Split BEFORE feature engineering ───────────────────────────────────────
 
-    def _temporal_stratified_split(self, claims: pd.DataFrame) -> tuple[pd.Index, pd.Index, pd.Index]:
+    def _temporal_split(self, claims: pd.DataFrame) -> tuple[pd.DataFrame, np.ndarray, np.ndarray, np.ndarray]:
         """
         Split data BEFORE feature engineering.
-        Temporal: Sort by date, then stratify by label.
-        Returns: (train_idx, val_idx, test_idx)
+        Temporal (not stratified): sort by date with claim_id as a stable
+        tie-breaker, then take the first 60% / next 20% / last 20%.
+        Returns: (claims_sorted, train_idx, val_idx, test_idx), indices into claims_sorted.
         """
-        claims_sorted = claims.sort_values("claim_date").reset_index(drop=True)
+        claims_sorted = claims.sort_values(["claim_date", "claim_id"], kind="stable").reset_index(drop=True)
         fraud_label = claims_sorted["fraud_label"]
 
         # Temporal split: first 60% train, next 20% val, last 20% test
@@ -88,7 +94,7 @@ class FraudDataPreprocessor:
         log.info(f"Val   fraud rate: {fraud_label[val_idx].mean():.2%}")
         log.info(f"Test  fraud rate: {fraud_label[test_idx].mean():.2%}")
 
-        return train_idx, val_idx, test_idx
+        return claims_sorted, train_idx, val_idx, test_idx
 
     # ── Feature Engineering (per-split) ────────────────────────────────────────
 
@@ -208,12 +214,14 @@ class FraudDataPreprocessor:
         df["claim_dayofweek"] = df["claim_date"].dt.dayofweek
         df["claim_day"] = df["claim_date"].dt.day
 
-        # Drop ID/date/code columns (not needed for model)
+        # Drop ID/date/code columns and every label-derived column
         df = df.drop(
-            columns=["claim_id", "claim_date", "approved", "hospital_id", "patient_id", "doctor_id",
-                     "procedure_code", "diagnosis_code"],
+            columns=["claim_id", "claim_date", "hospital_id", "patient_id", "doctor_id",
+                     "procedure_code", "diagnosis_code", *LABEL_DERIVED_COLUMNS],
             errors="ignore",
         )
+        leaked = [c for c in LABEL_DERIVED_COLUMNS if c in df.columns]
+        assert not leaked, f"Label-derived columns in features: {leaked}"
 
         log.info(f"{split_name} engineered shape: {df.shape}")
         return df
@@ -256,11 +264,17 @@ class FraudDataPreprocessor:
 
         # Step 2: SPLIT FIRST (critical!)
         log.info("\n⚠️  CRITICAL: SPLITTING BEFORE FEATURE ENGINEERING")
-        train_idx, val_idx, test_idx = self._temporal_stratified_split(claims)
+        claims_sorted, train_idx, val_idx, test_idx = self._temporal_split(claims)
 
-        claims_train = claims.iloc[train_idx].reset_index(drop=True)
-        claims_val = claims.iloc[val_idx].reset_index(drop=True)
-        claims_test = claims.iloc[test_idx].reset_index(drop=True)
+        claims_train = claims_sorted.iloc[train_idx].reset_index(drop=True)
+        claims_val = claims_sorted.iloc[val_idx].reset_index(drop=True)
+        claims_test = claims_sorted.iloc[test_idx].reset_index(drop=True)
+        with open(f"{self.processed_dir}/split_claim_ids.json", "w") as f:
+            json.dump({
+                "train": claims_train["claim_id"].tolist(),
+                "val": claims_val["claim_id"].tolist(),
+                "test": claims_test["claim_id"].tolist(),
+            }, f)
 
         # Step 3: Engineer features per split (no leakage)
         log.info("\n📊 Engineering features for TRAINING set...")

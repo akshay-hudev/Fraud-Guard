@@ -445,16 +445,9 @@ async def model_stats():
                 with open(p) as f:
                     results[name] = json.load(f)
 
-        if not results:
-            # Default mock results so dashboard always renders
-            results = {
-                "logistic_regression": {"accuracy": 0.881, "precision": 0.723, "recall": 0.694, "f1": 0.708, "roc_auc": 0.852},
-                "random_forest":       {"accuracy": 0.934, "precision": 0.881, "recall": 0.810, "f1": 0.844, "roc_auc": 0.961},
-                "gradient_boosting":   {"accuracy": 0.929, "precision": 0.854, "recall": 0.823, "f1": 0.839, "roc_auc": 0.958},
-                "gnn_hgt":             {"accuracy": 0.957, "precision": 0.910, "recall": 0.884, "f1": 0.897, "roc_auc": 0.980},
-            }
-
-    best_model = max(results, key=lambda k: results[k].get("f1", 0))
+    # Only evaluated models are reported; there are no placeholder metrics.
+    results = {k: v for k, v in results.items() if v}
+    best_model = max(results, key=lambda k: results[k].get("f1", 0)) if results else None
     return {
         "model_performance": results,
         "best_model": best_model,

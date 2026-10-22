@@ -1,0 +1,103 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-20T16:55:19+00:00",
+    "git": {
+      "commit": "f16ccc7f4fa0779c2850d212f805027ca357db07",
+      "dirty": true
+    },
+    "config_hash": "4099d079975c6d3a",
+    "config": {
+      "n_patients": 6000,
+      "n_doctors": 300,
+      "n_hospitals": 40,
+      "n_regions": 5,
+      "n_specialties": 8,
+      "n_periods": 4,
+      "period_months": 6,
+      "legit_rate_mean": 3.0,
+      "legit_rate_shape": 1.5,
+      "p_regular": 0.85,
+      "isolated_rate": 0.03,
+      "isolated_shift": 2.0,
+      "ring_shift": 0.0,
+      "ring_density": 0.9,
+      "ring_doctors": 4,
+      "ring_patients": 12,
+      "ring_claims_per_month": 16.0,
+      "rings_per_period": 4,
+      "persistent_rings": 0,
+      "seed": 2
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "model_seed": 0,
+    "hyperparameters": {
+      "HGT": {
+        "dropout": 0.3,
+        "heads": 4,
+        "hidden": 32,
+        "layers": 3,
+        "lr": 0.01,
+        "weight_decay": 1e-05
+      }
+    },
+    "claims_hash": "2ee524dcfe3c9b7a",
+    "truth_hash": "97aa489069e7e212"
+  },
+  "rows": [
+    {
+      "method": "HGT",
+      "n_patients": 6000,
+      "n_doctors": 300,
+      "n_hospitals": 40,
+      "n_regions": 5,
+      "n_specialties": 8,
+      "n_periods": 4,
+      "period_months": 6,
+      "legit_rate_mean": 3.0,
+      "legit_rate_shape": 1.5,
+      "p_regular": 0.85,
+      "isolated_rate": 0.03,
+      "isolated_shift": 2.0,
+      "ring_shift": 0.0,
+      "ring_density": 0.9,
+      "ring_doctors": 4,
+      "ring_patients": 12,
+      "ring_claims_per_month": 16.0,
+      "rings_per_period": 4,
+      "persistent_rings": 0,
+      "seed": 2,
+      "protocol": "emergent",
+      "model_seed": 0,
+      "ap": 0.9280943353174081,
+      "roc_auc": 0.9824971524746705,
+      "f1": 0.8628230616302187,
+      "precision": 0.8857142857142857,
+      "recall": 0.8410852713178295,
+      "recall_at_5pct": 0.4748062015503876,
+      "threshold": 0.8771609663963318,
+      "n_test": 4933,
+      "n_pos": 516,
+      "ring_ap": 0.9733432069965021,
+      "ring_recall": 0.9557291666666666,
+      "n_ring": 384,
+      "isolated_ap": 0.40418659563602494,
+      "isolated_recall": 0.5075757575757576,
+      "n_isolated": 132,
+      "best_val_ap": 0.93416670688856,
+      "train_seconds": 161.4733910560608,
+      "infer_seconds": 0.25287508964538574,
+      "best_epoch": 38
+    }
+  ]
+}

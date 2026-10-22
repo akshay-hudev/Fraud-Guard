@@ -1,0 +1,21 @@
+\begin{table}[h]
+\caption{Paired difference in average precision versus GB-CAG, pooled over all 54 worlds: mean $\Delta$ $\pm$ half-width of the 95\% $t$-interval, and Holm-adjusted paired $t$-test $p$ (within each metric).}\label{tab:pooled}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{Ring AP} & \multicolumn{2}{c}{Isolated AP} & \multicolumn{2}{c}{Overall AP} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Method & $\Delta \pm$ CI & $p$ & $\Delta \pm$ CI & $p$ & $\Delta \pm$ CI & $p$ \\
+\midrule
+SAGE & $0.000$ $\pm$ 0.005 & 0.957 & $-0.085$ $\pm$ 0.019 & $<$0.001 & $-0.007$ $\pm$ 0.004 & 0.009 \\
+RGCN & $-0.005$ $\pm$ 0.007 & 0.277 & $-0.106$ $\pm$ 0.021 & $<$0.001 & $-0.013$ $\pm$ 0.005 & $<$0.001 \\
+HAN & $-0.024$ $\pm$ 0.010 & $<$0.001 & $-0.147$ $\pm$ 0.024 & $<$0.001 & $-0.030$ $\pm$ 0.008 & $<$0.001 \\
+Simple-HGN & $-0.008$ $\pm$ 0.006 & 0.024 & $-0.094$ $\pm$ 0.023 & $<$0.001 & $-0.014$ $\pm$ 0.005 & $<$0.001 \\
+HGT & $-0.011$ $\pm$ 0.009 & 0.060 & $-0.118$ $\pm$ 0.023 & $<$0.001 & $-0.018$ $\pm$ 0.007 & $<$0.001 \\
+SAGE+AG & $+0.008$ $\pm$ 0.005 & 0.013 & $-0.078$ $\pm$ 0.015 & $<$0.001 & $0.000$ $\pm$ 0.003 & 0.930 \\
+HGT+AG & $+0.008$ $\pm$ 0.005 & 0.019 & $-0.112$ $\pm$ 0.018 & $<$0.001 & $-0.002$ $\pm$ 0.003 & 0.388 \\
+MLP-C & $-0.560$ $\pm$ 0.079 & $<$0.001 & $-0.019$ $\pm$ 0.015 & 0.015 & $-0.402$ $\pm$ 0.062 & $<$0.001 \\
+\botrule
+\end{tabular}
+\end{table}

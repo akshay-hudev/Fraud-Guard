@@ -2,6 +2,14 @@
 
 Production-style ML system for detecting fraudulent healthcare claims. The repo includes a leakage-safe training pipeline (tabular baselines + HGT-style GNN), a FastAPI scoring API, and a Streamlit dashboard. The API currently serves the Random Forest baseline model; GNN training is implemented for offline evaluation and comparison.
 
+## Research paper
+
+The manuscript `fraud_detection_paper.tex` reports results produced only by the `research/` package (controlled
+benchmark, 14 methods, real-data validation); see `research/README.md` to reproduce every table and figure and
+`verify.py` to check the result artifacts. The pre-remediation audit and the record of fixes are in
+`paper/research_audit.md` and `paper/remediation_log.md`. The demo app and the `training/` pipeline below are
+separate from the paper's results.
+
 ## Deploy free on Streamlit Community Cloud
 
 This branch can run the dashboard and FastAPI application together inside one

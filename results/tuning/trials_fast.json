@@ -1,0 +1,1111 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-19T19:29:51+00:00",
+    "git": {
+      "commit": "f16ccc7f4fa0779c2850d212f805027ca357db07",
+      "dirty": true
+    },
+    "config_hash": "4d61b4e1fd82e321",
+    "config": {
+      "budget": 10,
+      "dev_seeds": [
+        901,
+        902
+      ],
+      "dev_regime": {
+        "ring_shift": 0.5,
+        "ring_density": 0.5
+      },
+      "methods": [
+        "LR-CA",
+        "RF-CA",
+        "GB-C",
+        "GB-CA",
+        "GB-CAG",
+        "MLP-C",
+        "SAGE",
+        "SAGE+AG"
+      ]
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    }
+  },
+  "trials": {
+    "LR-CA": [
+      {
+        "hp": {
+          "C": 1.0
+        },
+        "val_ap": [
+          0.8881334338265419,
+          0.8554949296752963
+        ],
+        "mean_val_ap": 0.8718141817509191
+      },
+      {
+        "hp": {
+          "C": 100.0
+        },
+        "val_ap": [
+          0.8884407013574038,
+          0.8558511807654794
+        ],
+        "mean_val_ap": 0.8721459410614416
+      },
+      {
+        "hp": {
+          "C": 0.1
+        },
+        "val_ap": [
+          0.883224904833626,
+          0.8494637043917702
+        ],
+        "mean_val_ap": 0.8663443046126982
+      },
+      {
+        "hp": {
+          "C": 0.001
+        },
+        "val_ap": [
+          0.8237875379423203,
+          0.7932322262343587
+        ],
+        "mean_val_ap": 0.8085098820883395
+      },
+      {
+        "hp": {
+          "C": 10.0
+        },
+        "val_ap": [
+          0.8883824515844236,
+          0.8558217605219929
+        ],
+        "mean_val_ap": 0.8721021060532083
+      },
+      {
+        "hp": {
+          "C": 0.01
+        },
+        "val_ap": [
+          0.8535566727394686,
+          0.8234824425125475
+        ],
+        "mean_val_ap": 0.838519557626008
+      }
+    ],
+    "RF-CA": [
+      {
+        "hp": {
+          "max_depth": null,
+          "max_features": "sqrt",
+          "min_samples_leaf": 3,
+          "n_estimators": 300
+        },
+        "val_ap": [
+          0.8863836310680498,
+          0.8321125448618119
+        ],
+        "mean_val_ap": 0.8592480879649309
+      },
+      {
+        "hp": {
+          "max_depth": 16,
+          "max_features": 0.3,
+          "min_samples_leaf": 1,
+          "n_estimators": 300
+        },
+        "val_ap": [
+          0.8754900055525847,
+          0.801504997745715
+        ],
+        "mean_val_ap": 0.8384975016491498
+      },
+      {
+        "hp": {
+          "max_depth": 16,
+          "max_features": 0.3,
+          "min_samples_leaf": 10,
+          "n_estimators": 300
+        },
+        "val_ap": [
+          0.8844937192167448,
+          0.8257302031999952
+        ],
+        "mean_val_ap": 0.85511196120837
+      },
+      {
+        "hp": {
+          "max_depth": 8,
+          "max_features": 0.3,
+          "min_samples_leaf": 10,
+          "n_estimators": 300
+        },
+        "val_ap": [
+          0.8844504879768019,
+          0.8211809271937085
+        ],
+        "mean_val_ap": 0.8528157075852552
+      },
+      {
+        "hp": {
+          "max_depth": 8,
+          "max_features": 0.3,
+          "min_samples_leaf": 3,
+          "n_estimators": 300
+        },
+        "val_ap": [
+          0.8748644507981006,
+          0.815122710241807
+        ],
+        "mean_val_ap": 0.8449935805199538
+      },
+      {
+        "hp": {
+          "max_depth": 16,
+          "max_features": 0.3,
+          "min_samples_leaf": 3,
+          "n_estimators": 300
+        },
+        "val_ap": [
+          0.8816739415716766,
+          0.8280469264612168
+        ],
+        "mean_val_ap": 0.8548604340164467
+      },
+      {
+        "hp": {
+          "max_depth": 8,
+          "max_features": 0.3,
+          "min_samples_leaf": 1,
+          "n_estimators": 300
+        },
+        "val_ap": [
+          0.8739571878586467,
+          0.8035388059394641
+        ],
+        "mean_val_ap": 0.8387479968990554
+      },
+      {
+        "hp": {
+          "max_depth": null,
+          "max_features": 0.3,
+          "min_samples_leaf": 10,
+          "n_estimators": 300
+        },
+        "val_ap": [
+          0.8848729891874502,
+          0.8245067974918602
+        ],
+        "mean_val_ap": 0.8546898933396552
+      },
+      {
+        "hp": {
+          "max_depth": 16,
+          "max_features": "sqrt",
+          "min_samples_leaf": 3,
+          "n_estimators": 300
+        },
+        "val_ap": [
+          0.8881004679702931,
+          0.833904125565203
+        ],
+        "mean_val_ap": 0.861002296767748
+      },
+      {
+        "hp": {
+          "max_depth": 16,
+          "max_features": "sqrt",
+          "min_samples_leaf": 1,
+          "n_estimators": 300
+        },
+        "val_ap": [
+          0.8879053133927424,
+          0.8249717743202946
+        ],
+        "mean_val_ap": 0.8564385438565185
+      }
+    ],
+    "GB-C": [
+      {
+        "hp": {
+          "l2": 0.0,
+          "learning_rate": 0.03,
+          "max_iter": 200,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 10
+        },
+        "val_ap": [
+          0.3479514871212635,
+          0.26376770753743295
+        ],
+        "mean_val_ap": 0.3058595973293482
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.1,
+          "max_iter": 400,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 10
+        },
+        "val_ap": [
+          0.34248346520568734,
+          0.24757876859245592
+        ],
+        "mean_val_ap": 0.29503111689907163
+      },
+      {
+        "hp": {
+          "l2": 0.0,
+          "learning_rate": 0.03,
+          "max_iter": 200,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 50
+        },
+        "val_ap": [
+          0.3450453559910043,
+          0.26314905051477294
+        ],
+        "mean_val_ap": 0.3040972032528886
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.2,
+          "max_iter": 400,
+          "max_leaf_nodes": 31,
+          "min_samples_leaf": 50
+        },
+        "val_ap": [
+          0.33449486066218737,
+          0.25151210229401777
+        ],
+        "mean_val_ap": 0.29300348147810257
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.1,
+          "max_iter": 400,
+          "max_leaf_nodes": 31,
+          "min_samples_leaf": 50
+        },
+        "val_ap": [
+          0.334123676046333,
+          0.24388521995963275
+        ],
+        "mean_val_ap": 0.28900444800298286
+      },
+      {
+        "hp": {
+          "l2": 0.0,
+          "learning_rate": 0.2,
+          "max_iter": 400,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 20
+        },
+        "val_ap": [
+          0.3371230316711721,
+          0.24556526052185923
+        ],
+        "mean_val_ap": 0.29134414609651565
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.1,
+          "max_iter": 200,
+          "max_leaf_nodes": 63,
+          "min_samples_leaf": 50
+        },
+        "val_ap": [
+          0.34779591604365545,
+          0.25360074329883286
+        ],
+        "mean_val_ap": 0.30069832967124416
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.03,
+          "max_iter": 200,
+          "max_leaf_nodes": 63,
+          "min_samples_leaf": 10
+        },
+        "val_ap": [
+          0.34595521710988764,
+          0.24653429613493222
+        ],
+        "mean_val_ap": 0.2962447566224099
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.03,
+          "max_iter": 200,
+          "max_leaf_nodes": 31,
+          "min_samples_leaf": 20
+        },
+        "val_ap": [
+          0.34916224242148036,
+          0.26106907756600517
+        ],
+        "mean_val_ap": 0.3051156599937428
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.1,
+          "max_iter": 400,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 20
+        },
+        "val_ap": [
+          0.33525818421705833,
+          0.25749345506430954
+        ],
+        "mean_val_ap": 0.29637581964068394
+      }
+    ],
+    "GB-CA": [
+      {
+        "hp": {
+          "l2": 0.0,
+          "learning_rate": 0.03,
+          "max_iter": 200,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 10
+        },
+        "val_ap": [
+          0.8934080566395112,
+          0.8232626982902452
+        ],
+        "mean_val_ap": 0.8583353774648782
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.1,
+          "max_iter": 400,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 10
+        },
+        "val_ap": [
+          0.9016342008985122,
+          0.8345718711689903
+        ],
+        "mean_val_ap": 0.8681030360337513
+      },
+      {
+        "hp": {
+          "l2": 0.0,
+          "learning_rate": 0.03,
+          "max_iter": 200,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 50
+        },
+        "val_ap": [
+          0.9028458360801344,
+          0.8304944749788652
+        ],
+        "mean_val_ap": 0.8666701555294998
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.2,
+          "max_iter": 400,
+          "max_leaf_nodes": 31,
+          "min_samples_leaf": 50
+        },
+        "val_ap": [
+          0.909820316156208,
+          0.8428909116688627
+        ],
+        "mean_val_ap": 0.8763556139125352
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.1,
+          "max_iter": 400,
+          "max_leaf_nodes": 31,
+          "min_samples_leaf": 50
+        },
+        "val_ap": [
+          0.9085976257811059,
+          0.842134358020588
+        ],
+        "mean_val_ap": 0.875365991900847
+      },
+      {
+        "hp": {
+          "l2": 0.0,
+          "learning_rate": 0.2,
+          "max_iter": 400,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 20
+        },
+        "val_ap": [
+          0.8956178783598229,
+          0.8034994453249047
+        ],
+        "mean_val_ap": 0.8495586618423638
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.1,
+          "max_iter": 200,
+          "max_leaf_nodes": 63,
+          "min_samples_leaf": 50
+        },
+        "val_ap": [
+          0.9074073409740987,
+          0.8491674433396088
+        ],
+        "mean_val_ap": 0.8782873921568537
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.03,
+          "max_iter": 200,
+          "max_leaf_nodes": 63,
+          "min_samples_leaf": 10
+        },
+        "val_ap": [
+          0.8977574927658014,
+          0.8236287898743189
+        ],
+        "mean_val_ap": 0.8606931413200601
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.03,
+          "max_iter": 200,
+          "max_leaf_nodes": 31,
+          "min_samples_leaf": 20
+        },
+        "val_ap": [
+          0.8937704780521598,
+          0.8298089992582615
+        ],
+        "mean_val_ap": 0.8617897386552107
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.1,
+          "max_iter": 400,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 20
+        },
+        "val_ap": [
+          0.9064457809646559,
+          0.8369326782703688
+        ],
+        "mean_val_ap": 0.8716892296175123
+      }
+    ],
+    "GB-CAG": [
+      {
+        "hp": {
+          "l2": 0.0,
+          "learning_rate": 0.03,
+          "max_iter": 200,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 10
+        },
+        "val_ap": [
+          0.9432779870136183,
+          0.9055534705715065
+        ],
+        "mean_val_ap": 0.9244157287925624
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.1,
+          "max_iter": 400,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 10
+        },
+        "val_ap": [
+          0.9437917993807464,
+          0.9068454707278123
+        ],
+        "mean_val_ap": 0.9253186350542794
+      },
+      {
+        "hp": {
+          "l2": 0.0,
+          "learning_rate": 0.03,
+          "max_iter": 200,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 50
+        },
+        "val_ap": [
+          0.9424654154720078,
+          0.9045336160657483
+        ],
+        "mean_val_ap": 0.9234995157688781
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.2,
+          "max_iter": 400,
+          "max_leaf_nodes": 31,
+          "min_samples_leaf": 50
+        },
+        "val_ap": [
+          0.9423604042131555,
+          0.9089606247715541
+        ],
+        "mean_val_ap": 0.9256605144923549
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.1,
+          "max_iter": 400,
+          "max_leaf_nodes": 31,
+          "min_samples_leaf": 50
+        },
+        "val_ap": [
+          0.9412196255019889,
+          0.9061693384669433
+        ],
+        "mean_val_ap": 0.9236944819844661
+      },
+      {
+        "hp": {
+          "l2": 0.0,
+          "learning_rate": 0.2,
+          "max_iter": 400,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 20
+        },
+        "val_ap": [
+          0.9465919472462523,
+          0.8994905243586723
+        ],
+        "mean_val_ap": 0.9230412358024622
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.1,
+          "max_iter": 200,
+          "max_leaf_nodes": 63,
+          "min_samples_leaf": 50
+        },
+        "val_ap": [
+          0.9419066015195509,
+          0.9050718739849729
+        ],
+        "mean_val_ap": 0.9234892377522619
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.03,
+          "max_iter": 200,
+          "max_leaf_nodes": 63,
+          "min_samples_leaf": 10
+        },
+        "val_ap": [
+          0.9329442596709666,
+          0.9040950968758186
+        ],
+        "mean_val_ap": 0.9185196782733926
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.03,
+          "max_iter": 200,
+          "max_leaf_nodes": 31,
+          "min_samples_leaf": 20
+        },
+        "val_ap": [
+          0.9394774307496728,
+          0.9067119573531711
+        ],
+        "mean_val_ap": 0.923094694051422
+      },
+      {
+        "hp": {
+          "l2": 1.0,
+          "learning_rate": 0.1,
+          "max_iter": 400,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 20
+        },
+        "val_ap": [
+          0.9457279119264066,
+          0.9071961333073087
+        ],
+        "mean_val_ap": 0.9264620226168576
+      }
+    ],
+    "MLP-C": [
+      {
+        "hp": {
+          "dropout": 0.1,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.377986667768967,
+          0.31603770147245863
+        ],
+        "mean_val_ap": 0.3470121846207128
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 128,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.37425006904883223,
+          0.324321492040831
+        ],
+        "mean_val_ap": 0.3492857805448316
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.3779688767050944,
+          0.3160690963781842
+        ],
+        "mean_val_ap": 0.3470189865416393
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 128,
+          "layers": 3,
+          "lr": 0.001,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.3719312492257791,
+          0.3209113890783317
+        ],
+        "mean_val_ap": 0.34642131915205543
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "hidden": 128,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.3749756142110672,
+          0.31961112199480024
+        ],
+        "mean_val_ap": 0.3472933681029337
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 128,
+          "layers": 2,
+          "lr": 0.001,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.3750728719195687,
+          0.32603646797293884
+        ],
+        "mean_val_ap": 0.3505546699462537
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.001,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.2908781204262634,
+          0.3194027033721081
+        ],
+        "mean_val_ap": 0.3051404118991857
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.3742795000387139,
+          0.32436195124939887
+        ],
+        "mean_val_ap": 0.34932072564405636
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 128,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.3741837091745728,
+          0.3243885919396106
+        ],
+        "mean_val_ap": 0.34928615055709167
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.001,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.2908781204262634,
+          0.31935400716503
+        ],
+        "mean_val_ap": 0.3051160637956467
+      }
+    ],
+    "SAGE": [
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9387366031156847,
+          0.8954901813929603
+        ],
+        "mean_val_ap": 0.9171133922543225
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.001,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.9186311128616244,
+          0.8675904888041652
+        ],
+        "mean_val_ap": 0.8931108008328947
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9276803396165525,
+          0.9209922018088934
+        ],
+        "mean_val_ap": 0.924336270712723
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9241468278142922,
+          0.8864650752663359
+        ],
+        "mean_val_ap": 0.9053059515403141
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.3,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.01,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.9233311179771252,
+          0.8742448417963774
+        ],
+        "mean_val_ap": 0.8987879798867513
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.01,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9309094280121688,
+          0.8965986640845808
+        ],
+        "mean_val_ap": 0.9137540460483748
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.001,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.898435270991762,
+          0.8790864243304455
+        ],
+        "mean_val_ap": 0.8887608476611037
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.9347985361450036,
+          0.8957611357066789
+        ],
+        "mean_val_ap": 0.9152798359258413
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.930690876014598,
+          0.9178072658450979
+        ],
+        "mean_val_ap": 0.9242490709298479
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9429594223757384,
+          0.9007920248015243
+        ],
+        "mean_val_ap": 0.9218757235886313
+      }
+    ],
+    "SAGE+AG": [
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9468996913120994,
+          0.9193104400737092
+        ],
+        "mean_val_ap": 0.9331050656929043
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.001,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.9450069792478922,
+          0.9112218228946927
+        ],
+        "mean_val_ap": 0.9281144010712925
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9468246331262059,
+          0.9342854203063405
+        ],
+        "mean_val_ap": 0.9405550267162732
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9436480164131482,
+          0.9170101699987216
+        ],
+        "mean_val_ap": 0.9303290932059349
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.3,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.01,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.9447978472645839,
+          0.9214025489019722
+        ],
+        "mean_val_ap": 0.933100198083278
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.01,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9494368817695493,
+          0.9283793643040682
+        ],
+        "mean_val_ap": 0.9389081230368088
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.001,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9417937745055467,
+          0.9121786623218314
+        ],
+        "mean_val_ap": 0.926986218413689
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.9478232567477163,
+          0.9314766319834762
+        ],
+        "mean_val_ap": 0.9396499443655962
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9470109412150973,
+          0.9344270536231681
+        ],
+        "mean_val_ap": 0.9407189974191328
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9491460197171441,
+          0.9220213304010374
+        ],
+        "mean_val_ap": 0.9355836750590907
+      }
+    ]
+  }
+}

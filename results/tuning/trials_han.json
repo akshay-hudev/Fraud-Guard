@@ -1,0 +1,191 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-20T13:36:38+00:00",
+    "git": {
+      "commit": "f16ccc7f4fa0779c2850d212f805027ca357db07",
+      "dirty": true
+    },
+    "config_hash": "1d7346b4eaaa5dc6",
+    "config": {
+      "budget": 10,
+      "dev_seeds": [
+        901,
+        902
+      ],
+      "dev_regime": {
+        "ring_shift": 0.5,
+        "ring_density": 0.5
+      },
+      "methods": [
+        "HAN",
+        "HGT+AG"
+      ]
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    }
+  },
+  "trials": {
+    "HAN": [
+      {
+        "hp": {
+          "dropout": 0.1,
+          "heads": 2,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9060993853242796,
+          0.8445321748850961
+        ],
+        "mean_val_ap": 0.8753157801046878
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "heads": 4,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.001,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.9090303700296088,
+          0.8443730350099095
+        ],
+        "mean_val_ap": 0.8767017025197592
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "heads": 2,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9204681223810864,
+          0.8740257390401824
+        ],
+        "mean_val_ap": 0.8972469307106344
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "heads": 4,
+          "hidden": 64,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9268974440333201,
+          0.8504760505507649
+        ],
+        "mean_val_ap": 0.8886867472920426
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "heads": 4,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.01,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.9232224451625286,
+          0.878173215019569
+        ],
+        "mean_val_ap": 0.9006978300910489
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "heads": 4,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.01,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9103384937658003,
+          0.8476198409846667
+        ],
+        "mean_val_ap": 0.8789791673752335
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "heads": 2,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.001,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9248351502763044,
+          0.872142099472663
+        ],
+        "mean_val_ap": 0.8984886248744837
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "heads": 2,
+          "hidden": 32,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.9138934650710507,
+          0.8301921766336142
+        ],
+        "mean_val_ap": 0.8720428208523325
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "heads": 2,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9207900182628733,
+          0.8738835801715298
+        ],
+        "mean_val_ap": 0.8973367992172016
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "heads": 4,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9079824354647551,
+          0.8402738810920318
+        ],
+        "mean_val_ap": 0.8741281582783935
+      }
+    ]
+  }
+}

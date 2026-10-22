@@ -70,11 +70,9 @@ class AppState:
 
 def _load_historical_graph() -> Optional[Dict[str, Any]]:
     graph_candidates = [
-        "training/data/processed/hetero_graph.pt",
         "data/processed/hetero_graph.pt",
     ]
     mapping_candidates = [
-        "training/data/processed/graph_mappings.json",
         "data/processed/graph_mappings.json",
     ]
     try:

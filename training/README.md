@@ -18,25 +18,22 @@ training/
 │   └── utils/        # Utilities
 │       ├── explainability.py     # SHAP & feature importance
 │       └── metrics.py             # Evaluation metrics
-├── data/             # Datasets
-│   ├── raw/          # Original CSV files (patients, doctors, hospitals, claims)
-│   └── processed/    # Feature-engineered data (X_train.npy, y_train.npy, etc.)
-├── models/           # Trained model artifacts
-│   ├── baseline/     # Baseline model weights & metrics
-│   └── gnn/          # GNN model weights & metrics
 ├── scripts/          # Entry points
 │   ├── run_pipeline.py    # Full end-to-end training
 │   └── train_gnn.py       # GNN-only training
-├── notebooks/        # Jupyter notebooks (exploration)
 ├── tests/            # Unit & integration tests
 └── README.md         # This file
 ```
 
+Data and trained artifacts are written to the repository root: `data/raw/`, `data/processed/`,
+`models/baseline/`, `models/gnn/` and `logs/` (run the scripts from the repository root).
+
 ## 🚀 Quick Start
 
 ### Generate & Train All Models
+From the repository root:
 ```bash
-python scripts/run_pipeline.py
+python run_pipeline.py            # add --skip-gnn to skip the GNN step
 ```
 **Runs:**
 1. Generate synthetic data
@@ -75,12 +72,12 @@ pytest tests/ -v
 
 ## 🧠 Models Available
 
-| Model | Accuracy | F1 | Speed | Use Case |
-|-------|----------|-----|-------|----------|
-| Logistic Regression | 94.55% | 79.7% | ⚡ Very fast | Simple baseline |
-| Random Forest | 98.95% | 95.72% | Medium | Stable, interpretable |
-| Gradient Boosting | 99.05% | 96.15% | Medium | High accuracy |
-| **GNN (HGT)** | **99.35%** | **96.78%** | Slow | **Best overall** ✅ |
+Logistic Regression, Random Forest and Gradient Boosting (`src/models/baseline.py`) and an HGT model
+(`src/models/gnn.py`). This pipeline trains the models served by the demo application on the legacy
+2,100-claim dataset, which is separable by construction, so its scores are not meaningful estimates of
+real-world performance. For evaluated results see the research pipeline (`research/README.md`) and the
+manuscript; earlier performance tables in this README were unsupported and have been removed
+(see `paper/research_audit.md`).
 
 ## 🔧 Configuration
 
@@ -120,8 +117,8 @@ Metrics saved to `models/{model_type}/metrics.json` after training.
 - Run `pip install -r requirements.txt`
 
 **Data files not found:**
-- Ensure you've run `python scripts/run_pipeline.py` at least once
-- Check that `training/data/processed/` has `.npy` files
+- Ensure you've run `python run_pipeline.py` from the repository root at least once
+- Check that `data/processed/` has `.npy` files
 
 ## 📚 Related Documentation
 
@@ -138,4 +135,4 @@ Metrics saved to `models/{model_type}/metrics.json` after training.
 
 ---
 
-**Default Model for Production:** GNN (HGT) — 99.35% accuracy
+**Model served by the demo API:** Random Forest (`models/baseline/random_forest.pkl`).

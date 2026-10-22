@@ -79,9 +79,11 @@ Threshold sweep (writes logs/threshold_sweep.json and figures/threshold_sensitiv
 python threshold_analysis.py
 ```
 
-Kaggle provider fraud experiment:
+Kaggle provider fraud experiment (CSVs in `data/external/kaggle_provider_fraud/`; see `research/README.md`):
 ```bash
-python train_real_world.py --data-dir path/to/kaggle_healthcare_provider_fraud
+python train_real_world.py --stage tune
+python train_real_world.py --stage merge
+python train_real_world.py --stage eval
 ```
 
 Verify expected output files:

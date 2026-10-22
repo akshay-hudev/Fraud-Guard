@@ -12,7 +12,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.api
     container_name: fraud-pipeline
-    command: python scripts/run_pipeline.py --skip-gnn
+    command: python run_pipeline.py --skip-gnn
     volumes:
       - ../data:/app/data
       - ../models:/app/models

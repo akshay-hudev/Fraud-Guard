@@ -29,9 +29,6 @@ COPY . .
 # Create data and model directories
 RUN mkdir -p data/raw data/processed models/baseline models/gnn
 
-# Pre-generate synthetic data
-RUN python data/generate_synthetic.py || true
-
 # Expose port
 EXPOSE 8000
 

@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     """Application settings from .env file."""
 
     # Database
-    database_url: str = "sqlite:///training/data/fraud_detection.db"
+    database_url: str = "sqlite:///data/fraud_detection.db"
     db_echo: bool = False
 
     # API Security
@@ -26,9 +26,9 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
 
     # Model Paths
-    model_dir: str = "training/models"
-    data_dir: str = "training/data"
-    processed_data_dir: str = "training/data/processed"
+    model_dir: str = "models"
+    data_dir: str = "data"
+    processed_data_dir: str = "data/processed"
 
     # Logging
     log_level: str = "INFO"

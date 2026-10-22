@@ -350,15 +350,12 @@ class BaselineTrainer:
         return {"prediction": int(pred), "fraud_probability": float(proba or pred)}
 
     def _load_test_claims(self, n_test: int):
-        for processed_dir in ["data/processed", "training/data/processed"]:
-            test_claims = load_split_claims("test", processed_dir)
-            if test_claims is not None:
-                if len(test_claims) != n_test:
-                    raise ValueError(
-                        f"{processed_dir}/split_claim_ids.json has {len(test_claims)} test claims, expected {n_test}"
-                    )
-                return test_claims
-        return None
+        test_claims = load_split_claims("test", "data/processed")
+        if test_claims is not None and len(test_claims) != n_test:
+            raise ValueError(
+                f"data/processed/split_claim_ids.json has {len(test_claims)} test claims, expected {n_test}"
+            )
+        return test_claims
 
     def _load_gnn_predictions(self, n_test: int):
         candidates = [

@@ -132,6 +132,7 @@ def benchmark(shifts=(0.0, 1.0, 2.0), seeds=range(1, 7), density: float = 0.5) -
             frame = w.claims[test].reset_index(drop=True)
             s = separability(claim_level(w)["log_amount"].to_numpy()[test], frame, ft)
             s["test_ring_claims"] = int((ft == "ring").sum())
+            s["n_claims"], s["n_test_claims"] = int(len(w.claims)), int(test.sum())
             stats_.append(s)
         out[f"delta_{shift:g}"] = {k: float(np.mean([s[k] for s in stats_])) for k in stats_[0]}
     return out

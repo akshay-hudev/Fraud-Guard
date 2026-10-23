@@ -236,41 +236,95 @@ def summarise_persistent(summary: dict) -> None:
     (TABLES / "protocol.tex").write_text("\n".join(lines))
 
 
+ABLATION_NAMES = {
+    "full": "Full model", "rewired": "Degree-preserving rewiring", "no_visits": "No patient--doctor relation",
+    "no_degree": "No degree encodings", "layers_1": "1 message-passing layer", "layers_2": "2 layers",
+    "no_reverse": "No reverse relations (legacy graph)", "ring_id_leak": "+ ring identifier (legacy leak)",
+    "layers_4": "4 layers", "heads_1": "1 attention head", "heads_2": "2 heads", "heads_8": "8 heads",
+    "no_files": "No patient--claim relation", "no_billed_by": "No claim--doctor relation",
+    "no_hospital": "No hospital nodes", "no_claim_attributes": "Claim attributes zeroed",
+    "no_entity_attributes": "Entity attributes zeroed", "degree_only": "Degree encodings only"}
+# The HGT single-factor table (rows grouped by factor); every other ablation is in the mechanism table.
+HGT_ARCH_GROUPS = [("Depth (full: 3)", ["layers_1", "layers_2", "layers_4"]),
+                   ("Heads (full: 4)", ["heads_1", "heads_2", "heads_8"]),
+                   ("Relations", ["no_files", "no_billed_by", "no_visits", "no_hospital"]),
+                   ("Node inputs", ["no_degree", "no_claim_attributes", "no_entity_attributes", "degree_only"])]
+
+
 def summarise_ablation(summary: dict) -> None:
-    df = load_rows("ablation")
+    df = pd.concat([load_rows("ablation"), load_rows("ablation_arch")], ignore_index=True)
     if df.empty:
         return
-    t = df.groupby(["ring_density", "method", "variant"])["ring_ap"].agg(["mean", "std", "count"]).reset_index()
+    t = df.groupby(["ring_density", "method", "variant"])[["ring_ap", "isolated_ap"]].agg(["mean", "std", "count"])
+    t.columns = [f"{a}_{b}" for a, b in t.columns]
+    t = t.reset_index()
     t.to_csv(TABLES / "ablation_ring_ap.csv", index=False)
     out = []
     for (d, m), g in df.groupby(["ring_density", "method"]):
         piv = g.pivot_table(index="seed", columns="variant", values="ring_ap")
+        piv_iso = g.pivot_table(index="seed", columns="variant", values="isolated_ap")
         for v in piv.columns:
             if v != "full":
+                iso = paired_comparison(piv_iso[v].to_numpy(), piv_iso["full"].to_numpy())
                 out.append({"ring_density": d, "method": m, "variant": v,
-                            **paired_comparison(piv[v].to_numpy(), piv["full"].to_numpy())})
+                            **paired_comparison(piv[v].to_numpy(), piv["full"].to_numpy()),
+                            "iso_mean_diff": iso["mean_diff"], "iso_t_p": iso["t_p"]})
     o = pd.DataFrame(out)
+    # One family over every ablation comparison (mechanism and HGT single-factor tables together).
     o["t_p_holm"] = holm(o["t_p"].tolist())
+    o["iso_t_p_holm"] = holm(o["iso_t_p"].tolist())
     o.to_csv(TABLES / "ablation_comparisons.csv", index=False)
-    names = {"full": "Full model", "rewired": "Degree-preserving rewiring", "no_visits": "No patient--doctor relation",
-             "no_degree": "No degree encodings", "layers_1": "1 message-passing layer", "layers_2": "2 layers",
-             "no_reverse": "No reverse relations (legacy graph)", "ring_id_leak": "+ ring identifier (legacy leak)"}
+
+    def cell(m, v, metric="ring_ap"):
+        r = t[(t.method == m) & (t.variant == v)].iloc[0]
+        return f"{r[metric + '_mean']:.3f} $\\pm$ {r[metric + '_std']:.3f}"
+
+    def delta(m, v, iso=False):
+        c = o[(o.method == m) & (o.variant == v)].iloc[0]
+        return (f"{_sgn(c.iso_mean_diff)}; {_pfmt(c.iso_t_p_holm)}" if iso
+                else f"{_sgn(c.mean_diff)}; {_pfmt(c.t_p_holm)}")
+
     lines = [r"\begin{table}[h]",
-             r"\caption{Mechanism ablations at $\delta=0$, $s=0.9$ (six worlds): ring AP and paired change from the "
-             r"full model (Holm-adjusted $p$ over all ablations). The tuned GNNs use three layers.}\label{tab:ablation}",
+             r"\caption{Mechanism ablations at $\delta=0$, $s=0.9$ (six worlds): ring AP (mean $\pm$ s.d.) and paired "
+             r"change from the full model, with Holm-adjusted $p$ over every ablation comparison in this table and "
+             r"Table~\ref{tab:hgt_arch}. The tuned GNNs use three layers; HGT's single-factor variants are in "
+             r"Table~\ref{tab:hgt_arch}.}\label{tab:ablation}",
              r"\scriptsize", r"\begin{tabular}{@{}llcc@{}}", r"\toprule",
              r"Method & Variant & Ring AP & $\Delta$ vs.\ full \\", r"\midrule"]
-    for m in ["GB-CA", "GB-CAG", "SAGE", "HGT"]:
-        for v in ["full", "rewired", "no_visits", "no_degree", "layers_1", "layers_2", "no_reverse", "ring_id_leak"]:
-            r = t[(t.method == m) & (t.variant == v)]
-            if r.empty:
+    mech = {"GB-CA": ["full", "rewired", "ring_id_leak"], "GB-CAG": ["full", "rewired"],
+            "SAGE": ["full", "rewired", "no_visits", "no_degree", "layers_1", "layers_2"],
+            "HGT": ["full", "rewired", "no_reverse"]}
+    for m, variants in mech.items():
+        for v in variants:
+            if t[(t.method == m) & (t.variant == v)].empty:
                 continue
-            cmp_ = o[(o.method == m) & (o.variant == v)]
-            delta = "--" if v == "full" else f"{_sgn(cmp_.iloc[0].mean_diff)}; {_pfmt(cmp_.iloc[0].t_p_holm)}"
-            lines.append(f"{m if v == 'full' else ''} & {names[v]} & {r.iloc[0]['mean']:.3f} $\\pm$ {r.iloc[0]['std']:.3f} & {delta} \\\\")
+            lines.append(f"{m if v == 'full' else ''} & {ABLATION_NAMES[v]} & {cell(m, v)} & "
+                         f"{'--' if v == 'full' else delta(m, v)} \\\\")
         lines.append(r"\midrule" if m != "HGT" else "")
     lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
     (TABLES / "ablation.tex").write_text("\n".join(l for l in lines if l))
+
+    arch = [r"\begin{table}[h]",
+            r"\caption{HGT single-factor ablations at $\delta=0$, $s=0.9$ (six worlds; one factor changed at a time "
+            r"from the tuned configuration: 3 layers, 4 heads, hidden size 32). Ring and isolated AP (mean $\pm$ s.d.) "
+            r"and paired change from the full model; Holm-adjusted $p$ over every ablation comparison in this table "
+            r"and Table~\ref{tab:ablation}.}\label{tab:hgt_arch}",
+            r"\scriptsize", r"\setlength{\tabcolsep}{3pt}", r"\begin{tabular}{@{}lcccc@{}}", r"\toprule",
+            r"Variant & Ring AP & $\Delta$ ring AP & Isolated AP & $\Delta$ isolated AP \\", r"\midrule",
+            f"Full model & {cell('HGT', 'full')} & -- & {cell('HGT', 'full', 'isolated_ap')} & -- \\\\"]
+    for title, variants in HGT_ARCH_GROUPS:
+        present = [v for v in variants if not t[(t.method == "HGT") & (t.variant == v)].empty]
+        if not present:
+            continue
+        arch += [r"\midrule", rf"\multicolumn{{5}}{{@{{}}l}}{{\textit{{{title}}}}} \\"]
+        for v in present:
+            arch.append(f"{ABLATION_NAMES[v]} & {cell('HGT', v)} & {delta('HGT', v)} & "
+                        f"{cell('HGT', v, 'isolated_ap')} & {delta('HGT', v, iso=True)} \\\\")
+    arch += [r"\botrule", r"\end{tabular}", r"\end{table}"]
+    (TABLES / "hgt_arch.tex").write_text("\n".join(arch))
+    summary["ablation"] = {"n_comparisons_in_holm_family": int(len(o)),
+                           "hgt_arch_worlds": int(df[df.variant.isin(sum((v for _, v in HGT_ARCH_GROUPS), []))]
+                                                  .groupby("variant")["seed"].nunique().min())}
 
 
 def summarise_kaggle(summary: dict) -> None:
@@ -306,6 +360,185 @@ def summarise_kaggle(summary: dict) -> None:
     (TABLES / "kaggle.tex").write_text("\n".join(lines))
     summary["kaggle"] = {"n_folds": int(df.fold.nunique()),
                          "mean_ap": df.groupby("method")["ap"].mean().round(4).to_dict()}
+
+
+CASCADE_ORDER = ["GB-CAG", "HGT", "SAGE", "HGT+AG", "SAGE+AG", "GB-CAG>HGT (rerank)", "GB-CAG>HGT (fuse)",
+                 "GB-CAG>SAGE (rerank)", "GB-CAG>SAGE (fuse)"]
+CASCADE_LABEL = {"GB-CAG>HGT (rerank)": r"GB-CAG$\to$HGT, re-rank", "GB-CAG>HGT (fuse)": r"GB-CAG$\to$HGT, fused",
+                 "GB-CAG>SAGE (rerank)": r"GB-CAG$\to$SAGE, re-rank", "GB-CAG>SAGE (fuse)": r"GB-CAG$\to$SAGE, fused"}
+
+
+def load_cascade() -> tuple[pd.DataFrame, pd.DataFrame, list[dict]]:
+    rows, curves, runs = [], [], []
+    for f in sorted((RESULTS_DIR / "cascade" / "runs").glob("*.json")):
+        r = json.load(open(f))
+        rows += r["rows"]
+        curves += r["curves"]
+        runs.append(r)
+    return pd.DataFrame(rows), pd.DataFrame(curves), runs
+
+
+def summarise_cascade(summary: dict) -> None:
+    df, curves, runs = load_cascade()
+    if df.empty:
+        return
+    keys = ["ring_shift", "ring_density", "seed"]
+    metrics = ["ap", "ring_ap", "isolated_ap", "precision_at_5pct", "ring_recall_at_5pct", "isolated_recall_at_5pct",
+               "rings_with_any_claim_in_budget", "rings_with_half_claims_in_budget"]
+    agg = df.groupby("method")[metrics + ["escalated_test"]].mean().reindex(CASCADE_ORDER)
+    agg.to_csv(TABLES / "cascade_means.csv")
+    comps = []
+    for metric in ["ap", "ring_ap", "isolated_ap", "precision_at_5pct"]:
+        piv = df.pivot_table(index=keys, columns="method", values=metric)
+        for m in CASCADE_ORDER[1:]:
+            if m in piv:
+                comps.append({"metric": metric, "method": m, **paired_comparison(piv[m].to_numpy(), piv["GB-CAG"].to_numpy())})
+    comps = pd.DataFrame(comps)
+    comps["t_p_holm"] = comps.groupby("metric")["t_p"].transform(lambda p: holm(p.tolist()))
+    comps.to_csv(TABLES / "cascade_comparisons.csv", index=False)
+    by_regime = df.groupby(["ring_shift", "ring_density", "method"])[["ap", "ring_ap", "isolated_ap"]].mean().reset_index()
+    by_regime.to_csv(TABLES / "cascade_by_regime.csv", index=False)
+    curve = curves.groupby(["method", "mode", "escalation"])[["ap", "ring_ap", "isolated_ap", "escalated_test", "val_ap"]]
+    curve.mean().reset_index().to_csv(TABLES / "cascade_curves.csv", index=False)
+    selected = (df[df.method.str.contains(">")].groupby("method")["escalation"]
+                .value_counts().unstack(fill_value=0).to_dict(orient="index"))
+
+    lines = [r"\begin{table}[h]",
+             r"\caption{Two-stage routing versus single models and feature-level hybrids, pooled over the 54 worlds "
+             r"(same test claims for every row). Routing escalates claims whose GB-CAG score exceeds a threshold set "
+             r"on validation data; the escalation fraction is chosen by validation AP. P@5\%: precision among the top "
+             r"5\% of test claims. Esc.: mean share of test claims escalated. $\Delta$AP: paired difference in AP from "
+             r"GB-CAG ($\pm$ half-width of the 95\% $t$-interval), Holm-adjusted $p$ over the rows.}\label{tab:cascade}",
+             r"\scriptsize", r"\setlength{\tabcolsep}{3pt}", r"\begin{tabular}{@{}lcccccc@{}}", r"\toprule",
+             r"Method & AP & Ring AP & Isolated AP & P@5\% & Esc. & $\Delta$AP vs.\ GB-CAG ($p$) \\", r"\midrule"]
+    for m in CASCADE_ORDER:
+        if m not in agg.index or not np.isfinite(agg.loc[m, "ap"]):
+            continue
+        r = agg.loc[m]
+        esc = "--" if not np.isfinite(r["escalated_test"]) else f"{r['escalated_test']:.2f}"
+        c = comps[(comps.metric == "ap") & (comps.method == m)]
+        d = "--" if c.empty else (f"{_sgn(c.iloc[0].mean_diff)} $\\pm$ {(c.iloc[0].ci_high - c.iloc[0].ci_low) / 2:.3f} "
+                                  f"({'$<$0.001' if c.iloc[0].t_p_holm < 0.001 else f'{c.iloc[0].t_p_holm:.3f}'})")
+        lines.append(f"{CASCADE_LABEL.get(m, m)} & {r['ap']:.3f} & {r['ring_ap']:.3f} & {r['isolated_ap']:.3f} & "
+                     f"{r['precision_at_5pct']:.3f} & {esc} & {d} \\\\")
+        if m in ("SAGE", "SAGE+AG"):
+            lines.append(r"\midrule")
+    lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
+    (TABLES / "cascade.tex").write_text("\n".join(lines))
+
+    repro = {}
+    for r in runs:
+        for m, v in r["reproduction"].items():
+            repro.setdefault(m, []).append(v["max_abs_diff"])
+    reliance = []
+    for r in runs:
+        cfg = r["provenance"]["config"]
+        base = {"ring_shift": cfg["ring_shift"], "ring_density": cfg["ring_density"], "seed": cfg["seed"]}
+        for model, groups in r["reliance"].items():
+            if model == "rewired_test_period":
+                for m, v in groups.items():
+                    reliance.append({**base, "model": m, "intervention": "rewired_test_period", **v})
+            else:
+                for g, v in groups.items():
+                    reliance.append({**base, "model": model, "intervention": g, **v})
+    rel = pd.DataFrame(reliance)
+    rel_t = rel.groupby(["ring_shift", "ring_density", "model", "intervention"])[["ring_ap", "isolated_ap", "ap"]].mean()
+    rel_t.reset_index().to_csv(TABLES / "reliance.csv", index=False)
+    summary["cascade"] = {
+        "n_worlds": int(df[keys].drop_duplicates().shape[0]),
+        "reproduction_max_abs_diff": {m: float(np.max(v)) for m, v in repro.items()},
+        "reproduction_worlds": {m: len(v) for m, v in repro.items()},
+        "selected_escalation_counts": selected,
+        "means": agg.round(4).to_dict(orient="index")}
+
+
+def summarise_legacy(summary: dict) -> None:
+    path = RESULTS_DIR / "legacy" / "legacy_reanalysis.json"
+    if not path.exists():
+        return
+    r = json.load(open(path))
+    leg, bench = r["legacy"], r["benchmark_s0.5"]
+    syn = load_rows("synthetic")
+    gbc = syn[syn.method == "GB-C"].groupby("ring_shift")[["ring_ap", "ring_recall"]].mean()
+    comp = leg["split_composition"]
+    n_test = sum(comp["test"].values())
+    gb = leg["gb_raw_claim_features"]
+    lo, hi = gb["ring_recall_ci"]
+    b0, b2 = bench["delta_0"], bench["delta_2"]
+    rows = [
+        ("Claims in total (in the test split / period)", f"{leg['n_claims']:,} ({n_test})",
+         f"{b0['n_claims']:,.0f} ({b0['n_test_claims']:,.0f}), mean per world"),
+        ("Ring claims in test", f"{comp['test']['ring']} (3--6 per ring)", f"{b0['test_ring_claims']:.0f} (4 rings $\\times$ 96)"),
+        ("Rings", "5, active all 24 months", "4 per period, each active 6 months"),
+        ("Test-ring doctors with labelled ring claims in training",
+         f"{100 * leg['test_ring_members_seen_in_training_rings']['doctor']:.0f}\\%", "0\\% (by design)"),
+        ("Ring vs.\\ legitimate log-amount shift (s.d.)", f"{leg['separability']['log_amount_shift_sd']:.2f}",
+         f"{b0['log_amount_shift_sd']:.2f} ($\\delta=0$) to {b2['log_amount_shift_sd']:.2f} ($\\delta=2$)"),
+        ("ROC-AUC of claim amount alone, ring vs.\\ legitimate", f"{leg['separability']['auc_claim_amount']:.2f}",
+         f"{b0['auc_claim_amount']:.2f} to {b2['auc_claim_amount']:.2f}"),
+        ("Ring AP, GB on claim attributes only", f"{gb['ring_ap']:.3f}",
+         f"{gbc.loc[0.0, 'ring_ap']:.3f} to {gbc.loc[2.0, 'ring_ap']:.3f}"),
+        ("Ring recall, GB on claim attributes only", f"{gb['ring_recall_counts'][0]}/{gb['ring_recall_counts'][1]} "
+         f"[{lo:.2f}, {hi:.2f}]", f"{gbc.loc[0.0, 'ring_recall']:.2f} to {gbc.loc[2.0, 'ring_recall']:.2f}"),
+        ("Independent datasets", "1", "54"),
+    ]
+    lines = [r"\begin{table}[h]",
+             r"\caption{The fixed dataset of a preliminary version of this study, re-analysed with its own split "
+             r"(date-sorted, 60/20/20), compared with the benchmark. Benchmark ranges span $\delta=0$ to $\delta=2$ "
+             r"($s=0.5$, six worlds each); GB on claim attributes only is GB-C. Interval: exact 95\% binomial.}"
+             r"\label{tab:legacy}",
+             r"\scriptsize", r"\begin{tabular}{@{}p{5.0cm}p{3.1cm}p{3.6cm}@{}}", r"\toprule",
+             r" & Fixed dataset & This benchmark \\", r"\midrule"]
+    lines += [f"{a} & {b} & {c} \\\\" for a, b, c in rows]
+    lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
+    (TABLES / "legacy.tex").write_text("\n".join(lines))
+    summary["legacy"] = {"sha256_match": leg["sha256"] == leg["sha256_expected"], "test_ring_claims": comp["test"]["ring"],
+                         "gb_raw_ring_ap": gb["ring_ap"], "gb_raw_ring_recall": gb["ring_recall"]}
+
+
+def summarise_kaggle_nested(summary: dict) -> None:
+    nested = load_rows("kaggle_nested")
+    shared = load_rows("kaggle")
+    if nested.empty or shared.empty:
+        return
+    rows = []
+    for m in nested.method.unique():
+        a = nested[nested.method == m].set_index("fold")["ap"]
+        b = shared[shared.method == m].set_index("fold")["ap"].reindex(a.index)
+        rows.append({"method": m, "nested_ap_mean": a.mean(), "nested_ap_sd": a.std(ddof=1), "shared_ap_mean": b.mean(),
+                     **paired_comparison(a.to_numpy(), b.to_numpy())})
+    out = pd.DataFrame(rows)
+    out.to_csv(TABLES / "kaggle_nested.csv", index=False)
+    gnn = shared[shared.method.isin(["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT", "SAGE+G", "HGT+G"])]
+    summary["kaggle_nested"] = {"ap": out.set_index("method")[["nested_ap_mean", "shared_ap_mean"]].round(4).to_dict(orient="index"),
+                                "best_nested": str(out.loc[out.nested_ap_mean.idxmax(), "method"]),
+                                "best_gnn_shared_tuning": float(gnn.groupby("method")["ap"].mean().max())}
+
+
+def summarise_latency(summary: dict) -> None:
+    path = RESULTS_DIR / "latency" / "latency.json"
+    if not path.exists():
+        return
+    r = json.load(open(path))
+    w = r["worlds"]
+    pc = lambda key, stat: float(np.median([x["per_claim"][key][stat] for x in w]))
+    batch = lambda key: float(np.median([x["batch"][key] for x in w]))
+    routing = pd.DataFrame([dict(e, world=i) for i, x in enumerate(w) for e in x["batch_routing"]])
+    summary["latency"] = {
+        "worlds": len(w), "threads": r["provenance"].get("threads"), "peak_rss_mb": r["peak_rss_mb"],
+        "gb_p50_ms": pc("gb", "p50_ms"), "gb_p99_ms": pc("gb", "p99_ms"),
+        "hgt_p50_ms": pc("hgt_total", "p50_ms"), "hgt_p99_ms": pc("hgt_total", "p99_ms"),
+        "hgt_extract_p50_ms": pc("hgt_extract", "p50_ms"), "hgt_forward_p50_ms": pc("hgt_forward", "p50_ms"),
+        "gb_throughput_per_s": float(np.median([x["per_claim"]["gb_throughput_per_s"] for x in w])),
+        "hgt_throughput_per_s": float(np.median([x["per_claim"]["hgt_throughput_per_s"] for x in w])),
+        "subgraph_share_median": float(np.median([x["per_claim"]["subgraph_share_of_graph_median"] for x in w])),
+        "subgraph_nodes_median": float(np.median([x["per_claim"]["subgraph_nodes_median"] for x in w])),
+        "max_abs_diff_vs_full": float(np.max([x["per_claim"]["max_abs_diff_vs_full_graph"] for x in w])),
+        "features_per_period_s": batch("features_per_period_s"), "graph_per_period_s": batch("graph_per_period_s"),
+        "gb_score_period_s": batch("gb_score_period_s"), "hgt_score_period_s": batch("hgt_score_period_s"),
+        "test_graph_nodes": float(np.median([x["test_graph_nodes"] for x in w])),
+        "routing": routing.groupby("escalation")[["escalated_test", "union_subgraph_share", "seconds"]].median()
+        .round(4).to_dict(orient="index")}
 
 
 def hyperparameter_table() -> None:
@@ -369,6 +602,10 @@ def main():
     summarise_ablation(summary)
     summarise_kaggle(summary)
     kaggle_descriptives(summary)
+    summarise_cascade(summary)
+    summarise_legacy(summary)
+    summarise_kaggle_nested(summary)
+    summarise_latency(summary)
     write_json(RESULTS_DIR / "summary.json", {"provenance": provenance({"analysis": "analyze.py"}), **summary})
     print(json.dumps(summary, indent=1, default=str))
 

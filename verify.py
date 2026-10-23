@@ -11,9 +11,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 RESULTS = ROOT / "results"
 REQUIRED_TABLES = ["synthetic_ring_ap.csv", "synthetic_ring_ap_comparisons.csv", "synthetic_isolated_ap.csv",
-                   "protocol_ring_ap.csv", "ablation_ring_ap.csv", "kaggle_metrics.csv", "kaggle_comparisons.csv"]
+                   "protocol_ring_ap.csv", "ablation_ring_ap.csv", "kaggle_metrics.csv", "kaggle_comparisons.csv",
+                   "cascade_comparisons.csv", "reliance.csv", "kaggle_nested.csv", "hgt_arch.tex", "legacy.tex"]
 REQUIRED_FIGURES = ["fig_regime_ring_ap.pdf", "fig_delta_heatmaps.pdf", "fig_ablation.pdf", "fig_kaggle_ap.pdf",
-                    "fig_protocol.pdf"]
+                    "fig_protocol.pdf", "fig_cascade.pdf", "fig_ring_graph.pdf"]
 
 problems = []
 
@@ -41,7 +42,19 @@ counts = {
     "synthetic_persistent": check_runs("synthetic_persistent", ["method", "ring_ap", "seed"]),
     "ablation": check_runs("ablation", ["method", "variant", "ring_ap"]),
     "kaggle": check_runs("kaggle", ["method", "fold", "ap"]),
+    "kaggle_nested": check_runs("kaggle_nested", ["method", "fold", "ap", "hp"]),
+    "cascade": check_runs("cascade", ["method", "ap", "ring_ap", "isolated_ap", "precision_at_5pct"]),
+    "ablation_arch": check_runs("ablation_arch", ["method", "variant", "ring_ap"]),
 }
+for f in sorted((RESULTS / "cascade" / "runs").glob("*.json")):
+    for model, check in json.loads(f.read_text()).get("reproduction", {}).items():
+        if check["max_abs_diff"] > 1e-6:
+            problems.append(f"{f.name}: {model} does not reproduce the stored predictions ({check['max_abs_diff']:.2e})")
+for name in ["legacy/legacy_reanalysis.json", "latency/latency.json"]:
+    if not (RESULTS / name).exists():
+        problems.append(f"missing results/{name}")
+    elif "provenance" not in json.loads((RESULTS / name).read_text()):
+        problems.append(f"results/{name}: no provenance")
 for name in REQUIRED_TABLES:
     if not (RESULTS / "tables" / name).exists():
         problems.append(f"missing table results/tables/{name}")

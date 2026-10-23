@@ -14,12 +14,15 @@ import pickle
 
 logger = logging.getLogger(__name__)
 
+# Repository root: the served models live in <root>/models and the data in <root>/data.
+DEFAULT_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
 
 class RetrainingOrchestrator:
     """Orchestrates the complete retraining pipeline with validation & rollback."""
     
-    def __init__(self, project_root: str = "training"):
-        self.project_root = Path(project_root)
+    def __init__(self, project_root: Optional[str] = None):
+        self.project_root = Path(project_root) if project_root is not None else DEFAULT_PROJECT_ROOT
         self.data_dir = self.project_root / "data"
         self.models_dir = self.project_root / "models"
         self.logs_dir = self.project_root / "logs"

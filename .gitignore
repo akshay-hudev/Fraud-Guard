@@ -23,6 +23,8 @@ training/data/*.jsonl
 training/models/baseline/*.pkl
 training/models/gnn/*.pt
 training/models/backups/
+models/backups/
+outputs/
 
 # Database - IMPORTANT: Exclude all DB files
 *.db

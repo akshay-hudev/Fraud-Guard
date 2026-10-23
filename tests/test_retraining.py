@@ -11,6 +11,17 @@ import tempfile
 import shutil
 
 from training.src.training.retraining import RetrainingOrchestrator
+import training.src.training.retraining as retraining_module
+
+
+@pytest.fixture(autouse=True)
+def isolated_project(tmp_path, monkeypatch):
+    """Run every test against a temporary copy of the served models, never the real ones."""
+    root = retraining_module.DEFAULT_PROJECT_ROOT
+    shutil.copytree(root / "models" / "baseline", tmp_path / "models" / "baseline")
+    shutil.copy(root / "models" / "comparison.json", tmp_path / "models" / "comparison.json")
+    monkeypatch.setattr(retraining_module, "DEFAULT_PROJECT_ROOT", tmp_path)
+    return tmp_path
 
 
 class TestRetrainingOrchestrator:

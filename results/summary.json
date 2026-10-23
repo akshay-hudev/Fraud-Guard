@@ -1,10 +1,10 @@
 {
   "provenance": {
-    "created_utc": "2026-10-23T09:26:06+00:00",
+    "created_utc": "2026-10-23T09:31:52+00:00",
     "git": {
-      "commit": "441111798acedb440b955f4b5edfb890179648f0",
+      "commit": "480bedd60d45f32a77fea6d5dc01b6be266073ba",
       "dirty": false,
-      "research_sources_sha256": "5637559be3d68de0"
+      "research_sources_sha256": "006de1d16210babb"
     },
     "config_hash": "40c70da62144a4f8",
     "config": {

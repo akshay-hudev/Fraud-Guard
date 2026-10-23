@@ -1073,12 +1073,13 @@ ensembles with neighbourhood features are strong graph anomaly
 detectors~\cite{weber2019elliptic,tang2023gadbench}, and extend it to
 heterogeneous patient--provider claim graphs with controlled typologies.
 
-\subsection{Why a small fixed benchmark pointed the other way}\label{sec:legacy}
-A preliminary version of this study used a single synthetic dataset of
-2{,}100 claims and suggested that HGT detects rings better than gradient
-boosting. We could not reproduce that result. Re-analysing the dataset with
-its own date-sorted 60/20/20 split shows why it could not have answered the
-question (Table~\ref{tab:legacy}). First, its ring claims were drawn from the
+\subsection{Why a small fixed benchmark can point the other way}\label{sec:legacy}
+To show how a small, fixed benchmark can mislead, we re-analysed one: a
+synthetic dataset of 2{,}100 claims with five injected rings, produced by a
+simpler generator that is included in our repository, evaluated with its own
+date-sorted 60/20/20 split (Table~\ref{tab:legacy}). Such a dataset appears
+to test ring detection, but this one cannot tell whether relational
+structure helps, for three reasons. First, its ring claims were drawn from the
 same inflated distribution as its isolated fraud, so they were anomalous on
 their own: claim amount alone separates ring from legitimate claims with
 ROC-AUC 0.94, more than in our most anomalous regime ($\delta=2$, 0.90), and
@@ -1088,21 +1089,19 @@ were active for all 24 months, so every test ring claim was billed by a
 doctor with labelled ring claims in training, which is the memorisation
 setting of Section~\ref{sec:mechanism}. Third, the test split held 21 ring
 claims (3--6 per ring): one claim moves ring recall by 4.8 points, even a
-perfect recall has an exact 95\% interval of $[0.84, 1.00]$, and a single
-dataset says nothing about variation between datasets. The graph model of
-that pipeline also lacked reverse relations, the defect quantified in
-Section~\ref{sec:mechanism}. None of these properties is peculiar to that
-dataset. A small, fixed benchmark whose injected rings differ from
-legitimate claims in their features, recur across the split and contribute a
-few dozen test claims cannot separate relational learning from claim-level
-anomaly detection or from recognising known members. Controlling the
-feature-level signal, testing on new rings and replicating worlds removes all
-three confounds; differences in generator, features, evaluation unit and
-tuning between the two set-ups mean that their numbers are not directly
-comparable.
+perfect recall has an exact 95\% interval of $[0.84, 1.00]$, so a recall gap
+of a few claims between two models is within noise, and a single dataset says
+nothing about variation between datasets. None of these properties is
+peculiar to that dataset. A small, fixed benchmark whose injected rings
+differ from legitimate claims in their features, recur across the split and
+contribute a few dozen test claims cannot separate relational learning from
+claim-level anomaly detection or from recognising known members. Controlling
+the feature-level signal, testing on new rings and replicating worlds
+removes all three confounds. Because the generator, features, evaluation unit
+and tuning differ, numbers from the two set-ups are not directly comparable.
 
 \begin{table}[h]
-\caption{The fixed dataset of a preliminary version of this study, re-analysed with its own split (date-sorted, 60/20/20), compared with the benchmark. Benchmark ranges span $\delta=0$ to $\delta=2$ ($s=0.5$, six worlds each; ring AP and recall of GB-C pooled over $s$). Shift and ROC-AUC use raw claim amounts, not adjusted for specialty, for both. Interval: exact 95\% binomial.}\label{tab:legacy}
+\caption{A small fixed benchmark (2,100 claims, five rings; simpler generator in the repository), re-analysed with its own split (date-sorted, 60/20/20), compared with our benchmark. Benchmark ranges span $\delta=0$ to $\delta=2$ ($s=0.5$, six worlds each; ring AP and recall of GB-C pooled over $s$). Shift and ROC-AUC use raw claim amounts, not adjusted for specialty, for both. Interval: exact 95\% binomial.}\label{tab:legacy}
 \scriptsize
 \begin{tabular}{@{}p{5.0cm}p{3.1cm}p{3.6cm}@{}}
 \toprule

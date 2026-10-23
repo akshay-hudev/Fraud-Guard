@@ -251,8 +251,8 @@ def run_world(cfg: GeneratorConfig, hps: dict, gnns: list[str]) -> None:
         "reproduction": reproduction, "rows": rows, "curves": curves, "reliance": reliance,
         "train_seconds": {m: r["train_seconds"] for m, r in fitted.items()}})
     best = {r["method"]: round(r["ap"], 3) for r in rows}
-    print(f"[{tag}] AP {best} | reproduction {{{', '.join(f'{m}: {v['max_abs_diff']:.1e}' for m, v in reproduction.items())}}}",
-          flush=True)
+    diffs = ", ".join(f"{m}: {v['max_abs_diff']:.1e}" for m, v in reproduction.items())
+    print(f"[{tag}] AP {best} | reproduction {{{diffs}}}", flush=True)
 
 
 def main():

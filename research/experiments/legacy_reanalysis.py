@@ -1,8 +1,8 @@
-"""Re-analysis of the fixed 2,100-claim dataset used by a preliminary version of this study.
+"""Re-analysis of a small fixed benchmark: the 2,100-claim dataset of the repository's simpler generator.
 
 Data: data/raw/{hospitals,doctors,patients,claims}.csv, written by training/generate_dataset.py
 (seed 42); their SHA-256 is checked against archive/legacy_unverified/logs/dataset_config.json.
-The preliminary version's split is reproduced (claims sorted by date, positional 60/20/20), and
+The dataset is evaluated with its own split (claims sorted by date, positional 60/20/20), and
 the script asks whether this dataset can separate coordination from claim-level anomaly:
 * composition and ring topology (members, block density, active span);
 * how anomalous ring claims are on their own (standardised log-amount shift, single-feature ROC-AUC);

@@ -57,7 +57,7 @@ $PY -m research.experiments.kaggle_exp --stage eval
 $PY -m research.experiments.cascade
 # 7. HGT single-factor ablations (depth, heads, relations, node inputs; delta = 0, s = 0.9, worlds 1-6)
 $PY -m research.experiments.ablation --family arch
-# 8. Re-analysis of the preliminary 2,100-claim dataset (data/raw); nested tuning check on the real data
+# 8. Re-analysis of the small fixed 2,100-claim benchmark (data/raw); nested tuning check on the real data
 $PY -m research.experiments.legacy_reanalysis
 $PY -m research.experiments.kaggle_exp --stage nested
 # 9. Cost benchmark: run alone, single thread

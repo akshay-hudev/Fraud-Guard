@@ -484,8 +484,8 @@ def summarise_legacy(summary: dict) -> None:
         ("Independent datasets", "1", "54"),
     ]
     lines = [r"\begin{table}[h]",
-             r"\caption{The fixed dataset of a preliminary version of this study, re-analysed with its own split "
-             r"(date-sorted, 60/20/20), compared with the benchmark. Benchmark ranges span $\delta=0$ to $\delta=2$ "
+             r"\caption{A small fixed benchmark (2,100 claims, five rings; simpler generator in the repository), "
+             r"re-analysed with its own split (date-sorted, 60/20/20), compared with our benchmark. Benchmark ranges span $\delta=0$ to $\delta=2$ "
              r"($s=0.5$, six worlds each; ring AP and recall of GB-C pooled over $s$). Shift and ROC-AUC use raw claim "
              r"amounts, not adjusted for specialty, for both. Interval: exact 95\% binomial.}"
              r"\label{tab:legacy}",

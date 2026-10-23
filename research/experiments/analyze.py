@@ -275,14 +275,14 @@ def summarise_ablation(summary: dict) -> None:
     o["iso_t_p_holm"] = holm(o["iso_t_p"].tolist())
     o.to_csv(TABLES / "ablation_comparisons.csv", index=False)
 
-    def cell(m, v, metric="ring_ap"):
+    def cell(m, v, metric="ring_ap", sd=True):
         r = t[(t.method == m) & (t.variant == v)].iloc[0]
-        return f"{r[metric + '_mean']:.3f} $\\pm$ {r[metric + '_std']:.3f}"
+        return f"{r[metric + '_mean']:.3f}" + (f" $\\pm$ {r[metric + '_std']:.3f}" if sd else "")
 
     def delta(m, v, iso=False):
         c = o[(o.method == m) & (o.variant == v)].iloc[0]
-        return (f"{_sgn(c.iso_mean_diff)}; {_pfmt(c.iso_t_p_holm)}" if iso
-                else f"{_sgn(c.mean_diff)}; {_pfmt(c.t_p_holm)}")
+        return (f"{_sgn(c.iso_mean_diff)} ({_pfmt(c.iso_t_p_holm)})" if iso
+                else f"{_sgn(c.mean_diff)} ({_pfmt(c.t_p_holm)})")
 
     lines = [r"\begin{table}[h]",
              r"\caption{Mechanism ablations at $\delta=0$, $s=0.9$ (six worlds): ring AP (mean $\pm$ s.d.) and paired "
@@ -306,20 +306,21 @@ def summarise_ablation(summary: dict) -> None:
 
     arch = [r"\begin{table}[h]",
             r"\caption{HGT single-factor ablations at $\delta=0$, $s=0.9$ (six worlds; one factor changed at a time "
-            r"from the tuned configuration: 3 layers, 4 heads, hidden size 32). Ring and isolated AP (mean $\pm$ s.d.) "
-            r"and paired change from the full model; Holm-adjusted $p$ over every ablation comparison in this table "
+            r"from the tuned configuration: 3 layers, 4 heads, hidden size 32). Ring AP (mean $\pm$ s.d.), isolated AP "
+            r"(mean) and paired change from the full model; Holm-adjusted $p$ over every ablation comparison in this table "
             r"and Table~\ref{tab:ablation}.}\label{tab:hgt_arch}",
-            r"\scriptsize", r"\setlength{\tabcolsep}{3pt}", r"\begin{tabular}{@{}lcccc@{}}", r"\toprule",
-            r"Variant & Ring AP & $\Delta$ ring AP & Isolated AP & $\Delta$ isolated AP \\", r"\midrule",
-            f"Full model & {cell('HGT', 'full')} & -- & {cell('HGT', 'full', 'isolated_ap')} & -- \\\\"]
+            r"\scriptsize", r"\setlength{\tabcolsep}{2.5pt}", r"\begin{tabular}{@{}lcccc@{}}", r"\toprule",
+            r"Variant & Ring AP & $\Delta$ ring AP & Isol.\ AP & $\Delta$ isol.\ AP \\", r"\midrule",
+            f"Full model & {cell('HGT', 'full')} & -- & {cell('HGT', 'full', 'isolated_ap', sd=False)} & -- \\\\"]
     for title, variants in HGT_ARCH_GROUPS:
         present = [v for v in variants if not t[(t.method == "HGT") & (t.variant == v)].empty]
         if not present:
             continue
         arch += [r"\midrule", rf"\multicolumn{{5}}{{@{{}}l}}{{\textit{{{title}}}}} \\"]
         for v in present:
-            arch.append(f"{ABLATION_NAMES[v]} & {cell('HGT', v)} & {delta('HGT', v)} & "
-                        f"{cell('HGT', v, 'isolated_ap')} & {delta('HGT', v, iso=True)} \\\\")
+            name = "1 layer" if v == "layers_1" else ABLATION_NAMES[v]
+            arch.append(f"{name} & {cell('HGT', v)} & {delta('HGT', v)} & "
+                        f"{cell('HGT', v, 'isolated_ap', sd=False)} & {delta('HGT', v, iso=True)} \\\\")
     arch += [r"\botrule", r"\end{tabular}", r"\end{table}"]
     (TABLES / "hgt_arch.tex").write_text("\n".join(arch))
     summary["ablation"] = {"n_comparisons_in_holm_family": int(len(o)),
@@ -409,8 +410,8 @@ def summarise_cascade(summary: dict) -> None:
              r"on validation data; the escalation fraction is chosen by validation AP. P@5\%: precision among the top "
              r"5\% of test claims. Esc.: mean share of test claims escalated. $\Delta$AP: paired difference in AP from "
              r"GB-CAG ($\pm$ half-width of the 95\% $t$-interval), Holm-adjusted $p$ over the rows.}\label{tab:cascade}",
-             r"\scriptsize", r"\setlength{\tabcolsep}{3pt}", r"\begin{tabular}{@{}lcccccc@{}}", r"\toprule",
-             r"Method & AP & Ring AP & Isolated AP & P@5\% & Esc. & $\Delta$AP vs.\ GB-CAG ($p$) \\", r"\midrule"]
+             r"\scriptsize", r"\setlength{\tabcolsep}{2.5pt}", r"\begin{tabular}{@{}lcccccc@{}}", r"\toprule",
+             r"Method & AP & Ring AP & Isol.\ AP & P@5\% & Esc. & $\Delta$AP ($p$) \\", r"\midrule"]
     for m in CASCADE_ORDER:
         if m not in agg.index or not np.isfinite(agg.loc[m, "ap"]):
             continue

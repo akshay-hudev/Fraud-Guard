@@ -276,7 +276,7 @@ def ring_graph(seed: int = 1) -> None:
             return
         panels.append((cfg, generate(cfg), np.load(path)))
     rng = np.random.default_rng(0)
-    fig, axes = plt.subplots(2, 3, figsize=(7.0, 5.0))
+    fig, axes = plt.subplots(2, 3, figsize=(7.0, 5.6), gridspec_kw={"hspace": 0.35})
     titles = ["Isolated fraud ($s$ = 0.9 world)", "Ring, sparse block ($s$ = 0.1)", "Ring, dense block ($s$ = 0.9)"]
     for col, (cfg, world, z) in enumerate(panels):
         test = world.split == "test"
@@ -301,16 +301,17 @@ def ring_graph(seed: int = 1) -> None:
                 pos, edges = _isolated_layout(pairs, pat, doc, np.random.default_rng(1))
                 _draw_panel(ax, pos, edges, set(), highlight=(pos[("p", pat)] + pos[("d", doc)]) / 2)
                 is_target = (claims.claim_id == target.claim_id).to_numpy()
-                note = f"this claim {'flagged' if flagged[is_target][0] else 'missed'}; isolated claims flagged " \
-                       f"{flagged[ft == 'isolated'].sum()}/{(ft == 'isolated').sum()}"
+                note = f"this claim {'flagged' if flagged[is_target][0] else 'missed'}\n" \
+                       f"all isolated claims flagged: {flagged[ft == 'isolated'].sum()}/{(ft == 'isolated').sum()}"
             else:
                 pos, edges = _ring_layout(pairs, ring_docs, ring_pats, np.random.default_rng(1))
                 members = {("d", d) for d in ring_docs} | {("p", p) for p in ring_pats}
                 _draw_panel(ax, pos, edges, members)
-                shown = edges.legit.sum()
-                note = f"ring claims flagged {flagged[in_ring].sum()}/{in_ring.sum()}; " \
-                       f"false alarms {edges.legit_flag.sum()}/{shown} shown"
-            ax.set_title((titles[col] + "\n" if row == 0 else "") + note, fontsize=6.8, color=INK)
+                note = f"this ring's claims flagged: {flagged[in_ring].sum()}/{in_ring.sum()}\n" \
+                       f"legitimate claims flagged (drawn): {edges.legit_flag.sum()}/{edges.legit.sum()}"
+            if row == 0:
+                ax.set_title(titles[col], fontsize=7.5, color=INK)
+            ax.text(0.5, -0.02, note, transform=ax.transAxes, ha="center", va="top", fontsize=6.5, color=INK2)
         axes[0, 0].text(-0.08, 0.5, "GB-CAG", transform=axes[0, 0].transAxes, rotation=90, va="center", ha="right",
                         fontsize=8, color=INK)
         axes[1, 0].text(-0.08, 0.5, "HGT", transform=axes[1, 0].transAxes, rotation=90, va="center", ha="right",
@@ -323,8 +324,8 @@ def ring_graph(seed: int = 1) -> None:
                Line2D([], [], marker="o", ls="none", mfc=INK, mec=INK, label="ring patient"),
                Line2D([], [], marker="s", ls="none", mfc="white", mec=GRAY, label="other doctor"),
                Line2D([], [], marker="o", ls="none", mfc="white", mec=GRAY, label="other patient")]
-    fig.legend(handles=handles, loc="lower center", ncol=4, frameon=False, fontsize=6.8, bbox_to_anchor=(0.5, -0.01))
-    fig.tight_layout(rect=(0.02, 0.07, 1, 1))
+    fig.legend(handles=handles, loc="lower center", ncol=4, frameon=False, fontsize=6.8, bbox_to_anchor=(0.5, -0.04))
+    fig.subplots_adjust(left=0.04, right=0.99, top=0.95, bottom=0.08, wspace=0.05)
     fig.savefig(FIG / "fig_ring_graph.pdf", bbox_inches="tight")
     plt.close(fig)
 
@@ -363,27 +364,34 @@ def cascade_figure(gnn: str = "HGT") -> None:
     ax.set_ylim(0, 1.02)
     ax.set_title("(a) precision-recall, $\\delta$ = 0, $s$ = 0.9 (6 worlds)", color=INK)
     ax.legend(frameon=False, loc="lower left", fontsize=6.8)
-    # (b-d) AP against the escalation fraction, all 54 worlds
+    # (b-d) paired difference from GB-CAG against the escalation fraction, all 54 worlds
+    keys = ["ring_shift", "ring_density", "seed"]
     for ax, metric, title in zip([axes[0, 1], axes[1, 0], axes[1, 1]], ["ap", "ring_ap", "isolated_ap"],
-                                 ["(b) AP, all fraud", "(c) ring AP", "(d) isolated AP"]):
+                                 ["(b) all fraud", "(c) ring fraud", "(d) isolated fraud"]):
         x = np.arange(len(ESCALATION))
-        for ref, color in [("GB-CAG", BLUE), (gnn, ORANGE)]:
-            v = rows[rows.method == ref][metric]
-            lo, hi = t_ci(v.to_numpy())
-            ax.axhspan(lo, hi, color=color, alpha=0.12, lw=0)
-            ax.axhline(v.mean(), color=color, lw=1.2)
-            ax.text(len(ESCALATION) - 0.6, v.mean(), ref, color=INK2, fontsize=6.5, va="center", ha="left")
+        base = rows[rows.method == "GB-CAG"].set_index(keys)[metric]
+        alone = rows[rows.method == gnn].set_index(keys)[metric] - base
+        lo, hi = t_ci(alone.to_numpy())
+        ax.axhline(0.0, color=BLUE, lw=1.2)
+        ax.axhspan(lo, hi, color=ORANGE, alpha=0.15, lw=0)
+        ax.axhline(alone.mean(), color=ORANGE, lw=1.2)
+        box = {"facecolor": "white", "edgecolor": "none", "pad": 0.6}
+        ax.text(len(ESCALATION) - 0.55, 0.0, "GB-CAG", color=INK2, fontsize=6.5, va="center", ha="left", bbox=box)
+        ax.text(len(ESCALATION) - 0.55, alone.mean(), f"{gnn} alone", color=INK2, fontsize=6.5, va="center",
+                ha="left", bbox=box)
         for mode in ["rerank", "fuse"]:
-            c = curves[(curves.method == f"GB-CAG>{gnn}") & (curves["mode"] == mode)]
-            g = c.groupby("escalation")[metric]
+            c = curves[(curves.method == f"GB-CAG>{gnn}") & (curves["mode"] == mode)].set_index(keys)
+            c = c.assign(diff=c[metric] - base.reindex(c.index).to_numpy())
+            g = c.groupby("escalation")["diff"]
             mean, half = g.mean().reindex(ESCALATION), g.apply(_ci_half).reindex(ESCALATION)
             ls, marker, label = ROUTE_STYLE[mode]
             ax.errorbar(x, mean.values, yerr=half.values, color=AQUA, ls=ls, marker=marker, ms=4, capsize=2,
                         elinewidth=0.8, mec="white", mew=0.6, label=label)
         ax.set_xticks(x, [f"{e:.0%}" for e in ESCALATION])
-        ax.set_xlim(-0.4, len(ESCALATION) + 0.4)
-        ax.set_xlabel(f"share of claims escalated to {gnn} (threshold set on validation)")
-        ax.set_title(title + " (54 worlds, mean and 95% CI)", color=INK)
+        ax.set_xlim(-0.4, len(ESCALATION) + 0.7)
+        ax.set_xlabel(f"share of claims escalated to {gnn}")
+        ax.set_ylabel("$\\Delta$ AP vs. GB-CAG")
+        ax.set_title(title + ": paired $\\Delta$ AP (54 worlds, 95% CI)", color=INK)
     axes[0, 1].legend(frameon=False, loc="lower left", fontsize=6.8)
     fig.tight_layout()
     fig.savefig(FIG / "fig_cascade.pdf", bbox_inches="tight")

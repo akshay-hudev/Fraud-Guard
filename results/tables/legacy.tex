@@ -1,0 +1,19 @@
+\begin{table}[h]
+\caption{The fixed dataset of a preliminary version of this study, re-analysed with its own split (date-sorted, 60/20/20), compared with the benchmark. Benchmark ranges span $\delta=0$ to $\delta=2$ ($s=0.5$, six worlds each; ring AP and recall of GB-C pooled over $s$). Shift and ROC-AUC use raw claim amounts, not adjusted for specialty, for both. Interval: exact 95\% binomial.}\label{tab:legacy}
+\scriptsize
+\begin{tabular}{@{}p{5.0cm}p{3.1cm}p{3.6cm}@{}}
+\toprule
+ & Fixed dataset & This benchmark \\
+\midrule
+Claims in total (in the test split / period) & 2,100 (420) & 20,176 (4,924), mean per world \\
+Ring claims in test & 21 (3--6 per ring) & 384 (4 rings $\times$ 96) \\
+Rings & 5, active all 24 months & 4 per period, each active 6 months \\
+Test-ring doctors with labelled ring claims in training & 100\% & 0\% (by design) \\
+Ring vs.\ legitimate log-amount shift (s.d.) & 1.49 & 0.11 ($\delta=0$) to 1.87 ($\delta=2$) \\
+ROC-AUC of claim amount alone, ring vs.\ legitimate & 0.94 & 0.53 to 0.90 \\
+Ring AP, GB on claim attributes only & 1.000 & 0.086 to 0.811 \\
+Ring recall, GB on claim attributes only & 21/21 [0.84, 1.00] & 0.15 to 0.76 \\
+Independent datasets & 1 & 54 \\
+\botrule
+\end{tabular}
+\end{table}

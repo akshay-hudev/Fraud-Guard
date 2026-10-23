@@ -1,0 +1,164 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-23T07:36:54+00:00",
+    "git": {
+      "commit": "a232dcd05a1f0ffc8fd5c4c451fb9f8b38e20670",
+      "dirty": false,
+      "research_sources_sha256": "4f1589a32b01daa9"
+    },
+    "config_hash": "3529be6868fd6671",
+    "config": {
+      "fold": 4,
+      "methods": [
+        "LR-P",
+        "RF-P",
+        "GB-P",
+        "GB-PG",
+        "GB-PGL",
+        "MLP-P"
+      ],
+      "budget": 6
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "data": {
+      "n_providers": 5410,
+      "n_fraud": 506,
+      "P_hash": "11c2c5f183b47228",
+      "files": "data/external/kaggle_provider_fraud"
+    }
+  },
+  "rows": [
+    {
+      "method": "LR-P",
+      "fold": 4,
+      "hp": {
+        "C": 0.1
+      },
+      "ap": 0.6973258747855934,
+      "roc_auc": 0.9504501800720287,
+      "f1": 0.6148148148148148,
+      "precision": 0.49404761904761907,
+      "recall": 0.8137254901960784,
+      "recall_at_10pct": 0.6568627450980392,
+      "threshold": 0.709719963056053,
+      "n_test": 1082,
+      "n_pos": 102,
+      "best_val_ap": 0.6646818511345925
+    },
+    {
+      "method": "RF-P",
+      "fold": 4,
+      "hp": {
+        "max_depth": 16,
+        "max_features": 0.3,
+        "min_samples_leaf": 3,
+        "n_estimators": 300
+      },
+      "ap": 0.667445276888661,
+      "roc_auc": 0.9450130052020811,
+      "f1": 0.6206896551724138,
+      "precision": 0.5094339622641509,
+      "recall": 0.7941176470588235,
+      "recall_at_10pct": 0.6274509803921569,
+      "threshold": 0.3299768719221643,
+      "n_test": 1082,
+      "n_pos": 102,
+      "best_val_ap": 0.6427792626388034
+    },
+    {
+      "method": "GB-P",
+      "fold": 4,
+      "hp": {
+        "l2": 0.0,
+        "learning_rate": 0.03,
+        "max_iter": 200,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 10
+      },
+      "ap": 0.7166590983859449,
+      "roc_auc": 0.9506802721088434,
+      "f1": 0.6299212598425197,
+      "precision": 0.5263157894736842,
+      "recall": 0.7843137254901961,
+      "recall_at_10pct": 0.6470588235294118,
+      "threshold": 0.5950418180302449,
+      "n_test": 1082,
+      "n_pos": 102,
+      "best_val_ap": 0.6802616935906557
+    },
+    {
+      "method": "GB-PG",
+      "fold": 4,
+      "hp": {
+        "l2": 0.0,
+        "learning_rate": 0.03,
+        "max_iter": 200,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 50
+      },
+      "ap": 0.7088634554815291,
+      "roc_auc": 0.9519807923169268,
+      "f1": 0.6212121212121212,
+      "precision": 0.5061728395061729,
+      "recall": 0.803921568627451,
+      "recall_at_10pct": 0.6470588235294118,
+      "threshold": 0.5783168297956625,
+      "n_test": 1082,
+      "n_pos": 102,
+      "best_val_ap": 0.6735577861923638
+    },
+    {
+      "method": "GB-PGL",
+      "fold": 4,
+      "hp": {
+        "l2": 0.0,
+        "learning_rate": 0.03,
+        "max_iter": 200,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 50
+      },
+      "ap": 0.7128544366019709,
+      "roc_auc": 0.9506502601040416,
+      "f1": 0.6345381526104418,
+      "precision": 0.5374149659863946,
+      "recall": 0.7745098039215687,
+      "recall_at_10pct": 0.6470588235294118,
+      "threshold": 0.645562350285912,
+      "n_test": 1082,
+      "n_pos": 102,
+      "best_val_ap": 0.6722228817181409
+    },
+    {
+      "method": "MLP-P",
+      "fold": 4,
+      "hp": {
+        "dropout": 0.3,
+        "hidden": 128,
+        "layers": 3,
+        "lr": 0.003,
+        "weight_decay": 0.0001
+      },
+      "ap": 0.7147749926141231,
+      "roc_auc": 0.9507803121248499,
+      "f1": 0.61003861003861,
+      "precision": 0.5031847133757962,
+      "recall": 0.7745098039215687,
+      "recall_at_10pct": 0.6470588235294118,
+      "threshold": 0.8117257952690125,
+      "n_test": 1082,
+      "n_pos": 102,
+      "best_val_ap": 0.6643023792492125
+    }
+  ]
+}

@@ -36,32 +36,31 @@
 \orgaddress{\city{Bengaluru}, \postcode{560083}, \state{Karnataka}, \country{India}}}
 
 
-\abstract{\mathversion{normal}\textbf{Purpose:} Graph neural networks (GNNs) are increasingly
+\abstract{\mathversion{normal}\textbf{Purpose:} Graph neural networks (GNNs) are
 proposed for healthcare insurance fraud because collusive provider rings
-leave traces in the patient--provider network, but it is unclear when they
-improve on tabular models.
-\textbf{Methods:} We built a synthetic claims benchmark in which the
+leave traces in the patient--provider network, but when they beat tabular
+models is unclear.
+\textbf{Methods:} We built a synthetic claims benchmark that varies the
 feature-level signal of ring claims and the density of the ring's
-doctor--patient block are varied independently, every test ring is formed by
-doctors and patients never seen in training, and each audit period is
-analysed separately to avoid leakage. We compared 14 methods---tabular models
-with and without engineered graph features, an MLP control, five
-heterogeneous GNNs (GraphSAGE, RGCN, HAN, Simple-HGN, HGT), two hybrids and an
-unsupervised overlap score---with equal tuning budgets over nine regimes and
-54 independently generated worlds, and validated on a public provider-labelled
-Medicare-style dataset (5{,}410 providers).
+doctor--patient block independently, tests on rings of unseen doctors
+and patients, and analyses audit periods separately to avoid leakage. We
+compared 14 methods, including gradient boosting with and without engineered
+graph features and five heterogeneous GNNs, with equal tuning budgets over
+54 generated worlds in nine regimes, evaluated routing from gradient boosting
+to a GNN, and checked the findings against public provider-labelled
+Medicare-style data (5{,}410 providers).
 \textbf{Results:} Without a feature-level signal, claim-only models were at
 chance, while per-entity aggregates detected most rings (average precision
-0.89--0.93). Structure added up to 0.10 average precision, and only when ring
-members were moderately or densely interlinked. Pooled over all worlds, no GNN outperformed gradient boosting with
-engineered graph features (GraphSAGE $-0.0001$, HGT $-0.011$); hybrids gained
-$+0.008$. GNNs were 0.08--0.15 worse on isolated fraud, HGT lost most of its ring
-detection without degree encodings, and letting test rings share members with
-training rings inflated performance by up to 0.60. On real data, gradient
-boosting on provider aggregates was best (0.704); graph features and GNNs did
-not help.
+0.89--0.93); structure added up to 0.10, only when ring members were
+moderately or densely interlinked. Pooled over worlds, no GNN
+outperformed gradient boosting with engineered graph features (GraphSAGE
+$-0.0001$, HGT $-0.011$), and GNNs were 0.08--0.15 worse on isolated fraud.
+Routing high-risk claims to
+a GNN gained nothing; fusing both models' rankings gained at most 0.006. Test
+rings sharing members with training rings inflated performance by up to 0.60. On real data, gradient boosting on provider aggregates was best
+(0.704), and graph information did not help.
 \textbf{Conclusion:} Relational modelling pays off only for dense collusion
-and, even then, mainly through structure that simple engineered features
+and then mainly through structure that simple engineered features
 capture. Graph models should be evaluated against graph-augmented tabular
 baselines on unseen entities.}
 
@@ -117,14 +116,21 @@ real data. Our contributions are:
   without engineered graph features, an MLP control, five heterogeneous GNNs,
   two hybrids and an unsupervised overlap score---with an equal tuning
   budget, nine regimes, six independently generated worlds per regime and
-  paired statistics (Sections~\ref{sec:methods} and~\ref{sec:results}).
+  paired statistics, together with an evaluation of two-stage routing from
+  gradient boosting to a GNN (Sections~\ref{sec:methods} and~\ref{sec:results}).
 \item \textbf{Mechanism and memorisation analyses}: degree-preserving
-  rewiring, relation and encoding ablations, depth, and a comparison of new
-  versus recurring rings that quantifies how much apparent ring detection
-  comes from recognising known members (Section~\ref{sec:mechanism}).
-\item \textbf{Real-world validation} on a public, provider-labelled
+  rewiring, single-factor ablations of HGT (depth, attention heads,
+  relations, node inputs), an analysis of which inputs the trained models
+  rely on, and a comparison of new versus recurring rings that quantifies
+  how much apparent ring detection comes from recognising known members
+  (Section~\ref{sec:mechanism}). A re-analysis of a small fixed benchmark
+  shows how such data can suggest the opposite conclusion
+  (Section~\ref{sec:legacy}).
+\item \textbf{A real-data check} on a public, provider-labelled
   Medicare-style claims dataset with a provider-disjoint protocol
-  (Section~\ref{sec:realdata}).
+  (Section~\ref{sec:realdata}). Its labels identify providers, not rings,
+  so it tests whether graph information helps provider-level detection,
+  not whether rings are detected.
 \end{enumerate}
 
 Our main findings are as follows. Claim features alone cannot reveal rings
@@ -135,8 +141,11 @@ Where it does, gradient boosting with a few engineered shared-patient features
 is as good as or better than every GNN we tested; GNNs that also receive those
 features gain a small but consistent amount ($+0.008$ AP pooled). GNNs are
 clearly worse on isolated fraud, because message passing dilutes claim-level
-anomalies, and attention-based GNNs lose most of their ring-detection ability
-without explicit degree encodings. Evaluations that let test rings share members with training
+anomalies. HGT's ring detection is structural: it collapses without degree
+encodings and survives with degree encodings as its only inputs. Routing
+high-risk claims from gradient boosting to a GNN gained nothing; fusing the
+two models' rankings gained at most 0.006 AP, as an ensemble rather than as a
+router. Evaluations that let test rings share members with training
 rings overstate ring detection, by up to 0.60 AP for a model that only sees
 entity attributes. On the real data, where labels show no relational
 assortativity, no graph-based method improved on gradient boosting over
@@ -377,13 +386,33 @@ $\delta=0.5$, $s=0.5$) that are never used for evaluation
 (Appendix~\ref{app:hyperparams}, Table~\ref{tab:hyperparams}). The development regime ($\delta=0.5$) is
 deliberately not one of the evaluation regimes.
 
+\subsection{Two-stage routing}\label{sec:routing}
+A common deployment proposal is to score every claim with a cheap tabular
+model and pass only high-risk claims to a GNN. We evaluate this with GB-CAG
+as the first stage and HGT or SAGE as the second. A claim is escalated if its
+GB-CAG score is at least the $(1-e)$ quantile of the GB-CAG scores in the
+validation period. The escalation fraction $e\in\{0.05, 0.1, 0.2, 0.3, 0.5,
+1\}$ is chosen by validation AP, so test claims never influence it. Escalated
+claims rank above all other claims and are ordered either by the GNN score
+alone (\emph{re-rank}: GB-CAG acts as a filter) or by the mean of the two
+models' validation percentiles (\emph{fused}); non-escalated claims keep
+their GB-CAG order. With $e=1$, re-ranking reduces to the GNN alone and
+fusion to a rank-average ensemble of the two models, so both single models
+and the ensemble are among the candidates. A claim's routed score depends
+only on its own two scores and on validation statistics. The stages are the
+models of the main experiment, retrained with the same seeds; their test
+predictions reproduce the stored ones exactly for the GNNs and to within
+$3\times10^{-8}$ for GB-CAG (float32 storage).
+
 \subsection{Metrics and statistics}\label{sec:stats}
 The primary metric is average precision (AP, the area under the
 precision--recall curve), appropriate under class imbalance~\cite{saito2015pr}.
 \emph{Ring AP} scores ring claims against legitimate claims (isolated fraud
 excluded); \emph{isolated AP} is defined analogously. We also report F1 at
 the threshold that maximises validation F1, ROC-AUC and recall when the top
-5\% of claims are investigated. Each of the nine regimes is replicated with
+5\% of claims are investigated. For routing we add precision among the top
+5\% of claims (P@5\%) and, as a ring-level measure, the share of test rings
+with at least one claim in that budget. Each of the nine regimes is replicated with
 six independently generated worlds (generator seeds 1--6), 54 worlds in total. Methods are compared within a
 regime with paired $t$-tests across worlds; $p$-values are Holm-adjusted
 within each pre-specified family of comparisons~\cite{holm1979}, and
@@ -391,7 +420,7 @@ Wilcoxon signed-rank tests are reported as a robustness check~\cite{demsar2006}.
 Intervals are 95\% $t$-intervals over worlds.
 
 
-\section{Real-World Validation}\label{sec:realdata}
+\section{Real-World Data}\label{sec:realdata}
 
 \subsection{Data}
 We use the public ``Healthcare Provider Fraud Detection Analysis''
@@ -626,19 +655,130 @@ Overlap score & 0.027 & 0.027 & 0.027 & 0.027 & 0.027 & 0.027 & 0.027 & 0.027 & 
 \end{tabular}
 \end{table}
 
+\subsection{Routing claims to a GNN adds little beyond combining scores}\label{sec:routingres}
+Table~\ref{tab:cascade} and Fig.~\ref{fig:cascade} evaluate two-stage
+routing (Section~\ref{sec:routing}) on the same test claims as the single
+models. In the design usually proposed, GB-CAG filters and the GNN decides
+(re-rank). Validation mostly selected small escalation fractions (5\% in 30
+of 54 worlds for HGT), and the routed system matched GB-CAG (GB-CAG$\to$HGT
+$\Delta\text{AP}=-0.001$, 95\% CI $[-0.004, 0.002]$; GB-CAG$\to$SAGE
+$+0.001$). Escalating more claims to HGT lowered both ring AP (from 0.980 at
+5\% to 0.968 when every claim is escalated) and, more steeply, isolated AP
+(from 0.626 to 0.508; Fig.~\ref{fig:cascade}b--d), because HGT ranks both
+less well than GB-CAG. Ordering escalated claims by the mean of the two models' percentiles
+did better: GB-CAG$\to$HGT gained $+0.003$ (Holm $p=0.18$) and
+GB-CAG$\to$SAGE $+0.006$ $[0.004, 0.009]$ (Holm $p<0.001$), on ring ($+0.006$)
+and isolated fraud ($+0.023$) alike. Validation, however, chose to fuse
+\emph{every} claim in 22 (HGT) and 30 (SAGE) of the 54 worlds, and on average
+55\% and 70\% of test claims were escalated: the gain comes from combining two
+different rankings, not from routing a subset of claims. The feature-level
+hybrids, which give the GNN the engineered features, improved ring AP
+($+0.008$, Holm $p\le0.024$) but lost 0.08--0.11 isolated AP and so matched
+GB-CAG overall. At the ring level every method was equivalent: in all 54
+worlds each test ring had at least one claim among the top 5\% of claims, and
+precision in that budget was 0.989--0.998 for every method.
+
+\begin{table}[h]
+\caption{Two-stage routing versus single models and feature-level hybrids, pooled over the 54 worlds (same test claims for every row). Routing escalates claims whose GB-CAG score exceeds a threshold set on validation data; the escalation fraction is chosen by validation AP. P@5\%: precision among the top 5\% of test claims. Esc.: mean share of test claims escalated. $\Delta$AP: paired difference in AP from GB-CAG ($\pm$ half-width of the 95\% $t$-interval), Holm-adjusted $p$ over the rows.}\label{tab:cascade}
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Method & AP & Ring AP & Isol.\ AP & P@5\% & Esc. & $\Delta$AP ($p$) \\
+\midrule
+GB-CAG & 0.947 & 0.979 & 0.626 & 0.996 & -- & -- \\
+HGT & 0.929 & 0.968 & 0.507 & 0.989 & -- & $-0.018$ $\pm$ 0.007 ($<$0.001) \\
+SAGE & 0.940 & 0.979 & 0.541 & 0.995 & -- & $-0.007$ $\pm$ 0.004 (0.018) \\
+\midrule
+HGT+AG & 0.945 & 0.986 & 0.514 & 0.996 & -- & $-0.002$ $\pm$ 0.003 (0.776) \\
+SAGE+AG & 0.947 & 0.987 & 0.548 & 0.996 & -- & $0.000$ $\pm$ 0.003 (0.970) \\
+\midrule
+GB-CAG$\to$HGT, re-rank & 0.945 & 0.979 & 0.606 & 0.995 & 0.16 & $-0.001$ $\pm$ 0.003 (0.970) \\
+GB-CAG$\to$HGT, fused & 0.950 & 0.981 & 0.640 & 0.997 & 0.55 & $+0.003$ $\pm$ 0.003 (0.181) \\
+GB-CAG$\to$SAGE, re-rank & 0.948 & 0.983 & 0.595 & 0.997 & 0.24 & $+0.001$ $\pm$ 0.003 (0.970) \\
+GB-CAG$\to$SAGE, fused & 0.953 & 0.985 & 0.648 & 0.998 & 0.70 & $+0.006$ $\pm$ 0.002 ($<$0.001) \\
+\botrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_cascade.pdf}
+\caption{Two-stage routing from GB-CAG to HGT. (a) Precision--recall curves
+for all fraud at $\delta=0$, $s=0.9$ (precision interpolated at fixed recall
+and averaged over six worlds; routed systems at the escalation fraction
+chosen on validation). (b)--(d) Paired difference in test AP from GB-CAG
+(zero line) against the share of claims escalated, with 95\% $t$-intervals
+over the 54 worlds; orange line and band: HGT alone. The escalation fraction
+actually used is chosen on validation; the curves over all fractions are
+shown only to describe the trade-off.}
+\label{fig:cascade}
+\end{figure}
+
 \subsection{Cost}
 Median training time per world (Intel Core i7-1068NG7 laptop CPU, two
 threads per job with several jobs in parallel, so times are indicative) was
 3~s for GB-CAG, 39~s for SAGE, 56~s for RGCN, 86~s for HAN, 126~s for HGT and
 144~s for Simple-HGN; scoring a test period took at most 0.25~s for any
-method.
+method. A separate single-thread benchmark on an otherwise idle machine (four
+worlds at $\delta=0$) measured scoring directly. For one audit period (about
+4{,}900 claims and 11{,}200 nodes), building the aggregate and graph features
+took 0.05~s and the heterogeneous graph 0.01~s, and scoring every claim took
+0.05~s with GB-CAG and 0.12~s with HGT. Scoring a single claim, as an online
+system would, took a median of 2.1~ms (99th percentile 3.1~ms, mostly
+library-call overhead) with GB-CAG on a precomputed feature row, and 10.7~ms
+(14.7~ms) with HGT on the claim's exact three-hop computation subgraph (about
+126 nodes, 1\% of the period graph; extraction 2.8~ms, forward pass 7.7~ms),
+which reproduces the full-graph score to within $1.2\times10^{-7}$. Routing
+would therefore cut the online GNN cost in proportion to the share of claims
+escalated. In batch scoring the escalated claims' subgraphs overlap:
+escalating 10\% of the claims already touched 55\% of the period graph, and
+scoring that union took 0.08~s against 0.12~s for the whole period. None of
+these figures includes keeping aggregates, graph features and degree counts
+up to date as claims arrive, which an online system would need and our code
+does not implement.
 
 
 \section{Mechanism and Memorisation}\label{sec:mechanism}
 
-\subsection{What the models rely on}
-Table~\ref{tab:ablation} and Fig.~\ref{fig:ablation} report ablations in the
-regime where structure matters most ($\delta=0$, $s=0.9$).
+\subsection{What isolated and ring fraud look like}
+Fig.~\ref{fig:ringgraph} shows the test period of one world (seed 1,
+$\delta=0$) with the outcomes of GB-CAG and HGT at their validation-selected
+thresholds. An isolated fraud claim sits on an ordinary patient--doctor
+edge, so nothing in the graph distinguishes it and only its own attributes
+can. A ring at $s=0.1$ links each recruited patient to one or two of the four
+ring doctors, a pattern that resembles ordinary shared care, whereas at
+$s=0.9$ the same members form an almost complete block. The two worlds share
+the recruited ring members and every legitimate and isolated-fraud claim, and
+differ only in which ring links exist. In this world GB-CAG flagged 81 and 91 of the ring's 96 claims at
+$s=0.1$ and $s=0.9$, and HGT 62 and 94: the graph model gains most where the
+block is dense, as in the averages of Table~\ref{tab:regime_ringap}. The
+figure illustrates one world only; the quantitative statements rest on all
+54.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_ring_graph.pdf}
+\caption{Isolated and ring fraud in one benchmark world (seed 1, $\delta=0$;
+test period), with model outcomes at each model's validation-selected
+threshold (top: GB-CAG; bottom: HGT). Nodes carry the ground truth (filled:
+ring member; squares: doctors; circles: patients); edges are patient--doctor
+pairs with claims in the period, coloured by the outcome for the majority of
+their claims (line width: number of claims). Left: an isolated fraud claim
+drawn at random, its patient's doctors and up to ten other patients of its
+doctor. Middle and right: one test ring, every doctor its patients visit and
+up to four other patients per ring doctor, at low and high structural
+density; the two worlds share all recruited members and all legitimate
+claims. The figure
+illustrates the generator's typologies; it is not evidence that real rings
+look alike.}
+\label{fig:ringgraph}
+\end{figure}
+
+\subsection{What the models need}
+Tables~\ref{tab:ablation} and~\ref{tab:hgt_arch} and Fig.~\ref{fig:ablation}
+report ablations in the regime where structure matters most ($\delta=0$,
+$s=0.9$).
 Degree-preserving rewiring---permuting which doctor bills each claim within a
 period, which keeps every patient's and doctor's claim volume but destroys
 the ring's co-occurrence block---reduces every graph-aware method to the same
@@ -653,7 +793,7 @@ direct patient--doctor relation costs little ($-0.016$ and $-0.047$, not
 significant after correction), because two-hop paths through claim nodes
 carry the same information. The largest effect is specific to HGT: without
 degree encodings its ring AP drops from 0.949 to 0.569 ($-0.379$, Holm
-$p=0.001$), whereas sum-aggregating SAGE changes little ($-0.029$, n.s.).
+$p=0.003$), whereas sum-aggregating SAGE changes little ($-0.029$, n.s.).
 Softmax attention normalises over neighbours and so cannot count them;
 supplying counts as input features, or aggregating by summation, restores
 the signal~\cite{xu2019gin}.
@@ -668,39 +808,113 @@ destroys the ring block.}
 \end{figure}
 
 \begin{table}[h]
-\caption{Mechanism ablations at $\delta=0$, $s=0.9$ (six worlds): ring AP and paired change from the full model (Holm-adjusted $p$ over all ablations). The tuned GNNs use three layers.}\label{tab:ablation}
+\caption{Mechanism ablations at $\delta=0$, $s=0.9$ (six worlds): ring AP (mean $\pm$ s.d.) and paired change from the full model, with Holm-adjusted $p$ over every ablation comparison in this table and Table~\ref{tab:hgt_arch}. The tuned GNNs use three layers; HGT's single-factor variants are in Table~\ref{tab:hgt_arch}.}\label{tab:ablation}
 \scriptsize
 \begin{tabular}{@{}llcc@{}}
 \toprule
 Method & Variant & Ring AP & $\Delta$ vs.\ full \\
 \midrule
 GB-CA & Full model & 0.889 $\pm$ 0.026 & -- \\
- & Degree-preserving rewiring & 0.748 $\pm$ 0.027 & $-0.141$; $p=0.009$ \\
- & + ring identifier (legacy leak) & 1.000 $\pm$ 0.000 & $+0.111$; $p=0.001$ \\
+ & Degree-preserving rewiring & 0.748 $\pm$ 0.027 & $-0.141$ ($p=0.018$) \\
+ & + ring identifier (legacy leak) & 1.000 $\pm$ 0.000 & $+0.111$ ($p=0.003$) \\
 \midrule
 GB-CAG & Full model & 0.990 $\pm$ 0.008 & -- \\
- & Degree-preserving rewiring & 0.757 $\pm$ 0.046 & $-0.232$; $p<0.001$ \\
+ & Degree-preserving rewiring & 0.757 $\pm$ 0.046 & $-0.232$ ($p=0.002$) \\
 \midrule
 SAGE & Full model & 0.976 $\pm$ 0.013 & -- \\
- & Degree-preserving rewiring & 0.759 $\pm$ 0.034 & $-0.217$; $p<0.001$ \\
- & No patient--doctor relation & 0.960 $\pm$ 0.019 & $-0.016$; $p=0.138$ \\
- & No degree encodings & 0.947 $\pm$ 0.037 & $-0.029$; $p=0.232$ \\
- & 1 message-passing layer & 0.841 $\pm$ 0.034 & $-0.135$; $p<0.001$ \\
- & 2 layers & 0.957 $\pm$ 0.023 & $-0.019$; $p=0.138$ \\
+ & Degree-preserving rewiring & 0.759 $\pm$ 0.034 & $-0.217$ ($p=0.002$) \\
+ & No patient--doctor relation & 0.960 $\pm$ 0.019 & $-0.016$ ($p=0.360$) \\
+ & No degree encodings & 0.947 $\pm$ 0.037 & $-0.029$ ($p=1.000$) \\
+ & 1 message-passing layer & 0.841 $\pm$ 0.034 & $-0.135$ ($p=0.002$) \\
+ & 2 layers & 0.957 $\pm$ 0.023 & $-0.019$ ($p=0.413$) \\
 \midrule
 HGT & Full model & 0.949 $\pm$ 0.052 & -- \\
- & Degree-preserving rewiring & 0.770 $\pm$ 0.029 & $-0.179$; $p=0.014$ \\
- & No patient--doctor relation & 0.902 $\pm$ 0.055 & $-0.047$; $p=0.138$ \\
- & No degree encodings & 0.569 $\pm$ 0.110 & $-0.379$; $p=0.001$ \\
- & 1 message-passing layer & 0.788 $\pm$ 0.052 & $-0.161$; $p=0.009$ \\
- & 2 layers & 0.947 $\pm$ 0.035 & $-0.001$; $p=0.880$ \\
- & No reverse relations (legacy graph) & 0.772 $\pm$ 0.024 & $-0.177$; $p=0.010$ \\
+ & Degree-preserving rewiring & 0.770 $\pm$ 0.029 & $-0.179$ ($p=0.036$) \\
+ & No reverse relations (legacy graph) & 0.772 $\pm$ 0.024 & $-0.177$ ($p=0.022$) \\
 \botrule
 \end{tabular}
 \end{table}
 
+\subsection{Which parts of HGT matter}\label{sec:hgtarch}
+Table~\ref{tab:hgt_arch} changes one factor of the tuned HGT at a time in
+the same regime. Depth beyond two layers and the number of attention heads
+made no significant difference (four layers $+0.002$; one, two and eight
+heads $-0.028$ to $+0.013$; all Holm $p>0.5$), so there is no sign of
+over-smoothing up to four layers on these graphs. Among the relations,
+removing the patient--claim edges cost most ($-0.219$, Holm $p=0.005$);
+removing the claim--doctor edges cost $0.113$ on rings (Holm $p=0.085$) and
+$0.147$ on isolated fraud ($p<0.001$), while hospital nodes and the direct
+patient--doctor relation contributed nothing measurable. The node inputs
+separate the two tasks cleanly. With claim attributes set to zero, ring AP
+was unchanged ($-0.012$) and isolated AP fell to chance (0.036); an HGT that
+saw only the degree encodings and the graph reached a ring AP of
+$0.982\pm0.018$, as high as the full model, and detected no isolated fraud.
+HGT's ring detection is therefore structural---counts of who bills whom,
+propagated along patient--claim--doctor paths---and its claim attributes
+serve isolated fraud only. This is the information that the engineered
+shared-patient features summarise directly. HGT also varied between worlds
+(standard deviations up to 0.11), so with six worlds differences smaller than
+about 0.05 cannot be resolved.
+
+\begin{table}[h]
+\caption{HGT single-factor ablations at $\delta=0$, $s=0.9$ (six worlds; one factor changed at a time from the tuned configuration: 3 layers, 4 heads, hidden size 32). Ring AP (mean $\pm$ s.d.), isolated AP (mean) and paired change from the full model; Holm-adjusted $p$ over every ablation comparison in this table and Table~\ref{tab:ablation}.}\label{tab:hgt_arch}
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Variant & Ring AP & $\Delta$ ring AP & Isol.\ AP & $\Delta$ isol.\ AP \\
+\midrule
+Full model & 0.949 $\pm$ 0.052 & -- & 0.455 & -- \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Depth (full: 3)}} \\
+1 layer & 0.788 $\pm$ 0.052 & $-0.161$ ($p=0.020$) & 0.239 & $-0.216$ ($p=0.007$) \\
+2 layers & 0.947 $\pm$ 0.035 & $-0.001$ ($p=1.000$) & 0.423 & $-0.032$ ($p=1.000$) \\
+4 layers & 0.951 $\pm$ 0.043 & $+0.002$ ($p=1.000$) & 0.461 & $+0.005$ ($p=1.000$) \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Heads (full: 4)}} \\
+1 attention head & 0.920 $\pm$ 0.049 & $-0.028$ ($p=1.000$) & 0.384 & $-0.071$ ($p=0.228$) \\
+2 heads & 0.911 $\pm$ 0.081 & $-0.037$ ($p=0.506$) & 0.473 & $+0.018$ ($p=0.813$) \\
+8 heads & 0.961 $\pm$ 0.023 & $+0.013$ ($p=1.000$) & 0.524 & $+0.069$ ($p=0.282$) \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Relations}} \\
+No patient--claim relation & 0.730 $\pm$ 0.055 & $-0.219$ ($p=0.005$) & 0.311 & $-0.144$ ($p=0.333$) \\
+No claim--doctor relation & 0.836 $\pm$ 0.037 & $-0.113$ ($p=0.085$) & 0.308 & $-0.147$ ($p<0.001$) \\
+No patient--doctor relation & 0.902 $\pm$ 0.055 & $-0.047$ ($p=0.413$) & 0.423 & $-0.032$ ($p=1.000$) \\
+No hospital nodes & 0.946 $\pm$ 0.032 & $-0.002$ ($p=1.000$) & 0.427 & $-0.028$ ($p=1.000$) \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Node inputs}} \\
+No degree encodings & 0.569 $\pm$ 0.110 & $-0.379$ ($p=0.003$) & 0.375 & $-0.080$ ($p=0.813$) \\
+Claim attributes zeroed & 0.937 $\pm$ 0.064 & $-0.012$ ($p=1.000$) & 0.036 & $-0.419$ ($p<0.001$) \\
+Entity attributes zeroed & 0.969 $\pm$ 0.027 & $+0.020$ ($p=1.000$) & 0.444 & $-0.011$ ($p=1.000$) \\
+Degree encodings only & 0.982 $\pm$ 0.018 & $+0.033$ ($p=1.000$) & 0.040 & $-0.415$ ($p<0.001$) \\
+\botrule
+\end{tabular}
+\end{table}
+
+\subsection{Which inputs the trained models use}\label{sec:reliance}
+To see which inputs the trained models use, without retraining, we permuted
+one input group at a time across the test period, five times each, and
+recorded the drop in ring AP: for GB-CAG the C, A and G features and each G
+feature separately, and for the GNNs the claim attributes, static entity
+attributes and degree encodings across nodes of each type. At $\delta=0$,
+GB-CAG relied on aggregates when rings were sparse (A: $-0.80$ at $s=0.1$;
+G: $-0.13$) and switched to the graph features as the block became dense (G:
+$-0.81$ and $-0.88$ at $s=0.5$ and $0.9$; A: below $0.06$), above all the
+normalised triadic closure of the claim ($-0.47$ on its own at $s=0.9$).
+SAGE and HGT relied almost entirely on degree encodings ($-0.76$ to $-0.89$
+at every density) and hardly at all on claim or entity attributes (below
+$0.05$). The two kinds of score are not on a common scale: GB-CAG's measure
+reliance on engineered summaries of the graph, whereas a GNN's degree
+encodings are raw counts whose relational meaning is extracted by message
+passing, and permutation understates groups whose information is duplicated
+elsewhere. Read together with the ablations, they are consistent with both
+model families detecting dense rings from the same evidence: how many
+counterparties a claim's patient and doctor have, and how many of them they
+share. (Full results, including isolated fraud and test-time rewiring, are in
+the repository.)
+
 \subsection{Two evaluation pitfalls, quantified}
-The same experiment quantifies two defects that are easy to introduce. Adding
+The mechanism ablations (Table~\ref{tab:ablation}) also quantify two defects that are easy to introduce. Adding
 the generator's ring identifier to the feature set---a column that is
 non-zero only for ring claims---raises gradient boosting from 0.889 to a
 perfect 1.000. Building the heterogeneous graph with one-directional
@@ -768,7 +982,11 @@ recall among the top 10\% of providers between 0.59 and 0.64, so the methods
 rank providers similarly; the AP differences come from the top of the
 ranking. Under the same parallel load as before, median training time per
 rotation was 2--15 minutes for the GNNs (range 1.4--24 minutes) against 7~s
-for GB-P.
+for GB-P. Because the tuning split shares providers with the test folds, we
+re-selected the configuration of every tabular and MLP model inside each
+rotation, using only that rotation's validation fold. AP changed by at most
+0.010 (GB-P $0.706$ versus $0.704$; no paired difference significant), and
+GB-P remained the best method, so the overlap does not explain the ranking.
 
 \begin{table}[h]
 \caption{Provider-level fraud detection on the public Medicare-style provider dataset (5-fold rotation; mean $\pm$ s.d. over folds). F1 at the validation-selected threshold; Recall@10\% = share of fraudulent providers among the top 10\% scored.}\label{tab:kaggle}
@@ -839,7 +1057,8 @@ analyses suggest why. The useful signal here is largely
 \emph{counting}---how many of a patient's doctors also share other
 patients---and attention- or mean-based aggregators cannot count: HGT lost
 most of its ring detection without degree encodings, whereas sum-aggregating
-GraphSAGE barely changed (Section~\ref{sec:mechanism}). This mirrors the
+GraphSAGE barely changed, and an HGT given only degree encodings and the
+graph detected rings as well as the full model (Section~\ref{sec:mechanism}). This mirrors the
 expressiveness argument for sum aggregation~\cite{xu2019gin}. GNNs also
 dilute claim-level anomalies through neighbourhood averaging, which made
 them markedly worse on isolated fraud, and they readily memorise the
@@ -853,6 +1072,53 @@ These findings are consistent with evidence from other domains that tree
 ensembles with neighbourhood features are strong graph anomaly
 detectors~\cite{weber2019elliptic,tang2023gadbench}, and extend it to
 heterogeneous patient--provider claim graphs with controlled typologies.
+
+\subsection{Why a small fixed benchmark can point the other way}\label{sec:legacy}
+To show how a small, fixed benchmark can mislead, we re-analysed one: a
+synthetic dataset of 2{,}100 claims with five injected rings, produced by a
+simpler generator that is included in our repository, evaluated with its own
+date-sorted 60/20/20 split (Table~\ref{tab:legacy}). Such a dataset appears
+to test ring detection, but this one cannot tell whether relational
+structure helps, for three reasons. First, its ring claims were drawn from the
+same inflated distribution as its isolated fraud, so they were anomalous on
+their own: claim amount alone separates ring from legitimate claims with
+ROC-AUC 0.94, more than in our most anomalous regime ($\delta=2$, 0.90), and
+gradient boosting on three raw claim attributes ranks all 21 test ring claims
+above every legitimate claim (ring AP 1.000). Second, the same five rings
+were active for all 24 months, so every test ring claim was billed by a
+doctor with labelled ring claims in training, which is the memorisation
+setting of Section~\ref{sec:mechanism}. Third, the test split held 21 ring
+claims (3--6 per ring): one claim moves ring recall by 4.8 points, even a
+perfect recall has an exact 95\% interval of $[0.84, 1.00]$, so a recall gap
+of a few claims between two models is within noise, and a single dataset says
+nothing about variation between datasets. None of these properties is
+peculiar to that dataset. A small, fixed benchmark whose injected rings
+differ from legitimate claims in their features, recur across the split and
+contribute a few dozen test claims cannot separate relational learning from
+claim-level anomaly detection or from recognising known members. Controlling
+the feature-level signal, testing on new rings and replicating worlds
+removes all three confounds. Because the generator, features, evaluation unit
+and tuning differ, numbers from the two set-ups are not directly comparable.
+
+\begin{table}[h]
+\caption{A small fixed benchmark (2,100 claims, five rings; simpler generator in the repository), re-analysed with its own split (date-sorted, 60/20/20), compared with our benchmark. Benchmark ranges span $\delta=0$ to $\delta=2$ ($s=0.5$, six worlds each; ring AP and recall of GB-C pooled over $s$). Shift and ROC-AUC use raw claim amounts, not adjusted for specialty, for both. Interval: exact 95\% binomial.}\label{tab:legacy}
+\scriptsize
+\begin{tabular}{@{}p{5.0cm}p{3.1cm}p{3.6cm}@{}}
+\toprule
+ & Fixed dataset & This benchmark \\
+\midrule
+Claims in total (in the test split / period) & 2,100 (420) & 20,176 (4,924), mean per world \\
+Ring claims in test & 21 (3--6 per ring) & 384 (4 rings $\times$ 96) \\
+Rings & 5, active all 24 months & 4 per period, each active 6 months \\
+Test-ring doctors with labelled ring claims in training & 100\% & 0\% (by design) \\
+Ring vs.\ legitimate log-amount shift (s.d.) & 1.49 & 0.11 ($\delta=0$) to 1.87 ($\delta=2$) \\
+ROC-AUC of claim amount alone, ring vs.\ legitimate & 0.94 & 0.53 to 0.90 \\
+Ring AP, GB on claim attributes only & 1.000 & 0.086 to 0.811 \\
+Ring recall, GB on claim attributes only & 21/21 [0.84, 1.00] & 0.15 to 0.76 \\
+Independent datasets & 1 & 54 \\
+\botrule
+\end{tabular}
+\end{table}
 
 \subsection{Real data}
 On the public provider-labelled data, gradient boosting on provider
@@ -879,6 +1145,11 @@ not publicly available.
   structural (degree) encodings or prefer sum aggregation.
 \item Keep isolated-fraud detection on a claim-level model; message passing
   degraded it consistently.
+\item Do not expect a GNN second stage to pay for itself. Letting a GNN
+  re-rank the claims that gradient boosting flags gained nothing here;
+  averaging the two models' rankings gained at most 0.006 AP, and in an audit
+  setting, where a whole period is scored at once, routing saves little
+  computation (Section~\ref{sec:results}).
 \end{itemize}
 
 \subsection{Limitations}\label{sec:limitations}
@@ -894,10 +1165,22 @@ tuning could change small differences. Six worlds per regime give limited
 power within a regime, which is why we emphasise pooled comparisons. Graph
 models were trained full-batch on graphs of about 11{,}000 nodes per period;
 larger graphs would need sampling-based training~\cite{hamilton2017sage}.
+The architecture and reliance analyses were run in one regime ($\delta=0$,
+$s=0.9$ for the ablations) with one model seed per world, and permutation
+importance can understate a feature group whose information is duplicated
+in another; these analyses describe what the trained models use, not causal
+effects of the generator. Routing was evaluated with one first stage, two
+GNNs and a grid of six escalation fractions; the GNNs' validation scores come
+from the period used for early stopping, which slightly favours escalation.
+Cost was measured on a single laptop CPU thread and excludes the upkeep of
+aggregates, graph features and degree counts as claims arrive, data
+retrieval and concurrency, none of which exist in our code.
 On the real data, labels are per provider and of undocumented provenance,
-the observation window is a single year, and hyperparameters were selected
+and the observation window is a single year. Hyperparameters were selected
 on a split whose validation providers overlap the evaluation test folds;
-this overlap affects all methods equally but may favour each slightly.
+re-selecting the tabular and MLP configurations inside each rotation
+(Section~\ref{sec:realresults}) removes this overlap for those models, but
+the GNNs keep the shared selection, which if anything favours them.
 Finally, the benchmark does not model adaptive fraudsters, temporal ring
 dynamics, which temporal graph models target~\cite{rossi2020tgn}, or
 realistic coding semantics such as those of synthetic health
@@ -917,7 +1200,16 @@ are perturbed; (iii) emergent rings in different splits share no doctor or
 patient; (iv) at $\delta=0$ ring claims are distributed like legitimate
 claims; (v) features, graphs and labels stay aligned by claim identifier; and
 (vi) for every GNN, perturbing doctor features changes claim logits, so
-relational information actually reaches the classified nodes. A checklist
+relational information actually reaches the classified nodes; (vii) a routed
+score depends only on the claim's own two scores and validation statistics;
+(viii) rewiring the test period leaves the features of other periods
+unchanged; and (ix) scoring a claim on its $L$-hop computation subgraph
+reproduces its full-graph score. The original runs were made from a working
+tree that had not yet been committed, so their records do not pin the code
+version; retraining GB-CAG, SAGE and HGT with the released code on all 54
+worlds reproduced their stored test predictions (Section~\ref{sec:routing}),
+which ties the reported numbers to the released code. Records now also store a
+hash of the research sources at process start. A checklist
 mapping this study to the REFORMS recommendations~\cite{kapoor2024reforms}
 and a datasheet for the generator~\cite{gebru2021datasheets} are included in
 the repository.
@@ -930,11 +1222,15 @@ training, and checks the conclusions on public real data. Structure helped
 only when rings formed dense doctor--patient blocks, and in that regime a
 gradient-boosting model with a handful of engineered shared-patient features
 matched or outperformed five heterogeneous GNNs at a fraction of the cost;
-adding message passing on top of those features gained little. GNNs
+adding message passing on top of those features, or routing high-risk claims
+to a GNN, gained little. GNNs
 generalised to new rings only with reverse relations, sufficient depth and
 counting ability, degraded isolated-fraud detection, and could memorise known
-ring members in ways that inflate conventional evaluations. On provider-labelled
-real data no graph-based method improved on tabular aggregates. We recommend
+ring members in ways that inflate conventional evaluations. A small fixed
+benchmark whose rings are anomalous in their features, recur across the split
+and contribute few test claims can suggest the opposite conclusion. On
+provider-labelled real data no graph-based method improved on tabular
+aggregates. We recommend
 that graph models for claims fraud be justified against a graph-augmented
 tabular baseline and a no-graph control, on entities unseen in training. The
 benchmark, code and tests are released to support such comparisons; the most
@@ -974,6 +1270,7 @@ table and figure.
 \end{itemize}
 
 \begin{appendices}
+\renewcommand{\theHtable}{app.\arabic{table}}
 
 \section{Generator parameters and hyperparameters}\label{app:hyperparams}
 

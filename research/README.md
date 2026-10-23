@@ -52,13 +52,24 @@ $PY -m research.experiments.ablation
 # 5. Real data: tune, merge, 5-fold evaluation
 $PY -m research.experiments.kaggle_exp --stage tune && $PY -m research.experiments.kaggle_exp --stage merge
 $PY -m research.experiments.kaggle_exp --stage eval
-# 6. Tables, statistics, figures; then check artifacts
-$PY -m research.experiments.analyze && $PY -m research.experiments.figures && $PY verify.py
+# 6. Two-stage routing (GB-CAG -> HGT / SAGE) and reliance analyses; also checks that the
+#    retrained models reproduce the predictions stored by step 2 (all 54 worlds)
+$PY -m research.experiments.cascade
+# 7. HGT single-factor ablations (depth, heads, relations, node inputs; delta = 0, s = 0.9, worlds 1-6)
+$PY -m research.experiments.ablation --family arch
+# 8. Re-analysis of the small fixed 2,100-claim benchmark (data/raw); nested tuning check on the real data
+$PY -m research.experiments.legacy_reanalysis
+$PY -m research.experiments.kaggle_exp --stage nested
+# 9. Cost benchmark: run alone, single thread
+OMP_NUM_THREADS=1 RESEARCH_THREADS=1 $PY -m research.experiments.latency
+# 10. Tables, statistics, figures; paste tables into the manuscript; then check artifacts
+$PY -m research.experiments.analyze && $PY -m research.experiments.figures
+$PY -m research.experiments.sync_manuscript && $PY verify.py
 ```
 
-Steps 1–5 accept `--methods` / `--seeds` / `--folds` subsets so they can be split across processes; finished
-runs are skipped on restart. Wall-clock on a 4-core Intel laptop CPU: roughly 2 h tuning, 3 h synthetic grid,
-1 h ablations, 2 h Kaggle.
+Steps 1–8 accept `--methods` / `--seeds` / `--shifts` / `--folds` subsets so they can be split across processes;
+finished runs are skipped on restart. Wall-clock on a 4-core Intel laptop CPU: roughly 2 h tuning, 3 h synthetic
+grid, 1 h ablations, 2 h Kaggle, 3 h routing and HGT ablations (run in parallel), 15 min cost benchmark.
 
 ## Layout
 
@@ -71,5 +82,6 @@ runs are skipped on restart. Wall-clock on a 4-core Intel laptop CPU: roughly 2 
 | `models/train.py` | full-batch training with early stopping on validation AP; tabular model factory |
 | `realdata/kaggle.py` | provider-level features, label-neighbourhood features (training labels only), provider graph |
 | `metrics.py` | AP, ROC-AUC, validation-selected thresholds, recall at budget, paired tests, Holm |
-| `experiments/` | tuning, synthetic grid, ablations, Kaggle, analysis and figures |
+| `experiments/` | tuning, synthetic grid, ablations, routing, cost, legacy re-analysis, Kaggle, analysis, figures, manuscript table sync |
 | `tests/test_validity.py` | leakage, label-invariance, period isolation, ring disjointness, alignment, information flow |
+| `tests/test_routing_and_ablations.py` | routing uses validation only and is per-claim; ablation transforms; test-period rewiring; exact computation subgraphs |

@@ -1,0 +1,416 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-23T07:57:55+00:00",
+    "git": {
+      "commit": "5ac1d2b75b3e00e9084ae42791262b3be6b48820",
+      "dirty": false,
+      "research_sources_sha256": "df186132d5fb598e"
+    },
+    "config_hash": "c040beeb6c8b2334",
+    "config": {
+      "benchmark": "latency",
+      "densities": [
+        0.1,
+        0.9
+      ],
+      "seeds": [
+        1,
+        2
+      ],
+      "n_claims": 300,
+      "repeats": 20
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "threads": 1
+  },
+  "peak_rss_mb": 469.7890625,
+  "worlds": [
+    {
+      "config": {
+        "n_patients": 6000,
+        "n_doctors": 300,
+        "n_hospitals": 40,
+        "n_regions": 5,
+        "n_specialties": 8,
+        "n_periods": 4,
+        "period_months": 6,
+        "legit_rate_mean": 3.0,
+        "legit_rate_shape": 1.5,
+        "p_regular": 0.85,
+        "isolated_rate": 0.03,
+        "isolated_shift": 2.0,
+        "ring_shift": 0.0,
+        "ring_density": 0.1,
+        "ring_doctors": 4,
+        "ring_patients": 12,
+        "ring_claims_per_month": 16.0,
+        "rings_per_period": 4,
+        "persistent_rings": 0,
+        "seed": 1
+      },
+      "n_test_claims": 4837,
+      "test_graph_nodes": 11177,
+      "test_graph_edges": 27244,
+      "hgt_parameters": 65325,
+      "batch": {
+        "features_per_period_s": 0.05056277624998984,
+        "graph_per_period_s": 0.0090781902499657,
+        "gb_score_period_s": 0.07403537749996758,
+        "hgt_score_period_s": 0.11381087700010539
+      },
+      "per_claim": {
+        "n_claims": 300,
+        "gb": {
+          "p50_ms": 3.1686174997958005,
+          "p99_ms": 4.065516488499268,
+          "mean_ms": 3.2225927299805335
+        },
+        "hgt_extract": {
+          "p50_ms": 2.7519444993231446,
+          "p99_ms": 3.836235650414892,
+          "mean_ms": 2.80278910658429
+        },
+        "hgt_forward": {
+          "p50_ms": 7.28002100095182,
+          "p99_ms": 9.682230580692703,
+          "mean_ms": 7.416573566752049
+        },
+        "hgt_total": {
+          "p50_ms": 10.104992999004025,
+          "p99_ms": 12.665487310023305,
+          "mean_ms": 10.21936267333634
+        },
+        "gb_throughput_per_s": 310.30914663735393,
+        "hgt_throughput_per_s": 97.85346033457952,
+        "subgraph_nodes_median": 111.0,
+        "subgraph_share_of_graph_median": 0.009931108526438222,
+        "max_abs_diff_vs_full_graph": 1.1920928955078125e-07
+      },
+      "batch_routing": [
+        {
+          "escalation": 0.05,
+          "escalated_test": 0.039694025222245195,
+          "union_subgraph_share": 0.17553905341325937,
+          "seconds": 0.02906375899874547
+        },
+        {
+          "escalation": 0.1,
+          "escalated_test": 0.10709117221418235,
+          "union_subgraph_share": 0.5489845217858101,
+          "seconds": 0.07614795999870694
+        },
+        {
+          "escalation": 0.2,
+          "escalated_test": 0.20322513954930743,
+          "union_subgraph_share": 0.6686051713339894,
+          "seconds": 0.09028862100058177
+        },
+        {
+          "escalation": 0.3,
+          "escalated_test": 0.3096960926193922,
+          "union_subgraph_share": 0.699024783036593,
+          "seconds": 0.096988422999857
+        },
+        {
+          "escalation": 0.5,
+          "escalated_test": 0.5063055612983254,
+          "union_subgraph_share": 0.7085980137782947,
+          "seconds": 0.09940688099959516
+        }
+      ]
+    },
+    {
+      "config": {
+        "n_patients": 6000,
+        "n_doctors": 300,
+        "n_hospitals": 40,
+        "n_regions": 5,
+        "n_specialties": 8,
+        "n_periods": 4,
+        "period_months": 6,
+        "legit_rate_mean": 3.0,
+        "legit_rate_shape": 1.5,
+        "p_regular": 0.85,
+        "isolated_rate": 0.03,
+        "isolated_shift": 2.0,
+        "ring_shift": 0.0,
+        "ring_density": 0.1,
+        "ring_doctors": 4,
+        "ring_patients": 12,
+        "ring_claims_per_month": 16.0,
+        "rings_per_period": 4,
+        "persistent_rings": 0,
+        "seed": 2
+      },
+      "n_test_claims": 4933,
+      "test_graph_nodes": 11273,
+      "test_graph_edges": 27694,
+      "hgt_parameters": 65325,
+      "batch": {
+        "features_per_period_s": 0.04738584125016132,
+        "graph_per_period_s": 0.008323841499986884,
+        "gb_score_period_s": 0.021879946499211655,
+        "hgt_score_period_s": 0.11904307549957593
+      },
+      "per_claim": {
+        "n_claims": 300,
+        "gb": {
+          "p50_ms": 0.990554000964039,
+          "p99_ms": 2.2204816999510504,
+          "mean_ms": 1.108426996700776
+        },
+        "hgt_extract": {
+          "p50_ms": 3.0817574997854535,
+          "p99_ms": 6.224282039656824,
+          "mean_ms": 3.3617662233518786
+        },
+        "hgt_forward": {
+          "p50_ms": 8.839706500111788,
+          "p99_ms": 18.424631228754148,
+          "mean_ms": 9.450458293310172
+        },
+        "hgt_total": {
+          "p50_ms": 12.14144150071661,
+          "p99_ms": 22.694313260581104,
+          "mean_ms": 12.81222451666205
+        },
+        "gb_throughput_per_s": 902.1793974492607,
+        "hgt_throughput_per_s": 78.05045866153215,
+        "subgraph_nodes_median": 130.0,
+        "subgraph_share_of_graph_median": 0.01153197906502262,
+        "max_abs_diff_vs_full_graph": 5.960464477539063e-08
+      },
+      "batch_routing": [
+        {
+          "escalation": 0.05,
+          "escalated_test": 0.03425907155888912,
+          "union_subgraph_share": 0.23711523108311897,
+          "seconds": 0.04810648200145806
+        },
+        {
+          "escalation": 0.1,
+          "escalated_test": 0.10277721467666734,
+          "union_subgraph_share": 0.5512285993080812,
+          "seconds": 0.10220234199914557
+        },
+        {
+          "escalation": 0.2,
+          "escalated_test": 0.2051489965538212,
+          "union_subgraph_share": 0.6830479907744168,
+          "seconds": 0.13086577099966235
+        },
+        {
+          "escalation": 0.3,
+          "escalated_test": 0.31096695722683965,
+          "union_subgraph_share": 0.6997250066530648,
+          "seconds": 0.12845515600020008
+        },
+        {
+          "escalation": 0.5,
+          "escalated_test": 0.5110480437867424,
+          "union_subgraph_share": 0.711168278186818,
+          "seconds": 0.1219527349985583
+        }
+      ]
+    },
+    {
+      "config": {
+        "n_patients": 6000,
+        "n_doctors": 300,
+        "n_hospitals": 40,
+        "n_regions": 5,
+        "n_specialties": 8,
+        "n_periods": 4,
+        "period_months": 6,
+        "legit_rate_mean": 3.0,
+        "legit_rate_shape": 1.5,
+        "p_regular": 0.85,
+        "isolated_rate": 0.03,
+        "isolated_shift": 2.0,
+        "ring_shift": 0.0,
+        "ring_density": 0.9,
+        "ring_doctors": 4,
+        "ring_patients": 12,
+        "ring_claims_per_month": 16.0,
+        "rings_per_period": 4,
+        "persistent_rings": 0,
+        "seed": 1
+      },
+      "n_test_claims": 4837,
+      "test_graph_nodes": 11177,
+      "test_graph_edges": 27404,
+      "hgt_parameters": 65325,
+      "batch": {
+        "features_per_period_s": 0.06583638074971532,
+        "graph_per_period_s": 0.011056794749947585,
+        "gb_score_period_s": 0.11140490050001972,
+        "hgt_score_period_s": 0.18490010900040943
+      },
+      "per_claim": {
+        "n_claims": 300,
+        "gb": {
+          "p50_ms": 3.4086979994754074,
+          "p99_ms": 5.407966999773632,
+          "mean_ms": 3.564640563369418
+        },
+        "hgt_extract": {
+          "p50_ms": 2.9431185002977145,
+          "p99_ms": 4.547835830016993,
+          "mean_ms": 3.1131278466818912
+        },
+        "hgt_forward": {
+          "p50_ms": 8.191984999029955,
+          "p99_ms": 12.107123770620086,
+          "mean_ms": 8.383168586630442
+        },
+        "hgt_total": {
+          "p50_ms": 11.20621249992837,
+          "p99_ms": 16.03454411089842,
+          "mean_ms": 11.496296433312333
+        },
+        "gb_throughput_per_s": 280.5331932414432,
+        "hgt_throughput_per_s": 86.9845350457685,
+        "subgraph_nodes_median": 121.5,
+        "subgraph_share_of_graph_median": 0.010870537711371567,
+        "max_abs_diff_vs_full_graph": 5.960464477539063e-08
+      },
+      "batch_routing": [
+        {
+          "escalation": 0.05,
+          "escalated_test": 0.044035559230928265,
+          "union_subgraph_share": 0.1705287644269482,
+          "seconds": 0.030347604000780848
+        },
+        {
+          "escalation": 0.1,
+          "escalated_test": 0.10750465164358074,
+          "union_subgraph_share": 0.5359219826429275,
+          "seconds": 0.0830058999999892
+        },
+        {
+          "escalation": 0.2,
+          "escalated_test": 0.19867686582592517,
+          "union_subgraph_share": 0.6735259908741165,
+          "seconds": 0.10752061099992716
+        },
+        {
+          "escalation": 0.3,
+          "escalated_test": 0.3053545586107091,
+          "union_subgraph_share": 0.7042140109152725,
+          "seconds": 0.11078756699862424
+        },
+        {
+          "escalation": 0.5,
+          "escalated_test": 0.49865619185445526,
+          "union_subgraph_share": 0.709492708240136,
+          "seconds": 0.10361912999906053
+        }
+      ]
+    },
+    {
+      "config": {
+        "n_patients": 6000,
+        "n_doctors": 300,
+        "n_hospitals": 40,
+        "n_regions": 5,
+        "n_specialties": 8,
+        "n_periods": 4,
+        "period_months": 6,
+        "legit_rate_mean": 3.0,
+        "legit_rate_shape": 1.5,
+        "p_regular": 0.85,
+        "isolated_rate": 0.03,
+        "isolated_shift": 2.0,
+        "ring_shift": 0.0,
+        "ring_density": 0.9,
+        "ring_doctors": 4,
+        "ring_patients": 12,
+        "ring_claims_per_month": 16.0,
+        "rings_per_period": 4,
+        "persistent_rings": 0,
+        "seed": 2
+      },
+      "n_test_claims": 4933,
+      "test_graph_nodes": 11273,
+      "test_graph_edges": 27876,
+      "hgt_parameters": 65325,
+      "batch": {
+        "features_per_period_s": 0.052198533750015486,
+        "graph_per_period_s": 0.010124067749984533,
+        "gb_score_period_s": 0.010799545500049135,
+        "hgt_score_period_s": 0.11207803800061811
+      },
+      "per_claim": {
+        "n_claims": 300,
+        "gb": {
+          "p50_ms": 0.5883525000172085,
+          "p99_ms": 0.8973621002951399,
+          "mean_ms": 0.6061160767058027
+        },
+        "hgt_extract": {
+          "p50_ms": 2.668699499736249,
+          "p99_ms": 3.3615098307200237,
+          "mean_ms": 2.6909602600547564
+        },
+        "hgt_forward": {
+          "p50_ms": 7.259997000801377,
+          "p99_ms": 10.291751299719177,
+          "mean_ms": 7.4179159933131205
+        },
+        "hgt_total": {
+          "p50_ms": 9.869441500086396,
+          "p99_ms": 13.384582500148097,
+          "mean_ms": 10.108876253367876
+        },
+        "gb_throughput_per_s": 1649.848994989422,
+        "hgt_throughput_per_s": 98.9229638325862,
+        "subgraph_nodes_median": 139.0,
+        "subgraph_share_of_graph_median": 0.012330346846447264,
+        "max_abs_diff_vs_full_graph": 1.1920928955078125e-07
+      },
+      "batch_routing": [
+        {
+          "escalation": 0.05,
+          "escalated_test": 0.06831542671802149,
+          "union_subgraph_share": 0.264082320589018,
+          "seconds": 0.04010918699896138
+        },
+        {
+          "escalation": 0.1,
+          "escalated_test": 0.10399351307520778,
+          "union_subgraph_share": 0.546349685088264,
+          "seconds": 0.0781143529984547
+        },
+        {
+          "escalation": 0.2,
+          "escalated_test": 0.20231096695722683,
+          "union_subgraph_share": 0.6831366983056861,
+          "seconds": 0.09778943600031198
+        },
+        {
+          "escalation": 0.3,
+          "escalated_test": 0.29353334684776,
+          "union_subgraph_share": 0.7060232413731926,
+          "seconds": 0.09825491399897146
+        },
+        {
+          "escalation": 0.5,
+          "escalated_test": 0.4923981350091222,
+          "union_subgraph_share": 0.7101037878115852,
+          "seconds": 0.09866691500064917
+        }
+      ]
+    }
+  ]
+}

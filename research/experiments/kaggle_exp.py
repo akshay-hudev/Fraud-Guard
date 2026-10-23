@@ -7,6 +7,9 @@ Protocol
   method gets the same budget of configurations, scored by validation AP.
 * All providers' claims define the graph (labels of validation/test providers
   are hidden). Label-neighbourhood features (L) use training labels only.
+* Robustness check (``--stage nested``, tabular and MLP models): the configuration
+  is re-selected inside every rotation on that rotation's validation fold, so no
+  provider used for selection is ever a test provider of the same rotation.
 """
 
 from __future__ import annotations
@@ -27,6 +30,8 @@ from ..realdata.kaggle import KaggleData, build_graph, build_metapath_graph, lab
 from .tune import SPACES, candidate_configs
 
 OUT = RESULTS_DIR / "kaggle"
+OUT_NESTED = RESULTS_DIR / "kaggle_nested"
+NESTED_METHODS = ["LR-P", "RF-P", "GB-P", "GB-PG", "GB-PGL", "MLP-P"]
 BUDGET = 6
 TABULAR = {"LR-P": ("lr", "P"), "RF-P": ("rf", "P"), "GB-P": ("gb", "P"), "GB-PG": ("gb", "PG"), "GB-PGL": ("gb", "PGL")}
 GRAPH = {"SAGE": ("sage", "P"), "RGCN": ("rgcn", "P"), "HAN": ("han", "P"), "SimpleHGN": ("simplehgn", "P"),
@@ -115,10 +120,30 @@ def tune(methods):
     return trials
 
 
+def nested(methods, folds, data_meta: dict) -> None:
+    """Per-rotation selection on the rotation's own validation fold, then one test evaluation."""
+    y = _DATA.providers["y"].to_numpy()
+    for k in folds:
+        train, val, test = splits()[k]
+        rows = []
+        for name in methods:
+            best, best_hp = None, None
+            for hp in candidate_configs(SPACE_OF[name], budget=BUDGET):
+                res = run_method(name, hp, train, val, test)
+                if best is None or res["best_val_ap"] > best["best_val_ap"] + 1e-12:
+                    best, best_hp = res, hp
+            m = evaluate_scores(y[val], best["val_scores"], y[test], best["test_scores"], budget=0.10)
+            rows.append({"method": name, "fold": k, "hp": best_hp, **m, "best_val_ap": best["best_val_ap"]})
+            print(f"nested fold {k} {name:8s} AP {m['ap']:.4f} {best_hp}", flush=True)
+        write_json(OUT_NESTED / "runs" / f"fold{k}.json",
+                   {"provenance": provenance({"fold": k, "methods": methods, "budget": BUDGET}, data=data_meta),
+                    "rows": rows})
+
+
 def main():
     global _DATA
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["tune", "merge", "eval"], required=True)
+    ap.add_argument("--stage", choices=["tune", "merge", "eval", "nested"], required=True)
     ap.add_argument("--methods", nargs="+", default=ALL_METHODS)
     ap.add_argument("--folds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     ap.add_argument("--tag", default="all")
@@ -138,6 +163,9 @@ def main():
     _DATA = load()
     data_meta = {"n_providers": len(_DATA.providers), "n_fraud": int(_DATA.providers["y"].sum()),
                  "P_hash": stable_hash(_DATA.P.round(8).to_numpy().tolist()), "files": "data/external/kaggle_provider_fraud"}
+    if args.stage == "nested":
+        nested([m for m in args.methods if m in NESTED_METHODS], args.folds, data_meta)
+        return
     if args.stage == "tune":
         trials = tune([m for m in args.methods if m not in HYBRID_BASE])
         write_json(OUT / "tuning" / f"trials_{args.tag}.json",

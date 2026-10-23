@@ -110,3 +110,9 @@ Verified on a fresh export of the committed tree: legacy tests 32 passed, resear
 API `/health` and `/stats` return 200.
 Not changed (file access blocked): `.env.example` still lists `MODEL_DIR=training/models` and
 `PROCESSED_DATA_DIR=training/data/processed`; change them to `models` and `data/processed`.
+
+## Revision of 2026-10-23
+
+Routing, HGT single-factor ablations, reliance analysis, cost benchmark, ring visualisation, re-analysis of the
+preliminary dataset, nested real-data tuning and a reproduction check of the original runs: see
+`paper/revision_2026-10-23.md` (branch `paper-strengthening`).

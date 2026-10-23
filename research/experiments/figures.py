@@ -15,10 +15,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
+from matplotlib.lines import Line2D
+from sklearn.metrics import precision_recall_curve
 
 from ..ledger import RESULTS_DIR
-from ..metrics import t_ci
-from .analyze import load_rows
+from ..metrics import t_ci, val_threshold
+from ..synth.generator import GeneratorConfig, generate
+from .analyze import load_cascade, load_rows
+from .cascade import ESCALATION, route
+from .synthetic import run_tag
 
 FIG = RESULTS_DIR / "figures"
 BLUE, ORANGE, AQUA, GRAY = "#2a78d6", "#eb6834", "#1baf7a", "#8a8984"
@@ -174,8 +179,229 @@ def protocol_pairs(t: pd.DataFrame) -> None:
     plt.close(fig)
 
 
+# Outcome colours for the ring figure (validated all-pairs, light surface): ground truth is carried by
+# the nodes (filled = ring member), model outcomes by the edges (colour + line style).
+CAUGHT, MISSED, FALSE_ALARM, QUIET = "#6250d6", "#e34948", "#eda100", "#c3c2b7"
+
+
+def _pair_table(claims: pd.DataFrame, flagged: np.ndarray, ft: np.ndarray) -> pd.DataFrame:
+    """One row per patient-doctor pair: claim counts by type and how many of each were flagged."""
+    c = claims.assign(ring=(ft == "ring").astype(int), iso=(ft == "isolated").astype(int),
+                      legit=(ft == "legit").astype(int), flag=flagged.astype(int))
+    c["ring_flag"], c["iso_flag"], c["legit_flag"] = c.ring * c.flag, c.iso * c.flag, c.legit * c.flag
+    return c.groupby(["patient_id", "doctor_id"])[["ring", "iso", "legit", "ring_flag", "iso_flag", "legit_flag"]].sum().reset_index()
+
+
+def _edge_style(row) -> tuple[str, str, float, int]:
+    n_fraud, n_caught = row.ring + row.iso, row.ring_flag + row.iso_flag
+    width = min(0.8 + 0.35 * (row.ring + row.iso + row.legit), 3.2)
+    if n_fraud > 0:
+        return (CAUGHT, "-", width, 3) if n_caught >= n_fraud / 2 else (MISSED, (0, (3, 1.5)), width, 3)
+    if row.legit_flag > 0:
+        return FALSE_ALARM, (0, (1, 1)), max(width, 1.6), 2
+    return QUIET, "-", 0.6, 1
+
+
+def _ring_layout(pairs: pd.DataFrame, ring_docs, ring_pats, rng, max_context: int = 4) -> tuple[dict, pd.DataFrame]:
+    pos = {}
+    for j, d in enumerate(sorted(ring_docs)):
+        a = 2 * np.pi * j / len(ring_docs) + np.pi / 4
+        pos[("d", d)] = 0.38 * np.array([np.cos(a), np.sin(a)])
+    pat_angle = {}
+    for i, p in enumerate(sorted(ring_pats)):
+        pat_angle[p] = 2 * np.pi * i / len(ring_pats)
+        pos[("p", p)] = 0.82 * np.array([np.cos(pat_angle[p]), np.sin(pat_angle[p])])
+    keep = []
+    # other doctors of ring patients
+    other_docs = pairs[pairs.patient_id.isin(ring_pats) & ~pairs.doctor_id.isin(ring_docs)]
+    for d, g in other_docs.groupby("doctor_id"):
+        a = np.angle(np.mean(np.exp(1j * np.array([pat_angle[p] for p in g.patient_id]))))
+        pos[("d", d)] = 1.25 * np.array([np.cos(a), np.sin(a)])
+        keep.append(g)
+    # a sample of the ring doctors' other patients
+    for j, d in enumerate(sorted(ring_docs)):
+        g = pairs[(pairs.doctor_id == d) & ~pairs.patient_id.isin(ring_pats)]
+        if len(g) > max_context:
+            g = g.iloc[np.sort(rng.choice(len(g), max_context, replace=False))]
+        base = 2 * np.pi * j / len(ring_docs) + np.pi / 4
+        for k, p in enumerate(g.patient_id):
+            a = base + (k - (len(g) - 1) / 2) * 0.16
+            pos[("p", p)] = 1.42 * np.array([np.cos(a), np.sin(a)])
+        keep.append(g)
+    keep.append(pairs[pairs.patient_id.isin(ring_pats) & pairs.doctor_id.isin(ring_docs)])
+    return pos, pd.concat(keep).drop_duplicates(["patient_id", "doctor_id"])
+
+
+def _isolated_layout(pairs: pd.DataFrame, pat: int, doc: int, rng, max_context: int = 10) -> tuple[dict, pd.DataFrame]:
+    pos = {("p", pat): np.array([-0.4, 0.0]), ("d", doc): np.array([0.4, 0.0])}
+    keep = [pairs[(pairs.patient_id == pat) & (pairs.doctor_id == doc)]]
+    g = pairs[(pairs.patient_id == pat) & (pairs.doctor_id != doc)]
+    for k, d in enumerate(g.doctor_id):
+        a = np.pi + (k - (len(g) - 1) / 2) * 0.5
+        pos[("d", d)] = pos[("p", pat)] + 0.8 * np.array([np.cos(a), np.sin(a)])
+    keep.append(g)
+    g = pairs[(pairs.doctor_id == doc) & (pairs.patient_id != pat)]
+    if len(g) > max_context:
+        g = g.iloc[np.sort(rng.choice(len(g), max_context, replace=False))]
+    for k, p in enumerate(g.patient_id):
+        a = (k - (len(g) - 1) / 2) * (2.2 / max(len(g) - 1, 1))
+        pos[("p", p)] = pos[("d", doc)] + 0.95 * np.array([np.cos(a), np.sin(a)])
+    keep.append(g)
+    return pos, pd.concat(keep)
+
+
+def _draw_panel(ax, pos, edges: pd.DataFrame, members: set, highlight=None) -> None:
+    styled = [(r, *_edge_style(r)) for r in edges.itertuples()]
+    for r, color, ls, lw, z in sorted(styled, key=lambda x: x[4]):
+        a, b = pos[("p", r.patient_id)], pos[("d", r.doctor_id)]
+        ax.plot([a[0], b[0]], [a[1], b[1]], color=color, ls=ls, lw=lw, zorder=z, solid_capstyle="round")
+    for (kind, ident), xy in pos.items():
+        member = (kind, ident) in members
+        ax.scatter(*xy, s=46 if kind == "d" else 30, marker="s" if kind == "d" else "o", zorder=5,
+                   facecolors=INK if member else "white", edgecolors=INK if member else GRAY, linewidths=0.9)
+    if highlight is not None:
+        ax.annotate("isolated\nfraud claim", xy=highlight, xytext=(highlight[0], highlight[1] + 0.55), ha="center",
+                    fontsize=6.5, color=INK2, arrowprops={"arrowstyle": "-", "color": INK2, "lw": 0.6})
+    ax.set_aspect("equal")
+    ax.axis("off")
+
+
+def ring_graph(seed: int = 1) -> None:
+    """Isolated versus ring fraud in actual benchmark worlds, with GB-CAG and HGT outcomes."""
+    panels = []
+    for dens in [0.9, 0.1, 0.9]:
+        cfg = GeneratorConfig(ring_shift=0.0, ring_density=dens, seed=seed)
+        path = RESULTS_DIR / "cascade" / "predictions" / f"{run_tag(cfg, 0)}.npz"
+        if not path.exists():
+            return
+        panels.append((cfg, generate(cfg), np.load(path)))
+    rng = np.random.default_rng(0)
+    fig, axes = plt.subplots(2, 3, figsize=(7.0, 5.6), gridspec_kw={"hspace": 0.35})
+    titles = ["Isolated fraud ($s$ = 0.9 world)", "Ring, sparse block ($s$ = 0.1)", "Ring, dense block ($s$ = 0.9)"]
+    for col, (cfg, world, z) in enumerate(panels):
+        test = world.split == "test"
+        claims = world.claims[test].reset_index(drop=True)
+        truth = world.truth[test].reset_index(drop=True)
+        assert (claims["claim_id"].to_numpy() == z["claim_id_test"]).all()
+        ft = truth["fraud_type"].to_numpy()
+        if col == 0:
+            iso = np.flatnonzero(ft == "isolated")
+            target = claims.iloc[rng.choice(iso)]
+            pat, doc = int(target.patient_id), int(target.doctor_id)
+        else:
+            ring = int(truth.loc[truth.ring_id > 0, "ring_id"].min())
+            in_ring = (truth.ring_id == ring).to_numpy()
+            ring_docs, ring_pats = set(claims.doctor_id[in_ring]), set(claims.patient_id[in_ring])
+        for row, model in enumerate(["GB-CAG", "HGT"]):
+            thr = val_threshold(z["y_val"], z[f"{model}__val"])
+            flagged = z[f"{model}__test"] >= thr
+            pairs = _pair_table(claims, flagged, ft)
+            ax = axes[row, col]
+            if col == 0:
+                pos, edges = _isolated_layout(pairs, pat, doc, np.random.default_rng(1))
+                _draw_panel(ax, pos, edges, set(), highlight=(pos[("p", pat)] + pos[("d", doc)]) / 2)
+                is_target = (claims.claim_id == target.claim_id).to_numpy()
+                note = f"this claim {'flagged' if flagged[is_target][0] else 'missed'}\n" \
+                       f"all isolated claims flagged: {flagged[ft == 'isolated'].sum()}/{(ft == 'isolated').sum()}"
+            else:
+                pos, edges = _ring_layout(pairs, ring_docs, ring_pats, np.random.default_rng(1))
+                members = {("d", d) for d in ring_docs} | {("p", p) for p in ring_pats}
+                _draw_panel(ax, pos, edges, members)
+                note = f"this ring's claims flagged: {flagged[in_ring].sum()}/{in_ring.sum()}\n" \
+                       f"legitimate claims flagged (drawn): {edges.legit_flag.sum()}/{edges.legit.sum()}"
+            if row == 0:
+                ax.set_title(titles[col], fontsize=7.5, color=INK)
+            ax.text(0.5, -0.02, note, transform=ax.transAxes, ha="center", va="top", fontsize=6.5, color=INK2)
+        axes[0, 0].text(-0.08, 0.5, "GB-CAG", transform=axes[0, 0].transAxes, rotation=90, va="center", ha="right",
+                        fontsize=8, color=INK)
+        axes[1, 0].text(-0.08, 0.5, "HGT", transform=axes[1, 0].transAxes, rotation=90, va="center", ha="right",
+                        fontsize=8, color=INK)
+    handles = [Line2D([], [], color=CAUGHT, lw=2, label="fraud claims flagged"),
+               Line2D([], [], color=MISSED, lw=2, ls=(0, (3, 1.5)), label="fraud claims missed"),
+               Line2D([], [], color=FALSE_ALARM, lw=2, ls=(0, (1, 1)), label="legitimate claim flagged"),
+               Line2D([], [], color=QUIET, lw=1, label="legitimate, not flagged"),
+               Line2D([], [], marker="s", ls="none", mfc=INK, mec=INK, label="ring doctor"),
+               Line2D([], [], marker="o", ls="none", mfc=INK, mec=INK, label="ring patient"),
+               Line2D([], [], marker="s", ls="none", mfc="white", mec=GRAY, label="other doctor"),
+               Line2D([], [], marker="o", ls="none", mfc="white", mec=GRAY, label="other patient")]
+    fig.legend(handles=handles, loc="lower center", ncol=4, frameon=False, fontsize=6.8, bbox_to_anchor=(0.5, -0.04))
+    fig.subplots_adjust(left=0.04, right=0.99, top=0.95, bottom=0.08, wspace=0.05)
+    fig.savefig(FIG / "fig_ring_graph.pdf", bbox_inches="tight")
+    plt.close(fig)
+
+
+ROUTE_STYLE = {"rerank": ("-", "o", "routed, re-rank"), "fuse": ("--", "s", "routed, fused")}
+
+
+def cascade_figure(gnn: str = "HGT") -> None:
+    """Precision-recall curves and AP against the escalation fraction for GB-CAG -> GNN routing."""
+    rows, curves, _ = load_cascade()
+    if rows.empty:
+        return
+    fig, axes = plt.subplots(2, 2, figsize=(7.0, 4.8))
+    # (a) PR curves, delta = 0, s = 0.9, mean precision at fixed recall over the six worlds
+    grid = np.linspace(0, 1, 101)
+    ax = axes[0, 0]
+    sel = rows[(rows.ring_shift == 0.0) & (rows.ring_density == 0.9)]
+    curves_pr = {k: [] for k in ["GB-CAG", gnn, "rerank", "fuse"]}
+    for seed in sorted(sel.seed.unique()):
+        z = np.load(RESULTS_DIR / "cascade" / "predictions" / f"emergent_d0.0_s0.9_g{int(seed)}_m0.npz")
+        g_val, g_te, h_val, h_te = z["GB-CAG__val"], z["GB-CAG__test"], z[f"{gnn}__val"], z[f"{gnn}__test"]
+        scores = {"GB-CAG": g_te, gnn: h_te}
+        for mode in ["rerank", "fuse"]:
+            e = sel[(sel.seed == seed) & (sel.method == f"GB-CAG>{gnn} ({mode})")]["escalation"].iloc[0]
+            scores[mode] = route(g_te, h_te, g_val, h_val, e, mode)[0]
+        for k, s in scores.items():
+            p, r, _ = precision_recall_curve(z["y_test"], s)    # recall decreasing along the arrays
+            p_interp = np.maximum.accumulate(p)                   # best precision at recall >= r
+            curves_pr[k].append(np.interp(grid, r[::-1], p_interp[::-1]))
+    for k, vals in curves_pr.items():
+        color, ls, label = ((BLUE, "-", "GB-CAG") if k == "GB-CAG" else (ORANGE, "-", gnn) if k == gnn
+                            else (AQUA, ROUTE_STYLE[k][0], ROUTE_STYLE[k][2]))
+        ax.plot(grid, np.mean(vals, 0), color=color, ls=ls, lw=1.6, label=label)
+    ax.set_xlabel("recall (all fraud)")
+    ax.set_ylabel("precision")
+    ax.set_ylim(0, 1.02)
+    ax.set_title("(a) precision-recall, $\\delta$ = 0, $s$ = 0.9 (6 worlds)", color=INK)
+    ax.legend(frameon=False, loc="lower left", fontsize=6.8)
+    # (b-d) paired difference from GB-CAG against the escalation fraction, all 54 worlds
+    keys = ["ring_shift", "ring_density", "seed"]
+    for ax, metric, title in zip([axes[0, 1], axes[1, 0], axes[1, 1]], ["ap", "ring_ap", "isolated_ap"],
+                                 ["(b) all fraud", "(c) ring fraud", "(d) isolated fraud"]):
+        x = np.arange(len(ESCALATION))
+        base = rows[rows.method == "GB-CAG"].set_index(keys)[metric]
+        alone = rows[rows.method == gnn].set_index(keys)[metric] - base
+        lo, hi = t_ci(alone.to_numpy())
+        ax.axhline(0.0, color=BLUE, lw=1.2)
+        ax.axhspan(lo, hi, color=ORANGE, alpha=0.15, lw=0)
+        ax.axhline(alone.mean(), color=ORANGE, lw=1.2)
+        box = {"facecolor": "white", "edgecolor": "none", "pad": 0.6}
+        ax.text(len(ESCALATION) - 0.55, 0.0, "GB-CAG", color=INK2, fontsize=6.5, va="center", ha="left", bbox=box)
+        ax.text(len(ESCALATION) - 0.55, alone.mean(), f"{gnn} alone", color=INK2, fontsize=6.5, va="center",
+                ha="left", bbox=box)
+        for mode in ["rerank", "fuse"]:
+            c = curves[(curves.method == f"GB-CAG>{gnn}") & (curves["mode"] == mode)].set_index(keys)
+            c = c.assign(diff=c[metric] - base.reindex(c.index).to_numpy())
+            g = c.groupby("escalation")["diff"]
+            mean, half = g.mean().reindex(ESCALATION), g.apply(_ci_half).reindex(ESCALATION)
+            ls, marker, label = ROUTE_STYLE[mode]
+            ax.errorbar(x, mean.values, yerr=half.values, color=AQUA, ls=ls, marker=marker, ms=4, capsize=2,
+                        elinewidth=0.8, mec="white", mew=0.6, label=label)
+        ax.set_xticks(x, [f"{e:.0%}" for e in ESCALATION])
+        ax.set_xlim(-0.4, len(ESCALATION) + 0.7)
+        ax.set_xlabel(f"share of claims escalated to {gnn}")
+        ax.set_ylabel("$\\Delta$ AP vs. GB-CAG")
+        ax.set_title(title + ": paired $\\Delta$ AP (54 worlds, 95% CI)", color=INK)
+    axes[0, 1].legend(frameon=False, loc="lower left", fontsize=6.8)
+    fig.tight_layout()
+    fig.savefig(FIG / "fig_cascade.pdf", bbox_inches="tight")
+    plt.close(fig)
+
+
 def main():
     FIG.mkdir(parents=True, exist_ok=True)
+    ring_graph()
+    cascade_figure()
     syn = load_rows("synthetic")
     if not syn.empty:
         regime_lines(syn)

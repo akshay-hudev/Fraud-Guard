@@ -49,14 +49,27 @@ def frame_hash(df) -> str:
     return hashlib.sha256(pd.util.hash_pandas_object(df, index=False).values.tobytes()).hexdigest()[:16]
 
 
-def git_state() -> dict:
+def _read_git_state() -> dict:
     def run(*args: str) -> str:
         try:
             return subprocess.check_output(["git", *args], cwd=REPO_ROOT, text=True, stderr=subprocess.DEVNULL).strip()
         except Exception:
             return "unknown"
 
-    return {"commit": run("rev-parse", "HEAD"), "dirty": bool(run("status", "--porcelain", "--", "research"))}
+    sources = hashlib.sha256()
+    for f in sorted((REPO_ROOT / "research").rglob("*.py")):
+        sources.update(f.relative_to(REPO_ROOT).as_posix().encode() + f.read_bytes())
+    return {"commit": run("rev-parse", "HEAD"), "dirty": bool(run("status", "--porcelain", "--", "research")),
+            "research_sources_sha256": sources.hexdigest()[:16]}
+
+
+# Captured when the process starts, i.e. for the code the run actually loaded; edits made
+# to the working tree while a long run is in progress do not change what it records.
+_GIT_STATE_AT_START = _read_git_state()
+
+
+def git_state() -> dict:
+    return dict(_GIT_STATE_AT_START)
 
 
 def environment() -> dict:

@@ -1,31 +1,27 @@
 \begin{table}[h]
-\caption{Mechanism ablations at $\delta=0$, $s=0.9$ (six worlds): ring AP and paired change from the full model (Holm-adjusted $p$ over all ablations). The tuned GNNs use three layers.}\label{tab:ablation}
+\caption{Mechanism ablations at $\delta=0$, $s=0.9$ (six worlds): ring AP (mean $\pm$ s.d.) and paired change from the full model, with Holm-adjusted $p$ over every ablation comparison in this table and Table~\ref{tab:hgt_arch}. The tuned GNNs use three layers; HGT's single-factor variants are in Table~\ref{tab:hgt_arch}.}\label{tab:ablation}
 \scriptsize
 \begin{tabular}{@{}llcc@{}}
 \toprule
 Method & Variant & Ring AP & $\Delta$ vs.\ full \\
 \midrule
 GB-CA & Full model & 0.889 $\pm$ 0.026 & -- \\
- & Degree-preserving rewiring & 0.748 $\pm$ 0.027 & $-0.141$; $p=0.009$ \\
- & + ring identifier (legacy leak) & 1.000 $\pm$ 0.000 & $+0.111$; $p=0.001$ \\
+ & Degree-preserving rewiring & 0.748 $\pm$ 0.027 & $-0.141$ ($p=0.018$) \\
+ & + ring identifier (legacy leak) & 1.000 $\pm$ 0.000 & $+0.111$ ($p=0.003$) \\
 \midrule
 GB-CAG & Full model & 0.990 $\pm$ 0.008 & -- \\
- & Degree-preserving rewiring & 0.757 $\pm$ 0.046 & $-0.232$; $p<0.001$ \\
+ & Degree-preserving rewiring & 0.757 $\pm$ 0.046 & $-0.232$ ($p=0.002$) \\
 \midrule
 SAGE & Full model & 0.976 $\pm$ 0.013 & -- \\
- & Degree-preserving rewiring & 0.759 $\pm$ 0.034 & $-0.217$; $p<0.001$ \\
- & No patient--doctor relation & 0.960 $\pm$ 0.019 & $-0.016$; $p=0.138$ \\
- & No degree encodings & 0.947 $\pm$ 0.037 & $-0.029$; $p=0.232$ \\
- & 1 message-passing layer & 0.841 $\pm$ 0.034 & $-0.135$; $p<0.001$ \\
- & 2 layers & 0.957 $\pm$ 0.023 & $-0.019$; $p=0.138$ \\
+ & Degree-preserving rewiring & 0.759 $\pm$ 0.034 & $-0.217$ ($p=0.002$) \\
+ & No patient--doctor relation & 0.960 $\pm$ 0.019 & $-0.016$ ($p=0.360$) \\
+ & No degree encodings & 0.947 $\pm$ 0.037 & $-0.029$ ($p=1.000$) \\
+ & 1 message-passing layer & 0.841 $\pm$ 0.034 & $-0.135$ ($p=0.002$) \\
+ & 2 layers & 0.957 $\pm$ 0.023 & $-0.019$ ($p=0.413$) \\
 \midrule
 HGT & Full model & 0.949 $\pm$ 0.052 & -- \\
- & Degree-preserving rewiring & 0.770 $\pm$ 0.029 & $-0.179$; $p=0.014$ \\
- & No patient--doctor relation & 0.902 $\pm$ 0.055 & $-0.047$; $p=0.138$ \\
- & No degree encodings & 0.569 $\pm$ 0.110 & $-0.379$; $p=0.001$ \\
- & 1 message-passing layer & 0.788 $\pm$ 0.052 & $-0.161$; $p=0.009$ \\
- & 2 layers & 0.947 $\pm$ 0.035 & $-0.001$; $p=0.880$ \\
- & No reverse relations (legacy graph) & 0.772 $\pm$ 0.024 & $-0.177$; $p=0.010$ \\
+ & Degree-preserving rewiring & 0.770 $\pm$ 0.029 & $-0.179$ ($p=0.036$) \\
+ & No reverse relations (legacy graph) & 0.772 $\pm$ 0.024 & $-0.177$ ($p=0.022$) \\
 \botrule
 \end{tabular}
 \end{table}

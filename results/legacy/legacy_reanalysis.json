@@ -1,0 +1,177 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-23T06:53:04+00:00",
+    "git": {
+      "commit": "36026e933f063482fa73328e583013fb7c441fdb",
+      "dirty": false,
+      "research_sources_sha256": "bf16c914ecd07d77"
+    },
+    "config_hash": "1cadc3126b18ef19",
+    "config": {
+      "analysis": "legacy_reanalysis"
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    }
+  },
+  "legacy": {
+    "sha256": "ebc465dbeeac9a61a07ad167ea3ce8bb6e4082f75fd1c02e2794225582a9ae2f",
+    "sha256_expected": "ebc465dbeeac9a61a07ad167ea3ce8bb6e4082f75fd1c02e2794225582a9ae2f",
+    "n_claims": 2100,
+    "n_patients": 492,
+    "n_doctors": 50,
+    "composition": {
+      "legit": 1722,
+      "isolated": 200,
+      "ring": 178
+    },
+    "ring_topology": [
+      {
+        "ring_id": 1,
+        "claims": 36,
+        "doctors": 4,
+        "patients": 10,
+        "block_density": 0.65,
+        "active_months": 22.371879106438897
+      },
+      {
+        "ring_id": 2,
+        "claims": 36,
+        "doctors": 4,
+        "patients": 10,
+        "block_density": 0.575,
+        "active_months": 23.127463863337713
+      },
+      {
+        "ring_id": 3,
+        "claims": 36,
+        "doctors": 4,
+        "patients": 9,
+        "block_density": 0.6111111111111112,
+        "active_months": 23.061760840998684
+      },
+      {
+        "ring_id": 4,
+        "claims": 35,
+        "doctors": 4,
+        "patients": 9,
+        "block_density": 0.7222222222222222,
+        "active_months": 23.817345597897503
+      },
+      {
+        "ring_id": 5,
+        "claims": 35,
+        "doctors": 4,
+        "patients": 10,
+        "block_density": 0.625,
+        "active_months": 23.71879106438896
+      }
+    ],
+    "ring_span_months": 23.850197109067015,
+    "separability": {
+      "log_amount_shift_sd": 1.486392475074899,
+      "auc_claim_amount": 0.9369690326116744,
+      "auc_num_procedures": 0.9408057001918334,
+      "auc_days_in_hospital": 0.8613530778164925
+    },
+    "split_composition": {
+      "train": {
+        "legit": 1021,
+        "isolated": 117,
+        "ring": 122
+      },
+      "val": {
+        "legit": 345,
+        "isolated": 40,
+        "ring": 35
+      },
+      "test": {
+        "legit": 356,
+        "isolated": 43,
+        "ring": 21
+      }
+    },
+    "test_ring_claims_per_ring": {
+      "1": 3,
+      "2": 5,
+      "3": 4,
+      "4": 6,
+      "5": 3
+    },
+    "test_ring_members_seen_in_training_rings": {
+      "doctor": 1.0,
+      "patient": 0.8095238095238095
+    },
+    "gb_raw_claim_features": {
+      "features": [
+        "log_amount",
+        "num_procedures",
+        "days_in_hospital"
+      ],
+      "hyperparameters": {
+        "l2": 0.0,
+        "learning_rate": 0.03,
+        "max_iter": 200,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 10
+      },
+      "ap": 1.0,
+      "ring_ap": 1.0,
+      "isolated_ap": 1.0,
+      "ring_recall": 1.0,
+      "isolated_recall": 1.0,
+      "f1": 1.0,
+      "threshold": 0.9955309265793064,
+      "ring_recall_counts": [
+        21,
+        21
+      ],
+      "ring_recall_ci": [
+        0.8389023847809204,
+        1.0
+      ],
+      "ring_ap_bootstrap_ci": [
+        0.9999999999999999,
+        1.0
+      ]
+    }
+  },
+  "benchmark_s0.5": {
+    "delta_0": {
+      "log_amount_shift_sd": 0.11075946667006435,
+      "auc_claim_amount": 0.5303170899403682,
+      "auc_num_procedures": 0.5142104159187573,
+      "auc_days_in_hospital": 0.5031652203223209,
+      "test_ring_claims": 384.0,
+      "n_claims": 20175.666666666668,
+      "n_test_claims": 4924.0
+    },
+    "delta_1": {
+      "log_amount_shift_sd": 0.9434857694533791,
+      "auc_claim_amount": 0.740713952385207,
+      "auc_num_procedures": 0.6831070833534648,
+      "auc_days_in_hospital": 0.5625741960566982,
+      "test_ring_claims": 384.0,
+      "n_claims": 20175.666666666668,
+      "n_test_claims": 4924.0
+    },
+    "delta_2": {
+      "log_amount_shift_sd": 1.8734545006506755,
+      "auc_claim_amount": 0.9011687286346718,
+      "auc_num_procedures": 0.7951479824083639,
+      "auc_days_in_hospital": 0.6171474432912393,
+      "test_ring_claims": 384.0,
+      "n_claims": 20175.666666666668,
+      "n_test_claims": 4924.0
+    }
+  }
+}

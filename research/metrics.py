@@ -34,6 +34,13 @@ def recall_at_budget(y: np.ndarray, s: np.ndarray, budget: float) -> float:
     return float(y[top].sum() / max(y.sum(), 1))
 
 
+def precision_at_budget(y: np.ndarray, s: np.ndarray, budget: float) -> float:
+    """Precision among the top ``budget`` fraction of claims (by score)."""
+    k = max(1, int(round(budget * len(s))))
+    top = np.argsort(-s, kind="stable")[:k]
+    return float(np.asarray(y)[top].mean())
+
+
 def evaluate_scores(y_val, s_val, y_test, s_test, fraud_type_test=None, budget: float = 0.05) -> dict:
     thr = val_threshold(y_val, s_val)
     pred = (s_test >= thr).astype(int)

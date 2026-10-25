@@ -92,6 +92,44 @@ def paired_comparison(a: np.ndarray, b: np.ndarray) -> dict:
     return out
 
 
+def clustered_comparison(a: np.ndarray, b: np.ndarray, cluster: np.ndarray) -> dict:
+    """Paired comparison of a - b when replicates come in clusters that share data.
+
+    The nine regimes of one generator seed share their legitimate claims, isolated fraud and ring
+    members, so their results are not independent. Each cluster's results are averaged first and the
+    cluster means are compared with ``paired_comparison``: the cluster is the unit of replication.
+    """
+    a, b, cluster = np.asarray(a, float), np.asarray(b, float), np.asarray(cluster)
+    keys = np.unique(cluster)
+    ma = np.array([np.nanmean(a[cluster == k]) for k in keys])
+    mb = np.array([np.nanmean(b[cluster == k]) for k in keys])
+    return {**paired_comparison(ma, mb), "n_clusters": int(len(keys))}
+
+
+def corrected_resampled_comparison(a: np.ndarray, b: np.ndarray, test_train_ratio: float) -> dict:
+    """Paired comparison of a - b over cross-validation rotations whose training sets overlap.
+
+    The rotations share training data, so their differences are positively correlated and the plain
+    paired t-test is anti-conservative. The variance of the mean difference is inflated from s^2 / J
+    to (1 / J + n_test / n_train) s^2, the corrected resampled t-test of Nadeau and Bengio (2003).
+    """
+    a, b = np.asarray(a, float), np.asarray(b, float)
+    ok = np.isfinite(a) & np.isfinite(b)
+    d = a[ok] - b[ok]
+    J = len(d)
+    out = {"n": int(J), "mean_diff": float(d.mean()) if J else float("nan")}
+    sd = d.std(ddof=1) if J >= 2 else float("nan")
+    se = np.sqrt(1 / J + test_train_ratio) * sd if J >= 2 else float("nan")
+    if J >= 2 and se > 0:
+        h = stats.t.ppf(0.975, J - 1) * se
+        out["ci_low"], out["ci_high"] = float(d.mean() - h), float(d.mean() + h)
+        out["t_p"] = float(2 * stats.t.sf(abs(d.mean() / se), J - 1))
+        out["naive_t_p"] = float(stats.ttest_rel(a[ok], b[ok]).pvalue)
+    else:
+        out["ci_low"] = out["ci_high"] = out["t_p"] = out["naive_t_p"] = float("nan")
+    return out
+
+
 def holm(pvalues: list[float]) -> list[float]:
     """Holm-Bonferroni adjusted p-values (NaN entries are kept as NaN)."""
     p = np.asarray(pvalues, float)

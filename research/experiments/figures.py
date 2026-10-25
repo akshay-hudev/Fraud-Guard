@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 from matplotlib.lines import Line2D
+from scipy.stats import t as stats_t
 from sklearn.metrics import precision_recall_curve
 
 from ..ledger import RESULTS_DIR
@@ -136,16 +137,23 @@ def ablation_dots(abl: pd.DataFrame) -> None:
     plt.close(fig)
 
 
+def _corrected_half(x, test_train_ratio: float = 1 / 3) -> float:
+    """Half-width of the 95% interval over cross-validation rotations with overlapping training sets
+    (variance inflated by 1/J + n_test/n_train; Nadeau and Bengio, 2003)."""
+    x = np.asarray(x, float)
+    return float(stats_t.ppf(0.975, len(x) - 1) * np.sqrt(1 / len(x) + test_train_ratio) * x.std(ddof=1))
+
+
 def kaggle_dots(kag: pd.DataFrame) -> None:
     g = kag.groupby("method")["ap"]
-    stats = pd.DataFrame({"mean": g.mean(), "half": g.apply(_ci_half)}).sort_values("mean")
+    stats = pd.DataFrame({"mean": g.mean(), "half": g.apply(_corrected_half)}).sort_values("mean")
     fig, ax = plt.subplots(figsize=(3.4, 3.0))
     for i, (m, r) in enumerate(stats.iterrows()):
         color = AQUA if "+" in m else (BLUE if m.split("-")[0] in ("LR", "RF", "GB") else (GRAY if m.startswith("MLP") else ORANGE))
         ax.errorbar(r["mean"], i, xerr=r["half"], color=color, marker="o", ms=4, capsize=2, elinewidth=0.8, ls="none")
         ax.text(r["mean"] + r["half"] + 0.005, i, f"{r['mean']:.3f}", va="center", fontsize=6.5, color=INK2)
     ax.set_yticks(range(len(stats)), stats.index)
-    ax.set_xlabel("provider-level AP (mean, 95% CI over 5 folds)")
+    ax.set_xlabel("provider-level AP (mean, corrected 95% CI over 5 rotations)")
     ax.grid(axis="y", visible=False)
     fig.tight_layout()
     fig.savefig(FIG / "fig_kaggle_ap.pdf", bbox_inches="tight")
@@ -371,7 +379,8 @@ def cascade_figure(gnn: str = "HGT") -> None:
         x = np.arange(len(ESCALATION))
         base = rows[rows.method == "GB-CAG"].set_index(keys)[metric]
         alone = rows[rows.method == gnn].set_index(keys)[metric] - base
-        lo, hi = t_ci(alone.to_numpy())
+        # Intervals over the six seeds: a seed's nine regimes share its legitimate claims and ring members.
+        lo, hi = t_ci(alone.groupby(level="seed").mean().to_numpy())
         ax.axhline(0.0, color=BLUE, lw=1.2)
         ax.axhspan(lo, hi, color=ORANGE, alpha=0.15, lw=0)
         ax.axhline(alone.mean(), color=ORANGE, lw=1.2)
@@ -382,7 +391,7 @@ def cascade_figure(gnn: str = "HGT") -> None:
         for mode in ["rerank", "fuse"]:
             c = curves[(curves.method == f"GB-CAG>{gnn}") & (curves["mode"] == mode)].set_index(keys)
             c = c.assign(diff=c[metric] - base.reindex(c.index).to_numpy())
-            g = c.groupby("escalation")["diff"]
+            g = c.groupby(["escalation", "seed"])["diff"].mean().groupby(level="escalation")
             mean, half = g.mean().reindex(ESCALATION), g.apply(_ci_half).reindex(ESCALATION)
             ls, marker, label = ROUTE_STYLE[mode]
             ax.errorbar(x, mean.values, yerr=half.values, color=AQUA, ls=ls, marker=marker, ms=4, capsize=2,
@@ -391,7 +400,7 @@ def cascade_figure(gnn: str = "HGT") -> None:
         ax.set_xlim(-0.4, len(ESCALATION) + 0.7)
         ax.set_xlabel(f"share of claims escalated to {gnn}")
         ax.set_ylabel("$\\Delta$ AP vs. GB-CAG")
-        ax.set_title(title + ": paired $\\Delta$ AP (54 worlds, 95% CI)", color=INK)
+        ax.set_title(title + ": paired $\\Delta$ AP (95% CI over 6 seeds)", color=INK)
     axes[0, 1].legend(frameon=False, loc="lower left", fontsize=6.8)
     fig.tight_layout()
     fig.savefig(FIG / "fig_cascade.pdf", bbox_inches="tight")

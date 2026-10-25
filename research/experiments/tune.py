@@ -93,8 +93,13 @@ def main():
     ap.add_argument("--methods", nargs="+", default=[m for m in ALL_METHODS if m in SPACES and m not in HYBRID_BASE])
     ap.add_argument("--tag", default="all")
     ap.add_argument("--merge", action="store_true", help="merge trial files into best_hyperparameters.json")
+    ap.add_argument("--ring-claims-per-month", type=float, default=GeneratorConfig.ring_claims_per_month,
+                    help="ring volume of the development worlds (the low-volume stress test re-tunes at 4)")
+    ap.add_argument("--out", default=str(RESULTS_DIR / "tuning"))
     args = ap.parse_args()
-    out_dir = RESULTS_DIR / "tuning"
+    out_dir = Path(args.out)
+    dev_regime = (DEV_REGIME if args.ring_claims_per_month == GeneratorConfig.ring_claims_per_month
+                  else {**DEV_REGIME, "ring_claims_per_month": args.ring_claims_per_month})
     if args.merge:
         trials = {}
         for f in sorted(out_dir.glob("trials_*.json")):
@@ -105,7 +110,7 @@ def main():
             if base in best:
                 best[hybrid] = dict(best[base])
         write_json(out_dir / "best_hyperparameters.json", {
-            "provenance": provenance({"budget": BUDGET, "dev_seeds": DEV_SEEDS, "dev_regime": DEV_REGIME, "spaces": SPACES,
+            "provenance": provenance({"budget": BUDGET, "dev_seeds": DEV_SEEDS, "dev_regime": dev_regime, "spaces": SPACES,
                                       "hybrids_inherit": HYBRID_BASE}),
             "best": best, "best_mean_val_ap": {m: max(r["mean_val_ap"] for r in t) for m, t in trials.items()
                                                if m not in HYBRID_BASE}})
@@ -113,7 +118,7 @@ def main():
         return
     prepared = []
     for seed in DEV_SEEDS:
-        world = generate(GeneratorConfig(seed=seed, **DEV_REGIME))
+        world = generate(GeneratorConfig(seed=seed, **dev_regime))
         tab, cols, graphs = prepare(world)
         prepared.append({"world": world, "tab": tab, "cols": cols, "graphs": graphs})
     trials = {}
@@ -124,7 +129,7 @@ def main():
             trials[method].append({"hp": hp, "val_ap": aps, "mean_val_ap": float(np.mean(aps))})
             print(f"{method:10s} {np.mean(aps):.4f} {hp}", flush=True)
         write_json(out_dir / f"trials_{args.tag}.json", {
-            "provenance": provenance({"budget": BUDGET, "dev_seeds": DEV_SEEDS, "dev_regime": DEV_REGIME, "methods": args.methods}),
+            "provenance": provenance({"budget": BUDGET, "dev_seeds": DEV_SEEDS, "dev_regime": dev_regime, "methods": args.methods}),
             "trials": trials})
 
 

@@ -251,8 +251,9 @@ def lowvolume_latex(t: pd.DataFrame, settings: list[str]) -> str:
     rules = "".join(rf"\cmidrule(lr){{{2 + i * len(dens)}-{1 + (i + 1) * len(dens)}}}" for i in range(len(settings)))
     lines = [r"\begin{table}[h]",
              r"\caption{Ring AP on unseen test rings at $\delta=0$ when ring volume is reduced from 16 to 4 claims per "
-             r"month (mean over six worlds per cell). At low volume ring patients are no longer outliers in claim volume, "
-             r"ring doctors carry no excess volume, and the chance level of ring AP falls from 0.080 to 0.021. Frozen: "
+             r"month (mean over six worlds per cell). At low volume a ring patient files about as many claims as the 95th "
+             r"percentile of other patients and a ring doctor 1.3 times as many as other doctors (default: 5.7 and 2.5 times "
+             r"the averages), and the chance level of ring AP falls from 0.080 to 0.021. Frozen: "
              r"hyperparameters tuned at default volume; re-tuned: the tuning protocol repeated on low-volume development "
              r"worlds (hybrids inherit their base configuration). Bold: best per column.}\label{tab:lowvolume}",
              r"\scriptsize", r"\setlength{\tabcolsep}{3.5pt}",
@@ -717,7 +718,7 @@ def hyperparameter_table() -> None:
         return "--" if v is None else (f"{v:g}" if isinstance(v, float) else str(v).replace("_", r"\_"))
     lines = [r"\begin{table}[h]",
              r"\caption{Selected hyperparameters (equal budget per method; hybrids inherit their base "
-             r"configuration; methods sharing a search space were offered the same candidate configurations). Synthetic: tuned on development worlds; real data: tuned on a separate split.}\label{tab:hyperparams}",
+             r"configuration; methods sharing a search space were offered the same candidate configurations). Synthetic: tuned on development worlds; real data: tuned on a separate split. The configurations re-tuned for the low-volume stress test are in the repository (\texttt{results/tuning\_lowvolume}).}\label{tab:hyperparams}",
              r"\scriptsize", r"\begin{tabular}{@{}p{2.2cm}p{5.0cm}p{5.0cm}@{}}", r"\toprule", r"Method & Synthetic benchmark & Real data \\", r"\midrule"]
     syn = json.load(open(RESULTS_DIR / "tuning" / "best_hyperparameters.json"))["best"]
     kpath = RESULTS_DIR / "kaggle" / "tuning" / "best_hyperparameters.json"

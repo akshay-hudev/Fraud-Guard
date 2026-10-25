@@ -153,7 +153,7 @@ def kaggle_dots(kag: pd.DataFrame) -> None:
         ax.errorbar(r["mean"], i, xerr=r["half"], color=color, marker="o", ms=4, capsize=2, elinewidth=0.8, ls="none")
         ax.text(r["mean"] + r["half"] + 0.005, i, f"{r['mean']:.3f}", va="center", fontsize=6.5, color=INK2)
     ax.set_yticks(range(len(stats)), stats.index)
-    ax.set_xlabel("provider-level AP (mean, corrected 95% CI over 5 rotations)")
+    ax.set_xlabel("provider-level AP (mean, corrected 95% CI)")
     ax.grid(axis="y", visible=False)
     fig.tight_layout()
     fig.savefig(FIG / "fig_kaggle_ap.pdf", bbox_inches="tight")
@@ -397,7 +397,7 @@ def cascade_figure(gnn: str = "HGT") -> None:
             ax.errorbar(x, mean.values, yerr=half.values, color=AQUA, ls=ls, marker=marker, ms=4, capsize=2,
                         elinewidth=0.8, mec="white", mew=0.6, label=label)
         ax.set_xticks(x, [f"{e:.0%}" for e in ESCALATION])
-        ax.set_xlim(-0.4, len(ESCALATION) + 0.7)
+        ax.set_xlim(-0.4, len(ESCALATION) + 1.0)
         ax.set_xlabel(f"share of claims escalated to {gnn}")
         ax.set_ylabel("$\\Delta$ AP vs. GB-CAG")
         ax.set_title(title + ": paired $\\Delta$ AP (95% CI over 6 seeds)", color=INK)

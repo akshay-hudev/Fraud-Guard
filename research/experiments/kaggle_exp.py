@@ -120,22 +120,29 @@ def tune(methods):
     return trials
 
 
-def nested(methods, folds, data_meta: dict) -> None:
-    """Per-rotation selection on the rotation's own validation fold, then one test evaluation."""
+def nested(methods, folds, data_meta: dict, tag: str = "all") -> None:
+    """Per-rotation selection on the rotation's own validation fold, then one test evaluation.
+
+    Hybrids inherit the configuration selected for their base GNN in the same rotation when that base is
+    in ``methods`` (as in the shared tuning); otherwise they get their own budget.
+    """
     y = _DATA.providers["y"].to_numpy()
     for k in folds:
         train, val, test = splits()[k]
-        rows = []
-        for name in methods:
+        rows, chosen = [], {}
+        for name in sorted(methods, key=lambda m: m in HYBRID_BASE):        # base models before hybrids
+            base = HYBRID_BASE.get(name)
+            configs = [chosen[base]] if base in chosen else candidate_configs(SPACE_OF[name], budget=BUDGET)
             best, best_hp = None, None
-            for hp in candidate_configs(SPACE_OF[name], budget=BUDGET):
+            for hp in configs:
                 res = run_method(name, hp, train, val, test)
                 if best is None or res["best_val_ap"] > best["best_val_ap"] + 1e-12:
                     best, best_hp = res, hp
+            chosen[name] = best_hp
             m = evaluate_scores(y[val], best["val_scores"], y[test], best["test_scores"], budget=0.10)
             rows.append({"method": name, "fold": k, "hp": best_hp, **m, "best_val_ap": best["best_val_ap"]})
             print(f"nested fold {k} {name:8s} AP {m['ap']:.4f} {best_hp}", flush=True)
-        write_json(OUT_NESTED / "runs" / f"fold{k}.json",
+        write_json(OUT_NESTED / "runs" / (f"fold{k}.json" if tag == "all" else f"fold{k}_{tag}.json"),
                    {"provenance": provenance({"fold": k, "methods": methods, "budget": BUDGET}, data=data_meta),
                     "rows": rows})
 
@@ -147,6 +154,8 @@ def main():
     ap.add_argument("--methods", nargs="+", default=ALL_METHODS)
     ap.add_argument("--folds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     ap.add_argument("--tag", default="all")
+    ap.add_argument("--nested-gnns", action="store_true",
+                    help="with --stage nested: also re-select the GNNs and hybrids per rotation (about 25 CPU-hours)")
     args = ap.parse_args()
     if args.stage == "merge":
         trials = {}
@@ -164,7 +173,8 @@ def main():
     data_meta = {"n_providers": len(_DATA.providers), "n_fraud": int(_DATA.providers["y"].sum()),
                  "P_hash": stable_hash(_DATA.P.round(8).to_numpy().tolist()), "files": "data/external/kaggle_provider_fraud"}
     if args.stage == "nested":
-        nested([m for m in args.methods if m in NESTED_METHODS], args.folds, data_meta)
+        allowed = ALL_METHODS if args.nested_gnns else NESTED_METHODS
+        nested([m for m in args.methods if m in allowed], args.folds, data_meta, tag=args.tag)
         return
     if args.stage == "tune":
         trials = tune([m for m in args.methods if m not in HYBRID_BASE])

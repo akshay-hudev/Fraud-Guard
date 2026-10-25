@@ -211,42 +211,109 @@ def summarise_synthetic(summary: dict) -> None:
     timing.to_csv(TABLES / "synthetic_timing.csv")
 
 
+# Low-volume stress test: runs with frozen hyperparameters (tuned at default volume) and with the
+# tuning protocol repeated on low-volume development worlds.
+LOWVOL_SETS = {"frozen": "synthetic_lowvolume", "retuned": "synthetic_lowvolume_retuned"}
+LOWVOL_LABEL = {"default": "Default volume", "frozen": "Low volume, frozen", "retuned": "Low volume, re-tuned"}
+
+
+def volume_signal(summary: dict, seeds=range(1, 7), densities=(0.1, 0.5, 0.9)) -> None:
+    """Test-period claim volume of ring members versus everyone else, at default and low ring volume (delta = 0)."""
+    from ..synth.generator import GeneratorConfig, generate
+    rows = []
+    for volume in [GeneratorConfig.ring_claims_per_month, 4.0]:
+        for dens in densities:
+            for seed in seeds:
+                w = generate(GeneratorConfig(ring_shift=0.0, ring_density=dens, seed=seed, ring_claims_per_month=volume))
+                test = w.split == "test"
+                c, ft = w.claims.loc[test], w.truth["fraud_type"].to_numpy()[test]
+                rp, rd = set(c.loc[ft == "ring", "patient_id"]), set(c.loc[ft == "ring", "doctor_id"])
+                pc, dc = c.groupby("patient_id").size(), c.groupby("doctor_id").size()
+                is_rp, is_rd = pc.index.isin(list(rp)), dc.index.isin(list(rd))
+                rows.append({"volume": volume, "ring_density": dens, "seed": seed,
+                             "ring_prevalence": float((ft == "ring").sum() / (ft != "isolated").sum()),
+                             "ring_patient_claims": pc[is_rp].mean(), "other_patient_claims": pc[~is_rp].mean(),
+                             "other_patient_claims_p95": pc[~is_rp].quantile(0.95),
+                             "other_patient_claims_p99": pc[~is_rp].quantile(0.99),
+                             "ring_doctor_claims": dc[is_rd].mean(), "other_doctor_claims": dc[~is_rd].mean()})
+    v = pd.DataFrame(rows)
+    out = v.groupby("volume").mean(numeric_only=True).drop(columns=["seed", "ring_density"])
+    out.to_csv(TABLES / "volume_signal.csv")
+    summary["volume_signal"] = out.round(3).to_dict(orient="index")
+
+
+def lowvolume_latex(t: pd.DataFrame, settings: list[str]) -> str:
+    dens = sorted(t.ring_density.unique())
+    t = t.set_index(["setting", "ring_density", "method"])["ring_ap_mean"]
+    cols = [(s, d) for s in settings for d in dens]
+    best = {c: t.loc[c[0], c[1]].idxmax() for c in cols}
+    head = " & ".join(rf"\multicolumn{{{len(dens)}}}{{c}}{{{LOWVOL_LABEL[s]}}}" for s in settings)
+    rules = "".join(rf"\cmidrule(lr){{{2 + i * len(dens)}-{1 + (i + 1) * len(dens)}}}" for i in range(len(settings)))
+    lines = [r"\begin{table}[h]",
+             r"\caption{Ring AP on unseen test rings at $\delta=0$ when ring volume is reduced from 16 to 4 claims per "
+             r"month (mean over six worlds per cell). At low volume ring patients are no longer outliers in claim volume, "
+             r"ring doctors carry no excess volume, and the chance level of ring AP falls from 0.080 to 0.021. Frozen: "
+             r"hyperparameters tuned at default volume; re-tuned: the tuning protocol repeated on low-volume development "
+             r"worlds (hybrids inherit their base configuration). Bold: best per column.}\label{tab:lowvolume}",
+             r"\scriptsize", r"\setlength{\tabcolsep}{3.5pt}",
+             r"\begin{tabular}{@{}l" + "c" * len(cols) + "@{}}", r"\toprule", r" & " + head + r" \\", rules,
+             r"Method / $s$ & " + " & ".join(f"{d:g}" for _ in settings for d in dens) + r" \\", r"\midrule"]
+    groups = [["GB-C", "MLP-C", "LR-CA", "RF-CA", "GB-CA", "GB-CAG"], ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"],
+              ["SAGE+AG", "HGT+AG", "Overlap-score"]]
+    for gi, group in enumerate(groups):
+        for m in group:
+            row = [LABEL.get(m, m)]
+            for c in cols:
+                v = t.get((c[0], c[1], m), np.nan)
+                s = "--" if not np.isfinite(v) else f"{v:.3f}"
+                row.append(rf"\textbf{{{s}}}" if best[c] == m else s)
+            lines.append(" & ".join(row) + r" \\")
+        if gi < len(groups) - 1:
+            lines.append(r"\midrule")
+    lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
+    return "\n".join(lines)
+
+
 def summarise_lowvolume(summary: dict) -> None:
     """Stress test: ring volume 4 instead of 16 claims per month (delta = 0), against the default-volume runs."""
-    low = load_rows("synthetic_lowvolume")
     base = load_rows("synthetic")
-    if low.empty or base.empty:
+    sets = {name: load_rows(sub) for name, sub in LOWVOL_SETS.items()}
+    sets = {name: df[df.ring_shift == 0.0] for name, df in sets.items() if not df.empty}
+    if base.empty or not sets:
         return
-    low = low[low.ring_shift == 0.0].assign(volume=low["ring_claims_per_month"])
-    base = base[base.ring_shift == 0.0].assign(volume=base["ring_claims_per_month"])
-    both = pd.concat([base, low], ignore_index=True)
+    frames = [base[base.ring_shift == 0.0].assign(setting="default")] + [df.assign(setting=k) for k, df in sets.items()]
+    both = pd.concat(frames, ignore_index=True)
     both["ring_chance"] = both["n_ring"] / (both["n_test"] - both["n_isolated"])
-    t = both.groupby(["volume", "ring_density", "method"])[["ring_ap", "isolated_ap", "ap", "ring_chance"]].agg(["mean", "std", "count"])
+    t = both.groupby(["setting", "ring_density", "method"])[["ring_ap", "isolated_ap", "ap", "ring_chance"]].agg(["mean", "std", "count"])
     t.columns = [f"{a}_{b}" for a, b in t.columns]
-    t.reset_index().to_csv(TABLES / "lowvolume_ring_ap.csv", index=False)
+    t = t.reset_index()
+    t.to_csv(TABLES / "lowvolume_ring_ap.csv", index=False)
+    (TABLES / "lowvolume.tex").write_text(lowvolume_latex(t, ["default"] + list(sets)))
     rows = []
-    for metric in ["ring_ap", "isolated_ap", "ap"]:
-        for vol, g in low.groupby("volume"):
+    for setting, g in sets.items():
+        for metric in ["ring_ap", "isolated_ap", "ap"]:
             piv = g.pivot_table(index=["ring_shift", "ring_density", "seed"], columns="method", values=metric)
             for ref in ["GB-CAG", "GB-CA"]:
                 for m in [m for m in SYN_ORDER if m in piv and m != ref]:
                     for dens in sorted(g.ring_density.unique()):
                         cell = piv.xs(dens, level="ring_density")
-                        rows.append({"metric": metric, "volume": vol, "reference": ref, "method": m,
+                        rows.append({"setting": setting, "metric": metric, "reference": ref, "method": m,
                                      "ring_density": dens, **paired_comparison(cell[m].to_numpy(), cell[ref].to_numpy())})
-                    rows.append({"metric": metric, "volume": vol, "reference": ref, "method": m, "ring_density": "pooled",
-                                 **pooled_over_regimes(piv, m, ref)})
+                    rows.append({"setting": setting, "metric": metric, "reference": ref, "method": m,
+                                 "ring_density": "pooled", **pooled_over_regimes(piv, m, ref)})
     c = pd.DataFrame(rows)
     cell = c.ring_density != "pooled"
     # Families: one method-vs-reference comparison across the three densities; pooled rows across methods.
-    c.loc[cell, "t_p_holm"] = c[cell].groupby(["metric", "reference", "method"])["t_p"].transform(lambda p: holm(p.tolist()))
-    c.loc[~cell, "t_p_holm"] = c[~cell].groupby(["metric", "reference"])["t_p"].transform(lambda p: holm(p.tolist()))
+    keys = ["setting", "metric", "reference"]
+    c.loc[cell, "t_p_holm"] = c[cell].groupby(keys + ["method"])["t_p"].transform(lambda p: holm(p.tolist()))
+    c.loc[~cell, "t_p_holm"] = c[~cell].groupby(keys)["t_p"].transform(lambda p: holm(p.tolist()))
     c.to_csv(TABLES / "lowvolume_comparisons.csv", index=False)
+    pooled = c[(c.metric == "ring_ap") & (c.reference == "GB-CAG") & ~cell]
     summary["lowvolume"] = {
-        "worlds_per_density": low.groupby("ring_density")["seed"].nunique().to_dict().__repr__(),
-        "ring_chance": float(low["n_ring"].sum() / (low["n_test"] - low["n_isolated"]).sum() * 1.0),
-        "ring_ap_pooled_vs_gbcag": c[(c.metric == "ring_ap") & (c.reference == "GB-CAG") & ~cell]
-        .set_index("method")[["mean_diff", "ci_low", "ci_high", "t_p_holm"]].round(4).to_dict(orient="index")}
+        "worlds_per_density": {k: df.groupby("ring_density")["seed"].nunique().to_dict().__repr__() for k, df in sets.items()},
+        "ring_chance": float(t[t.setting != "default"]["ring_chance_mean"].mean()),
+        "ring_ap_pooled_vs_gbcag": {s: g.set_index("method")[["mean_diff", "ci_low", "ci_high", "t_p_holm"]].round(4)
+                                    .to_dict(orient="index") for s, g in pooled.groupby("setting")}}
 
 
 def summarise_persistent(summary: dict) -> None:
@@ -701,6 +768,7 @@ def main():
     hyperparameter_table()
     summary = {}
     summarise_synthetic(summary)
+    volume_signal(summary)
     summarise_lowvolume(summary)
     summarise_persistent(summary)
     summarise_ablation(summary)

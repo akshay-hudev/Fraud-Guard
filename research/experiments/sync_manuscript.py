@@ -18,7 +18,7 @@ MANUSCRIPT = REPO_ROOT / "fraud_detection_paper.tex"
 TABLES = {"tab:regime_ringap": "synthetic_ring_ap.tex", "tab:pooled": "synthetic_pooled.tex",
           "tab:regime_isoap": "synthetic_isolated_ap.tex", "tab:ablation": "ablation.tex", "tab:hgt_arch": "hgt_arch.tex",
           "tab:protocol": "protocol.tex", "tab:kaggle": "kaggle.tex", "tab:cascade": "cascade.tex",
-          "tab:legacy": "legacy.tex", "tab:hyperparams": "hyperparameters.tex"}
+          "tab:legacy": "legacy.tex", "tab:hyperparams": "hyperparameters.tex", "tab:lowvolume": "lowvolume.tex"}
 BLOCK = re.compile(r"\\begin\{table\}.*?\\end\{table\}", re.S)
 
 

@@ -127,7 +127,9 @@ def run_dataset(cfg: GeneratorConfig, methods: list[str], hps: dict, model_seed:
 
 
 def run_tag(cfg: GeneratorConfig, model_seed: int) -> str:
-    return f"{cfg.protocol}_d{cfg.ring_shift}_s{cfg.ring_density}_g{cfg.seed}_m{model_seed}"
+    # Ring volume appears in the tag only when it differs from the default, so existing tags are unchanged.
+    volume = "" if cfg.ring_claims_per_month == GeneratorConfig.ring_claims_per_month else f"_v{cfg.ring_claims_per_month:g}"
+    return f"{cfg.protocol}_d{cfg.ring_shift}_s{cfg.ring_density}{volume}_g{cfg.seed}_m{model_seed}"
 
 
 def load_hps(path: Path) -> dict:
@@ -141,6 +143,8 @@ def main():
     ap.add_argument("--densities", type=float, nargs="+", default=[0.1, 0.5, 0.9])
     ap.add_argument("--seeds", type=int, nargs="+", default=list(range(1, 11)))
     ap.add_argument("--persistent", type=int, default=0, help="number of persistent rings (0 = emergent protocol)")
+    ap.add_argument("--ring-claims-per-month", type=float, default=GeneratorConfig.ring_claims_per_month,
+                    help="ring claim volume (default 16; the low-volume stress test uses 4)")
     ap.add_argument("--methods", nargs="+", default=ALL_METHODS)
     ap.add_argument("--hps", default=str(RESULTS_DIR / "tuning" / "best_hyperparameters.json"))
     ap.add_argument("--out", default=str(RESULTS_DIR / "synthetic"))
@@ -148,7 +152,8 @@ def main():
     args = ap.parse_args()
     hps, out = load_hps(Path(args.hps)), Path(args.out)
     for shift, dens, seed in itertools.product(args.shifts, args.densities, args.seeds):
-        cfg = GeneratorConfig(ring_shift=shift, ring_density=dens, seed=seed, persistent_rings=args.persistent)
+        cfg = GeneratorConfig(ring_shift=shift, ring_density=dens, seed=seed, persistent_rings=args.persistent,
+                              ring_claims_per_month=args.ring_claims_per_month)
         if (out / "runs" / f"{run_tag(cfg, 0)}__{args.group}.json").exists():
             continue
         print(f"[{run_tag(cfg, 0)} {args.group}]", flush=True)

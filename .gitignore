@@ -76,3 +76,7 @@ htmlcov/
 data/external/
 results/**/predictions/
 results/**/cache/
+
+# HISS upload bundle (generated from the manuscript, class file and results/figures)
+paper/hiss_submission/
+paper/hiss_submission.zip

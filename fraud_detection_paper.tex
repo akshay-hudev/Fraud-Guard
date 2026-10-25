@@ -1,4 +1,4 @@
-\documentclass[pdflatex,sn-mathphys-num]{sn-jnl}
+\documentclass[pdflatex,sn-vancouver-num]{sn-jnl}
 
 \usepackage{graphicx}
 \usepackage{multirow}
@@ -38,33 +38,33 @@
 
 \abstract{\mathversion{normal}\textbf{Purpose:} Graph neural networks (GNNs) are
 proposed for healthcare insurance fraud because collusive provider rings
-leave traces in the patient--provider network, but when they beat tabular
+leave traces in claim networks, but when they beat tabular
 models is unclear.
-\textbf{Methods:} We built a synthetic claims benchmark that varies the
-feature-level signal of ring claims and the density of the ring's
-doctor--patient block independently, tests on rings of unseen doctors
-and patients, and analyses audit periods separately to avoid leakage. We
-compared 14 methods, including gradient boosting with and without engineered
-graph features and five heterogeneous GNNs, with equal tuning budgets over
-54 generated worlds in nine regimes, evaluated routing from gradient boosting
+\textbf{Methods:} We built a synthetic benchmark that independently
+varies the feature-level signal and the doctor--patient density of fraud
+rings, tests on rings of unseen doctors and patients, and analyses audit
+periods separately to avoid leakage. We compared 14 equally tuned methods,
+including gradient boosting with and without engineered graph features and
+five heterogeneous GNNs, over 54 worlds in nine regimes,
+evaluated routing from gradient boosting
 to a GNN, and checked the findings against public provider-labelled
 Medicare-style data (5{,}410 providers).
 \textbf{Results:} Without a feature-level signal, claim-only models were at
 chance, while per-entity aggregates detected most rings (average precision
-0.89--0.93); structure added up to 0.10, only when ring members were
-moderately or densely interlinked. Pooled over worlds, no GNN
+0.89--0.93); structure added up to 0.10, only for moderately or densely
+interlinked rings. Pooled over worlds, no GNN
 outperformed gradient boosting with engineered graph features (GraphSAGE
 $-0.0001$, HGT $-0.011$), and GNNs were 0.08--0.15 worse on isolated fraud.
 Routing high-risk claims to
 a GNN gained nothing; fusing both models' rankings gained at most 0.006. Test
-rings sharing members with training rings inflated performance by up to 0.60. On real data, gradient boosting on provider aggregates was best
-(0.704), and graph information did not help.
+rings reusing training-ring members inflated performance by up to 0.60. On real data, gradient boosting on provider aggregates was best
+(0.704); graph information did not help.
 \textbf{Conclusion:} Relational modelling pays off only for dense collusion
 and then mainly through structure that simple engineered features
 capture. Graph models should be evaluated against graph-augmented tabular
 baselines on unseen entities.}
 
-\keywords{Healthcare fraud detection, provider rings, heterogeneous graph neural networks, gradient boosting, synthetic benchmark, data leakage, evaluation methodology}
+\keywords{Healthcare fraud detection, Provider rings, Heterogeneous graph neural networks, Gradient boosting, Synthetic benchmark, Data leakage}
 
 
 \maketitle
@@ -113,7 +113,8 @@ real data. Our contributions are:
   keeps features and graphs free of future information
   (Section~\ref{sec:benchmark}). Code, generator and tests are released.
 \item \textbf{A controlled comparison} of 14 methods---tabular models with and
-  without engineered graph features, an MLP control, five heterogeneous GNNs,
+  without engineered graph features, a multilayer perceptron (MLP) control,
+  five heterogeneous GNNs,
   two hybrids and an unsupervised overlap score---with an equal tuning
   budget, nine regimes, six independently generated worlds per regime and
   paired statistics, together with an evaluation of two-stage routing from
@@ -139,7 +140,8 @@ evidence, because ring members are unusually active. Coordination structure
 adds measurable value only when the ring's doctor--patient block is dense.
 Where it does, gradient boosting with a few engineered shared-patient features
 is as good as or better than every GNN we tested; GNNs that also receive those
-features gain a small but consistent amount ($+0.008$ AP pooled). GNNs are
+features gain a small but consistent amount ($+0.008$ in average precision,
+AP, pooled over all worlds). GNNs are
 clearly worse on isolated fraud, because message passing dilutes claim-level
 anomalies. HGT's ring detection is structural: it collapses without degree
 encodings and survives with degree encodings as its only inputs. Routing
@@ -418,6 +420,13 @@ regime with paired $t$-tests across worlds; $p$-values are Holm-adjusted
 within each pre-specified family of comparisons~\cite{holm1979}, and
 Wilcoxon signed-rank tests are reported as a robustness check~\cite{demsar2006}.
 Intervals are 95\% $t$-intervals over worlds.
+
+\subsection{Use of AI tools}\label{sec:aitools}
+An AI coding assistant (Claude, Anthropic) was used to help write and review
+the analysis code, run and document the experiments, and draft and edit parts
+of the text. All reported numbers are produced by the released code
+(Section~\ref{sec:repro}). The authors reviewed all code, analyses and text
+and take full responsibility for the content.
 
 
 \section{Real-World Data}\label{sec:realdata}
@@ -1244,7 +1253,7 @@ deviations, F1, ROC-AUC and recall at a fixed investigation budget for every
 regime and method), the tuning logs and the test predictions underlying every
 table and figure.
 
-\section*{Declarations}
+\section*{Statements and Declarations}
 
 \begin{itemize}
 \item \textbf{Funding.} The authors did not receive support from any organization for the submitted work.
@@ -1323,176 +1332,259 @@ HGT & dropout=0.3; heads=4; hidden=32; layers=3; lr=0.01; weight decay=1e-05 & d
 \end{appendices}
 
 
-\begin{thebibliography}{99}
+\begin{thebibliography}{10}
+\providecommand{\doi}[1]{\url{https://doi.org/#1}}
+\bibcommenthead
 
-\bibitem{nhcaa}
-National Health Care Anti-Fraud Association: The Challenge of Health Care Fraud.
-\url{https://www.nhcaa.org/tools-insights/about-health-care-fraud/the-challenge-of-health-care-fraud/}.
-Accessed 20 October 2026
+\bibitem[\protect\citeauthoryear{{National Health Care Anti-Fraud
+  Association}}{}]{nhcaa}
+{National Health Care Anti-Fraud Association}. The Challenge of Health Care
+  Fraud.
+\newblock Accessed 20 October 2026.
+\newblock Available from:
+  \url{https://www.nhcaa.org/tools-insights/about-health-care-fraud/the-challenge-of-health-care-fraud/}.
 
-\bibitem{bauder2017}
-Bauder, R.A., Khoshgoftaar, T.M.: Medicare fraud detection using machine learning methods.
-In: Proc. 16th IEEE International Conference on Machine Learning and Applications (ICMLA), pp. 858--865 (2017)
+\bibitem[\protect\citeauthoryear{Schlichtkrull
+  et~al.}{2018}]{schlichtkrull2018}
+Schlichtkrull M, Kipf TN, Bloem P, van~den Berg R, Titov I, Welling M.
+\newblock Modeling relational data with graph convolutional networks.
+\newblock In: The Semantic Web (ESWC 2018). Lecture Notes in Computer Science,
+  vol. 10843. Springer; 2018. p. 593--607.
 
-\bibitem{herland2018}
-Herland, M., Khoshgoftaar, T.M., Bauder, R.A.: Big data fraud detection using multiple Medicare data sources.
-Journal of Big Data \textbf{5}, 29 (2018)
+\bibitem[\protect\citeauthoryear{Wang et~al.}{2019}]{wang2019han}
+Wang X, Ji H, Shi C, Wang B, Ye Y, Cui P, et~al.
+\newblock Heterogeneous graph attention network.
+\newblock In: Proceedings of the World Wide Web Conference (WWW); 2019. p.
+  2022--2032.
 
-\bibitem{johnson2019}
-Johnson, J.M., Khoshgoftaar, T.M.: Medicare fraud detection using neural networks.
-Journal of Big Data \textbf{6}, 63 (2019)
+\bibitem[\protect\citeauthoryear{Hu et~al.}{2020}]{hu2020hgt}
+Hu Z, Dong Y, Wang K, Sun Y.
+\newblock Heterogeneous graph transformer.
+\newblock In: Proceedings of the Web Conference 2020 (WWW); 2020. p.
+  2704--2710.
 
-\bibitem{thornton2013}
-Thornton, D., Mueller, R.M., Schoutsen, P., van Hillegersberg, J.: Predicting healthcare fraud in Medicaid:
-a multidimensional data model and analysis techniques for fraud detection.
-Procedia Technology \textbf{9}, 1252--1264 (2013)
+\bibitem[\protect\citeauthoryear{Lv et~al.}{2021}]{lv2021}
+Lv Q, Ding M, Liu Q, Chen Y, Feng W, He S, et~al.
+\newblock Are we really making much progress? {R}evisiting, benchmarking and
+  refining heterogeneous graph neural networks.
+\newblock In: Proceedings of the 27th ACM SIGKDD Conference on Knowledge
+  Discovery and Data Mining; 2021. p. 1150--1160.
 
-\bibitem{akoglu2015}
-Akoglu, L., Tong, H., Koutra, D.: Graph based anomaly detection and description: a survey.
-Data Mining and Knowledge Discovery \textbf{29}(3), 626--688 (2015)
+\bibitem[\protect\citeauthoryear{Grinsztajn et~al.}{2022}]{grinsztajn2022}
+Grinsztajn L, Oyallon E, Varoquaux G.
+\newblock Why do tree-based models still outperform deep learning on typical
+  tabular data?
+\newblock In: Advances in Neural Information Processing Systems 35 (NeurIPS),
+  Datasets and Benchmarks Track; 2022.
 
-\bibitem{pourhabibi2020}
-Pourhabibi, T., Ong, K.-L., Kam, B.H., Boo, Y.L.: Fraud detection: a systematic literature review of
-graph-based anomaly detection approaches. Decision Support Systems \textbf{133}, 113303 (2020). \url{https://doi.org/10.1016/j.dss.2020.113303}
+\bibitem[\protect\citeauthoryear{Weber et~al.}{2019}]{weber2019elliptic}
+Weber M, Domeniconi G, Chen J, Weidele DKI, Bellei C, Robinson T, et~al.
+\newblock Anti-money laundering in {Bitcoin}: experimenting with graph
+  convolutional networks for financial forensics.
+\newblock In: KDD Workshop on Anomaly Detection in Finance; 2019.
+  {arXiv}:1908.02591.
 
-\bibitem{akoglu2010oddball}
-Akoglu, L., McGlohon, M., Faloutsos, C.: OddBall: spotting anomalies in weighted graphs.
-In: Advances in Knowledge Discovery and Data Mining (PAKDD), LNCS, vol. 6119, pp. 410--421. Springer (2010)
+\bibitem[\protect\citeauthoryear{Tang et~al.}{2023}]{tang2023gadbench}
+Tang J, Hua F, Gao Z, Zhao P, Li J.
+\newblock {GADBench}: revisiting and benchmarking supervised graph anomaly
+  detection.
+\newblock In: Advances in Neural Information Processing Systems 36 (NeurIPS),
+  Datasets and Benchmarks Track; 2023.
 
-\bibitem{beutel2013copycatch}
-Beutel, A., Xu, W., Guruswami, V., Palow, C., Faloutsos, C.: CopyCatch: stopping group attacks by spotting
-lockstep behavior in social networks. In: Proc. 22nd International Conference on World Wide Web (WWW), pp. 119--130 (2013)
+\bibitem[\protect\citeauthoryear{Kaufman et~al.}{2012}]{kaufman2012leakage}
+Kaufman S, Rosset S, Perlich C, Stitelman O.
+\newblock Leakage in data mining: formulation, detection, and avoidance.
+\newblock ACM Transactions on Knowledge Discovery from Data. 2012;6(4):15.
 
-\bibitem{hooi2016fraudar}
-Hooi, B., Song, H.A., Beutel, A., Shah, N., Shin, K., Faloutsos, C.: FRAUDAR: bounding graph fraud in the face
-of camouflage. In: Proc. 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, pp. 895--904 (2016)
+\bibitem[\protect\citeauthoryear{Kapoor and
+  Narayanan}{2023}]{kapoor2023leakage}
+Kapoor S, Narayanan A.
+\newblock Leakage and the reproducibility crisis in machine-learning-based
+  science.
+\newblock Patterns. 2023;4(9):100804.
 
-\bibitem{wang2019fdgars}
-Wang, J., Wen, R., Wu, C., Huang, Y., Xiong, J.: FdGars: fraudster detection via graph convolutional networks in
-online app review system. In: Companion Proceedings of the 2019 World Wide Web Conference, pp. 310--316 (2019)
+\bibitem[\protect\citeauthoryear{Bauder and Khoshgoftaar}{2017}]{bauder2017}
+Bauder RA, Khoshgoftaar TM.
+\newblock Medicare fraud detection using machine learning methods.
+\newblock In: Proceedings of the 16th IEEE International Conference on Machine
+  Learning and Applications (ICMLA); 2017. p. 858--865.
 
-\bibitem{zhang2019player2vec}
-Zhang, Y., Fan, Y., Ye, Y., Zhao, L., Shi, C.: Key player identification in underground forums over attributed
-heterogeneous information network embedding framework. In: Proc. 28th ACM International Conference on
-Information and Knowledge Management (CIKM), pp. 549--558 (2019)
+\bibitem[\protect\citeauthoryear{Herland et~al.}{2018}]{herland2018}
+Herland M, Khoshgoftaar TM, Bauder RA.
+\newblock Big data fraud detection using multiple {Medicare} data sources.
+\newblock Journal of Big Data. 2018;5:29.
 
-\bibitem{dou2020care}
-Dou, Y., Liu, Z., Sun, L., Deng, Y., Peng, H., Yu, P.S.: Enhancing graph neural network-based fraud detectors
-against camouflaged fraudsters. In: Proc. 29th ACM International Conference on Information and Knowledge
-Management (CIKM), pp. 315--324 (2020)
+\bibitem[\protect\citeauthoryear{Johnson and Khoshgoftaar}{2019}]{johnson2019}
+Johnson JM, Khoshgoftaar TM.
+\newblock Medicare fraud detection using neural networks.
+\newblock Journal of Big Data. 2019;6:63.
 
-\bibitem{liu2021pcgnn}
-Liu, Y., Ao, X., Qin, Z., Chi, J., Feng, J., Yang, H., He, Q.: Pick and choose: a GNN-based imbalanced learning
-approach for fraud detection. In: Proc. Web Conference 2021 (WWW), pp. 3168--3177 (2021)
+\bibitem[\protect\citeauthoryear{Thornton et~al.}{2013}]{thornton2013}
+Thornton D, Mueller RM, Schoutsen P, van Hillegersberg J.
+\newblock Predicting healthcare fraud in {Medicaid}: a multidimensional data
+  model and analysis techniques for fraud detection.
+\newblock Procedia Technology. 2013;9:1252--1264.
 
-\bibitem{tang2022bwgnn}
-Tang, J., Li, J., Gao, Z., Li, J.: Rethinking graph neural networks for anomaly detection.
-In: Proc. 39th International Conference on Machine Learning (ICML), PMLR, vol. 162, pp. 21076--21089 (2022)
+\bibitem[\protect\citeauthoryear{Akoglu et~al.}{2015}]{akoglu2015}
+Akoglu L, Tong H, Koutra D.
+\newblock Graph based anomaly detection and description: a survey.
+\newblock Data Mining and Knowledge Discovery. 2015;29(3):626--688.
 
-\bibitem{schlichtkrull2018}
-Schlichtkrull, M., Kipf, T.N., Bloem, P., van den Berg, R., Titov, I., Welling, M.: Modeling relational data
-with graph convolutional networks. In: The Semantic Web (ESWC 2018), LNCS, vol. 10843, pp. 593--607. Springer (2018)
+\bibitem[\protect\citeauthoryear{Pourhabibi et~al.}{2020}]{pourhabibi2020}
+Pourhabibi T, Ong KL, Kam BH, Boo YL.
+\newblock Fraud detection: a systematic literature review of graph-based
+  anomaly detection approaches.
+\newblock Decision Support Systems. 2020;133:113303.
+\newblock \doi{10.1016/j.dss.2020.113303}.
 
-\bibitem{wang2019han}
-Wang, X., Ji, H., Shi, C., Wang, B., Ye, Y., Cui, P., Yu, P.S.: Heterogeneous graph attention network.
-In: Proc. World Wide Web Conference (WWW), pp. 2022--2032 (2019)
+\bibitem[\protect\citeauthoryear{Akoglu et~al.}{2010}]{akoglu2010oddball}
+Akoglu L, McGlohon M, Faloutsos C.
+\newblock {OddBall}: spotting anomalies in weighted graphs.
+\newblock In: Advances in Knowledge Discovery and Data Mining (PAKDD). Lecture
+  Notes in Computer Science, vol. 6119. Springer; 2010. p. 410--421.
 
-\bibitem{hu2020hgt}
-Hu, Z., Dong, Y., Wang, K., Sun, Y.: Heterogeneous graph transformer.
-In: Proc. Web Conference 2020 (WWW), pp. 2704--2710 (2020)
+\bibitem[\protect\citeauthoryear{Beutel et~al.}{2013}]{beutel2013copycatch}
+Beutel A, Xu W, Guruswami V, Palow C, Faloutsos C.
+\newblock {CopyCatch}: stopping group attacks by spotting lockstep behavior in
+  social networks.
+\newblock In: Proceedings of the 22nd International Conference on World Wide
+  Web (WWW); 2013. p. 119--130.
 
-\bibitem{lv2021}
-Lv, Q., Ding, M., Liu, Q., Chen, Y., Feng, W., He, S., Zhou, C., Jiang, J., Dong, Y., Tang, J.: Are we really
-making much progress? Revisiting, benchmarking and refining heterogeneous graph neural networks.
-In: Proc. 27th ACM SIGKDD Conference on Knowledge Discovery and Data Mining, pp. 1150--1160 (2021)
+\bibitem[\protect\citeauthoryear{Hooi et~al.}{2016}]{hooi2016fraudar}
+Hooi B, Song HA, Beutel A, Shah N, Shin K, Faloutsos C.
+\newblock {FRAUDAR}: bounding graph fraud in the face of camouflage.
+\newblock In: Proceedings of the 22nd ACM SIGKDD International Conference on
+  Knowledge Discovery and Data Mining; 2016. p. 895--904.
 
-\bibitem{hamilton2017sage}
-Hamilton, W.L., Ying, R., Leskovec, J.: Inductive representation learning on large graphs.
-In: Advances in Neural Information Processing Systems 30 (NeurIPS), pp. 1024--1034 (2017)
+\bibitem[\protect\citeauthoryear{Wang et~al.}{2019}]{wang2019fdgars}
+Wang J, Wen R, Wu C, Huang Y, Xiong J.
+\newblock {FdGars}: fraudster detection via graph convolutional networks in
+  online app review system.
+\newblock In: Companion Proceedings of the 2019 World Wide Web Conference;
+  2019. p. 310--316.
 
-\bibitem{xu2019gin}
-Xu, K., Hu, W., Leskovec, J., Jegelka, S.: How powerful are graph neural networks?
-In: International Conference on Learning Representations (ICLR) (2019)
+\bibitem[\protect\citeauthoryear{Zhang et~al.}{2019}]{zhang2019player2vec}
+Zhang Y, Fan Y, Ye Y, Zhao L, Shi C.
+\newblock Key player identification in underground forums over attributed
+  heterogeneous information network embedding framework.
+\newblock In: Proceedings of the 28th ACM International Conference on
+  Information and Knowledge Management (CIKM); 2019. p. 549--558.
 
-\bibitem{weber2019elliptic}
-Weber, M., Domeniconi, G., Chen, J., Weidele, D.K.I., Bellei, C., Robinson, T., Leiserson, C.E.: Anti-money
-laundering in Bitcoin: experimenting with graph convolutional networks for financial forensics.
-KDD Workshop on Anomaly Detection in Finance (2019). arXiv:1908.02591
+\bibitem[\protect\citeauthoryear{Dou et~al.}{2020}]{dou2020care}
+Dou Y, Liu Z, Sun L, Deng Y, Peng H, Yu PS.
+\newblock Enhancing graph neural network-based fraud detectors against
+  camouflaged fraudsters.
+\newblock In: Proceedings of the 29th ACM International Conference on
+  Information and Knowledge Management (CIKM); 2020. p. 315--324.
 
-\bibitem{tang2023gadbench}
-Tang, J., Hua, F., Gao, Z., Zhao, P., Li, J.: GADBench: revisiting and benchmarking supervised graph anomaly
-detection. In: Advances in Neural Information Processing Systems 36 (NeurIPS), Datasets and Benchmarks Track (2023)
+\bibitem[\protect\citeauthoryear{Liu et~al.}{2021}]{liu2021pcgnn}
+Liu Y, Ao X, Qin Z, Chi J, Feng J, Yang H, et~al.
+\newblock Pick and choose: a {GNN}-based imbalanced learning approach for fraud
+  detection.
+\newblock In: Proceedings of the Web Conference 2021 (WWW); 2021. p.
+  3168--3177.
 
-\bibitem{grinsztajn2022}
-Grinsztajn, L., Oyallon, E., Varoquaux, G.: Why do tree-based models still outperform deep learning on typical
-tabular data? In: Advances in Neural Information Processing Systems 35 (NeurIPS), Datasets and Benchmarks Track (2022)
+\bibitem[\protect\citeauthoryear{Tang et~al.}{2022}]{tang2022bwgnn}
+Tang J, Li J, Gao Z, Li J.
+\newblock Rethinking graph neural networks for anomaly detection.
+\newblock In: Proceedings of the 39th International Conference on Machine
+  Learning (ICML). PMLR, vol. 162; 2022. p. 21076--21089.
 
-\bibitem{altman2023aml}
-Altman, E., Blanu\v{s}a, J., von Nieder\"ausern, L., Egressy, B., Anghel, A., Atasu, K.: Realistic synthetic
-financial transactions for anti-money laundering models. In: Advances in Neural Information Processing
-Systems 36 (NeurIPS), Datasets and Benchmarks Track (2023)
+\bibitem[\protect\citeauthoryear{Altman et~al.}{2023}]{altman2023aml}
+Altman E, Blanu{\v{s}}a J, von Nieder{\"a}usern L, Egressy B, Anghel A, Atasu
+  K.
+\newblock Realistic synthetic financial transactions for anti-money laundering
+  models.
+\newblock In: Advances in Neural Information Processing Systems 36 (NeurIPS),
+  Datasets and Benchmarks Track; 2023.
 
-\bibitem{jesus2022baf}
-Jesus, S., Pombal, J., Alves, D., Cruz, A., Saleiro, P., Ribeiro, R., Gama, J., Bizarro, P.: Turning the tables:
-biased, imbalanced, dynamic tabular datasets for ML evaluation. In: Advances in Neural Information Processing
-Systems 35 (NeurIPS), Datasets and Benchmarks Track (2022)
+\bibitem[\protect\citeauthoryear{Jesus et~al.}{2022}]{jesus2022baf}
+Jesus S, Pombal J, Alves D, Cruz A, Saleiro P, Ribeiro R, et~al.
+\newblock Turning the tables: biased, imbalanced, dynamic tabular datasets for
+  {ML} evaluation.
+\newblock In: Advances in Neural Information Processing Systems 35 (NeurIPS),
+  Datasets and Benchmarks Track; 2022.
 
-\bibitem{kaufman2012leakage}
-Kaufman, S., Rosset, S., Perlich, C., Stitelman, O.: Leakage in data mining: formulation, detection, and avoidance.
-ACM Transactions on Knowledge Discovery from Data \textbf{6}(4), 15 (2012)
+\bibitem[\protect\citeauthoryear{Shchur et~al.}{2018}]{shchur2018pitfalls}
+Shchur O, Mumme M, Bojchevski A, G{\"u}nnemann S.
+\newblock Pitfalls of graph neural network evaluation.
+\newblock In: NeurIPS Workshop on Relational Representation Learning; 2018.
+  {arXiv}:1811.05868.
 
-\bibitem{kapoor2023leakage}
-Kapoor, S., Narayanan, A.: Leakage and the reproducibility crisis in machine-learning-based science.
-Patterns \textbf{4}(9), 100804 (2023)
+\bibitem[\protect\citeauthoryear{Xu et~al.}{2019}]{xu2019gin}
+Xu K, Hu W, Leskovec J, Jegelka S.
+\newblock How powerful are graph neural networks?
+\newblock In: International Conference on Learning Representations (ICLR);
+  2019.
 
-\bibitem{shchur2018pitfalls}
-Shchur, O., Mumme, M., Bojchevski, A., G\"unnemann, S.: Pitfalls of graph neural network evaluation.
-NeurIPS Workshop on Relational Representation Learning (2018). arXiv:1811.05868
+\bibitem[\protect\citeauthoryear{Ke et~al.}{2017}]{ke2017lightgbm}
+Ke G, Meng Q, Finley T, Wang T, Chen W, Ma W, et~al.
+\newblock {LightGBM}: a highly efficient gradient boosting decision tree.
+\newblock In: Advances in Neural Information Processing Systems 30 (NeurIPS);
+  2017. p. 3146--3154.
 
-\bibitem{saito2015pr}
-Saito, T., Rehmsmeier, M.: The precision-recall plot is more informative than the ROC plot when evaluating
-binary classifiers on imbalanced datasets. PLoS ONE \textbf{10}(3), e0118432 (2015)
+\bibitem[\protect\citeauthoryear{Hamilton et~al.}{2017}]{hamilton2017sage}
+Hamilton WL, Ying R, Leskovec J.
+\newblock Inductive representation learning on large graphs.
+\newblock In: Advances in Neural Information Processing Systems 30 (NeurIPS);
+  2017. p. 1024--1034.
 
-\bibitem{demsar2006}
-Dem\v{s}ar, J.: Statistical comparisons of classifiers over multiple data sets.
-Journal of Machine Learning Research \textbf{7}, 1--30 (2006)
+\bibitem[\protect\citeauthoryear{Pedregosa et~al.}{2011}]{pedregosa2011}
+Pedregosa F, et~al.
+\newblock Scikit-learn: machine learning in {Python}.
+\newblock Journal of Machine Learning Research. 2011;12:2825--2830.
 
-\bibitem{holm1979}
-Holm, S.: A simple sequentially rejective multiple test procedure.
-Scandinavian Journal of Statistics \textbf{6}(2), 65--70 (1979)
+\bibitem[\protect\citeauthoryear{Fey and Lenssen}{2019}]{fey2019}
+Fey M, Lenssen JE.
+\newblock Fast graph representation learning with {PyTorch Geometric}.
+\newblock In: ICLR Workshop on Representation Learning on Graphs and Manifolds;
+  2019. {arXiv}:1903.02428.
 
-\bibitem{ke2017lightgbm}
-Ke, G., Meng, Q., Finley, T., Wang, T., Chen, W., Ma, W., Ye, Q., Liu, T.-Y.: LightGBM: a highly efficient
-gradient boosting decision tree. In: Advances in Neural Information Processing Systems 30 (NeurIPS), pp. 3146--3154 (2017)
+\bibitem[\protect\citeauthoryear{Saito and Rehmsmeier}{2015}]{saito2015pr}
+Saito T, Rehmsmeier M.
+\newblock The precision-recall plot is more informative than the {ROC} plot
+  when evaluating binary classifiers on imbalanced datasets.
+\newblock PLoS ONE. 2015;10(3):e0118432.
 
-\bibitem{pedregosa2011}
-Pedregosa, F., et al.: Scikit-learn: machine learning in Python.
-Journal of Machine Learning Research \textbf{12}, 2825--2830 (2011)
+\bibitem[\protect\citeauthoryear{Holm}{1979}]{holm1979}
+Holm S.
+\newblock A simple sequentially rejective multiple test procedure.
+\newblock Scandinavian Journal of Statistics. 1979;6(2):65--70.
 
-\bibitem{fey2019}
-Fey, M., Lenssen, J.E.: Fast graph representation learning with PyTorch Geometric.
-ICLR Workshop on Representation Learning on Graphs and Manifolds (2019). arXiv:1903.02428
+\bibitem[\protect\citeauthoryear{Dem{\v{s}}ar}{2006}]{demsar2006}
+Dem{\v{s}}ar J.
+\newblock Statistical comparisons of classifiers over multiple data sets.
+\newblock Journal of Machine Learning Research. 2006;7:1--30.
 
-\bibitem{kaggle2019}
-Gupta, R.A.: Healthcare Provider Fraud Detection Analysis (dataset). Kaggle (2019).
-\url{https://www.kaggle.com/datasets/rohitrox/healthcare-provider-fraud-detection-analysis}. CC0 1.0. Accessed 20 October 2026
+\bibitem[\protect\citeauthoryear{Gupta}{2019}]{kaggle2019}
+Gupta RA. Healthcare Provider Fraud Detection Analysis (dataset).
+\newblock Kaggle; 2019. CC0 1.0. Accessed 20 October 2026.
+\newblock Available from:
+  \url{https://www.kaggle.com/datasets/rohitrox/healthcare-provider-fraud-detection-analysis}.
 
-\bibitem{walonoski2018synthea}
-Walonoski, J., Kramer, M., Nichols, J., Quina, A., Moesel, C., Hall, D., Duffett, C., Dube, K., Gallagher, T.,
-McLachlan, S.: Synthea: an approach, method, and software mechanism for generating synthetic patients and the
-synthetic electronic health care record. Journal of the American Medical Informatics Association \textbf{25}(3), 230--238 (2018)
+\bibitem[\protect\citeauthoryear{Rossi et~al.}{2020}]{rossi2020tgn}
+Rossi E, Chamberlain B, Frasca F, Eynard D, Monti F, Bronstein M. Temporal
+  graph networks for deep learning on dynamic graphs.
+\newblock {arXiv}:2006.10637; 2020.
 
-\bibitem{rossi2020tgn}
-Rossi, E., Chamberlain, B., Frasca, F., Eynard, D., Monti, F., Bronstein, M.: Temporal graph networks for deep
-learning on dynamic graphs. arXiv:2006.10637 (2020)
+\bibitem[\protect\citeauthoryear{Walonoski et~al.}{2018}]{walonoski2018synthea}
+Walonoski J, Kramer M, Nichols J, Quina A, Moesel C, Hall D, et~al.
+\newblock Synthea: an approach, method, and software mechanism for generating
+  synthetic patients and the synthetic electronic health care record.
+\newblock Journal of the American Medical Informatics Association.
+  2018;25(3):230--238.
 
-\bibitem{gebru2021datasheets}
-Gebru, T., Morgenstern, J., Vecchione, B., Vaughan, J.W., Wallach, H., Daum\'e III, H., Crawford, K.:
-Datasheets for datasets. Communications of the ACM \textbf{64}(12), 86--92 (2021)
+\bibitem[\protect\citeauthoryear{Kapoor et~al.}{2024}]{kapoor2024reforms}
+Kapoor S, Cantrell EM, Peng K, et~al.
+\newblock {REFORMS}: consensus-based recommendations for machine-learning-based
+  science.
+\newblock Science Advances. 2024;10(18):eadk3452.
 
-\bibitem{kapoor2024reforms}
-Kapoor, S., Cantrell, E.M., Peng, K., et al.: REFORMS: consensus-based recommendations for machine-learning-based
-science. Science Advances \textbf{10}(18), eadk3452 (2024)
+\bibitem[\protect\citeauthoryear{Gebru et~al.}{2021}]{gebru2021datasheets}
+Gebru T, Morgenstern J, Vecchione B, Vaughan JW, Wallach H, {Daum{\'e} III} H,
+  et~al.
+\newblock Datasheets for datasets.
+\newblock Communications of the ACM. 2021;64(12):86--92.
 
 \end{thebibliography}
 

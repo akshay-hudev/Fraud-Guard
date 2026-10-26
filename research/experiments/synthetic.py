@@ -145,6 +145,7 @@ def main():
     ap.add_argument("--persistent", type=int, default=0, help="number of persistent rings (0 = emergent protocol)")
     ap.add_argument("--ring-claims-per-month", type=float, default=GeneratorConfig.ring_claims_per_month,
                     help="ring claim volume (default 16; the low-volume stress test uses 4)")
+    ap.add_argument("--model-seed", type=int, default=0, help="training seed (all reported runs use 0)")
     ap.add_argument("--methods", nargs="+", default=ALL_METHODS)
     ap.add_argument("--hps", default=str(RESULTS_DIR / "tuning" / "best_hyperparameters.json"))
     ap.add_argument("--out", default=str(RESULTS_DIR / "synthetic"))
@@ -154,10 +155,10 @@ def main():
     for shift, dens, seed in itertools.product(args.shifts, args.densities, args.seeds):
         cfg = GeneratorConfig(ring_shift=shift, ring_density=dens, seed=seed, persistent_rings=args.persistent,
                               ring_claims_per_month=args.ring_claims_per_month)
-        if (out / "runs" / f"{run_tag(cfg, 0)}__{args.group}.json").exists():
+        if (out / "runs" / f"{run_tag(cfg, args.model_seed)}__{args.group}.json").exists():
             continue
-        print(f"[{run_tag(cfg, 0)} {args.group}]", flush=True)
-        run_dataset(cfg, args.methods, hps, out_dir=out, group=args.group)
+        print(f"[{run_tag(cfg, args.model_seed)} {args.group}]", flush=True)
+        run_dataset(cfg, args.methods, hps, model_seed=args.model_seed, out_dir=out, group=args.group)
 
 
 if __name__ == "__main__":

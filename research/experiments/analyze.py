@@ -471,9 +471,10 @@ def summarise_kaggle(summary: dict) -> None:
     c["naive_t_p_holm"] = holm(c["naive_t_p"].tolist())
     c.to_csv(TABLES / "kaggle_comparisons.csv", index=False)
     lines = [r"\begin{table}[h]",
-             r"\caption{Provider-level fraud detection on the public Medicare-style provider dataset "
+             r"\caption{Provider-level fraud detection on the public provider-labelled data "
              r"(5-fold rotation; mean $\pm$ s.d. over folds). F1 at the validation-selected threshold; "
-             r"Recall@10\% = share of fraudulent providers among the top 10\% scored.}\label{tab:kaggle}",
+             r"Recall@10\%: share of all fraudulent providers that rank among the top 10\% of providers by score."
+             r"}\label{tab:kaggle}",
              r"\footnotesize", r"\begin{tabular}{@{}lcccc@{}}", r"\toprule",
              r"Method & AP & ROC-AUC & F1 & Recall@10\% \\", r"\midrule"]
     best_ap = df.groupby("method")["ap"].mean().idxmax()
@@ -653,7 +654,8 @@ def summarise_legacy(summary: dict) -> None:
         ("Independent datasets", "1", "54"),
     ]
     lines = [r"\begin{table}[h]",
-             r"\caption{A small fixed benchmark (2,100 claims, five rings; simpler generator in the repository), "
+             r"\caption{A small fixed benchmark (2,100 claims, five rings; an earlier, simpler generator of ours, "
+             r"included in the repository), "
              r"re-analysed with its own split (date-sorted, 60/20/20), compared with our benchmark. Benchmark ranges span $\delta=0$ to $\delta=2$ "
              r"($s=0.5$, six worlds each; ring AP and recall of GB-C pooled over $s$). Shift and ROC-AUC use raw claim "
              r"amounts, not adjusted for specialty, for both. Interval: exact 95\% binomial.}"
@@ -718,8 +720,8 @@ def hyperparameter_table() -> None:
         return "--" if v is None else (f"{v:g}" if isinstance(v, float) else str(v).replace("_", r"\_"))
     lines = [r"\begin{table}[h]",
              r"\caption{Selected hyperparameters (equal budget per method; hybrids inherit their base "
-             r"configuration; methods sharing a search space were offered the same candidate configurations). Synthetic: tuned on development worlds; real data: tuned on a separate split. The configurations re-tuned for the low-volume stress test are in the repository (\texttt{results/tuning\_lowvolume}).}\label{tab:hyperparams}",
-             r"\scriptsize", r"\begin{tabular}{@{}p{2.2cm}p{5.0cm}p{5.0cm}@{}}", r"\toprule", r"Method & Synthetic benchmark & Real data \\", r"\midrule"]
+             r"configuration; methods sharing a search space were offered the same candidate configurations). Synthetic: tuned on development worlds; public data: tuned on a separate split. The configurations re-tuned for the low-volume stress test are in the repository (\texttt{results/tuning\_lowvolume}).}\label{tab:hyperparams}",
+             r"\scriptsize", r"\begin{tabular}{@{}p{2.2cm}p{5.0cm}p{5.0cm}@{}}", r"\toprule", r"Method & Synthetic benchmark & Public data \\", r"\midrule"]
     syn = json.load(open(RESULTS_DIR / "tuning" / "best_hyperparameters.json"))["best"]
     kpath = RESULTS_DIR / "kaggle" / "tuning" / "best_hyperparameters.json"
     kag = json.load(open(kpath))["best"] if kpath.exists() else {}

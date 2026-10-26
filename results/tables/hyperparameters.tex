@@ -1,9 +1,9 @@
 \begin{table}[h]
-\caption{Selected hyperparameters (equal budget per method; hybrids inherit their base configuration; methods sharing a search space were offered the same candidate configurations). Synthetic: tuned on development worlds; real data: tuned on a separate split.}\label{tab:hyperparams}
+\caption{Selected hyperparameters (equal budget per method; hybrids inherit their base configuration; methods sharing a search space were offered the same candidate configurations). Synthetic: tuned on development worlds; public data: tuned on a separate split. The configurations re-tuned for the low-volume stress test are in the repository (\texttt{results/tuning\_lowvolume}).}\label{tab:hyperparams}
 \scriptsize
 \begin{tabular}{@{}p{2.2cm}p{5.0cm}p{5.0cm}@{}}
 \toprule
-Method & Synthetic benchmark & Real data \\
+Method & Synthetic benchmark & Public data \\
 \midrule
 LR & C=100 & C=1 \\
 RF & max depth=16; max features=sqrt; min samples leaf=3; n estimators=300 & max depth=16; max features=0.3; min samples leaf=10; n estimators=300 \\

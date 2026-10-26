@@ -31,6 +31,7 @@ from .tune import SPACES, candidate_configs
 
 OUT = RESULTS_DIR / "kaggle"
 OUT_NESTED = RESULTS_DIR / "kaggle_nested"
+OUT_REPEATED = RESULTS_DIR / "kaggle_repeated"
 NESTED_METHODS = ["LR-P", "RF-P", "GB-P", "GB-PG", "GB-PGL", "MLP-P"]
 BUDGET = 6
 TABULAR = {"LR-P": ("lr", "P"), "RF-P": ("rf", "P"), "GB-P": ("gb", "P"), "GB-PG": ("gb", "PG"), "GB-PGL": ("gb", "PGL")}
@@ -43,10 +44,11 @@ SPACE_OF = {"LR-P": "LR-CA", "RF-P": "RF-CA", "GB-P": "GB-CA", "GB-PG": "GB-CA",
             "HGT": "HGT", "SAGE+G": "SAGE+AG", "HGT+G": "HGT+AG"}
 
 
-def splits() -> list[tuple[np.ndarray, np.ndarray, np.ndarray]]:
+def splits(repeat: int = 0) -> list[tuple[np.ndarray, np.ndarray, np.ndarray]]:
+    """Five rotations over stratified provider folds; ``repeat`` reshuffles the folds (0 = the reported split)."""
     data_y = _DATA.providers["y"].to_numpy()
     fold = np.empty(len(data_y), int)
-    for k, (_, test) in enumerate(StratifiedKFold(5, shuffle=True, random_state=0).split(data_y, data_y)):
+    for k, (_, test) in enumerate(StratifiedKFold(5, shuffle=True, random_state=repeat).split(data_y, data_y)):
         fold[test] = k
     out = []
     for k in range(5):
@@ -154,6 +156,8 @@ def main():
     ap.add_argument("--methods", nargs="+", default=ALL_METHODS)
     ap.add_argument("--folds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     ap.add_argument("--tag", default="all")
+    ap.add_argument("--repeat", type=int, default=0,
+                    help="with --stage eval: reshuffle the folds (seed = repeat); 0 = the reported split")
     ap.add_argument("--nested-gnns", action="store_true",
                     help="with --stage nested: also re-select the GNNs and hybrids per rotation (about 25 CPU-hours)")
     args = ap.parse_args()
@@ -184,21 +188,23 @@ def main():
         return
     best = json.load(open(OUT / "tuning" / "best_hyperparameters.json"))["best"]
     y = _DATA.providers["y"].to_numpy()
+    # Repeated cross-validation: reshuffled folds go to their own directory; repeat 0 keeps the reported paths.
+    out, prefix = (OUT, "") if args.repeat == 0 else (OUT_REPEATED, f"r{args.repeat}_")
     for k in args.folds:
-        train, val, test = splits()[k]
+        train, val, test = splits(args.repeat)[k]
         rows, preds = [], {"provider_id": _DATA.providers["provider_id"].to_numpy()[test], "y": y[test]}
         for name in args.methods:
             res = run_method(name, best[name], train, val, test)
             m = evaluate_scores(y[val], res["val_scores"], y[test], res["test_scores"], budget=0.10)
-            rows.append({"method": name, "fold": k, **m, "best_val_ap": res["best_val_ap"],
+            rows.append({"method": name, "fold": k, "repeat": args.repeat, **m, "best_val_ap": res["best_val_ap"],
                          "train_seconds": res["train_seconds"], "infer_seconds": res["infer_seconds"],
                          "best_epoch": res.get("best_epoch")})
             preds[name] = res["test_scores"].astype(np.float32)
             print(f"fold {k} {name:10s} AP {m['ap']:.4f} ROC {m['roc_auc']:.4f} F1 {m['f1']:.4f}", flush=True)
-        (OUT / "predictions").mkdir(parents=True, exist_ok=True)
-        np.savez_compressed(OUT / "predictions" / f"fold{k}_{args.tag}.npz", **preds)
-        write_json(OUT / "runs" / f"fold{k}_{args.tag}.json",
-                   {"provenance": provenance({"fold": k, "methods": args.methods},
+        (out / "predictions").mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(out / "predictions" / f"{prefix}fold{k}_{args.tag}.npz", **preds)
+        write_json(out / "runs" / f"{prefix}fold{k}_{args.tag}.json",
+                   {"provenance": provenance({"fold": k, "repeat": args.repeat, "methods": args.methods},
                                              hyperparameters={m: best[m] for m in args.methods}, data=data_meta),
                     "rows": rows})
 

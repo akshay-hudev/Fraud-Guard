@@ -6,7 +6,7 @@ Build the bundle with
 `python paper/make_hiss_bundle.py --cls <sn-jnl.cls> --iicol --pdf <compiled PDF>`.
 It writes `paper/hiss_submission/` and `paper/hiss_submission.zip`, both git-ignored.
 
-* `--iicol` produces the two-column layout HISS recommends (29 pages; compiled and checked).
+* `--iicol` produces the two-column layout HISS recommends (30 pages; compiled and checked).
 * Without `--iicol` the bundle is single-column (37 pages), which is also acceptable.
 * Compile the bundle once and pass that PDF with `--pdf`, so the upload's compiled PDF matches its source.
 

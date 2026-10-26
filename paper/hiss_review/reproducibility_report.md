@@ -43,7 +43,16 @@ routing runs.
 |---|---|---|---|---|
 | Low-volume stress test, frozen hyperparameters | `PY -m research.experiments.synthetic --shifts 0.0 --densities <s> --seeds 1 2 3 4 5 6 --ring-claims-per-month 4 --out results/synthetic_lowvolume` (three processes, `RESEARCH_THREADS=2`) | Generator seeds 1–6, training seed 0, `results/tuning/best_hyperparameters.json` | ≈25 min | 18/18 worlds, no errors (commit `12d89ff`, clean) |
 | Low-volume re-tuning | `PY -m research.experiments.tune --ring-claims-per-month 4 --out results/tuning_lowvolume --tag <group> --methods …`, then `--merge` | Development seeds 901/902, δ = 0.5, s = 0.5, volume 4; budget 10; same candidates as the main tuning (sampling seed 0) | ≈40 min | Configurations changed for 10 of 13 entries; HAN, RGCN and Simple-HGN unchanged (commit `7ea9c1f`, clean). Simple-HGN ran in its own process; the HGT process was stopped after writing HGT's trials, before it started its duplicate Simple-HGN pass |
-| Low-volume stress test, re-tuned | as the frozen run, plus `--hps results/tuning_lowvolume/best_hyperparameters.json --out results/synthetic_lowvolume_retuned` | as above | ≈25 min | See section 4 |
+| Low-volume stress test, re-tuned | as the frozen run, plus `--hps results/tuning_lowvolume/best_hyperparameters.json --out results/synthetic_lowvolume_retuned` | as above | ≈75 min (interrupted once) | 18/18 worlds, no errors. The first launch was killed when the agent session ended after 5 worlds; the relaunch skipped the finished worlds. HAN, RGCN and Simple-HGN, whose configuration re-tuning left unchanged, reproduce their frozen-run results exactly (deterministic training). See the provenance note below |
+
+**Provenance note (re-tuned runs).** The 18 records carry `dirty: true`. When they started, `research/` held
+uncommitted edits, so the flag was set, but none of the edits touched code the experiment imports:
+
+* **13 runs at `9f615d7`.** The recorded `research_sources_sha256` (`4a0bc11f20e34678`) equals the hash of the
+  committed `.py` sources at `9f615d7`; only `research/README.md` and `research/DATASHEET.md` were uncommitted.
+* **5 runs at `8c97426`.** The recorded hash (`c601208ff2218c10`) was reproduced exactly by taking `8c97426` and
+  applying the caption-only edits to `research/experiments/analyze.py` that existed at launch. `synthetic.py` does
+  not import `analyze.py`.
 
 **Not run:**
 
@@ -52,4 +61,22 @@ routing runs.
 
 ## 4. Low-volume results (δ = 0, ring AP; chance 0.021)
 
-See manuscript Table 4 (`results/tables/lowvolume.tex`) and `results/tables/lowvolume_comparisons.csv`.
+Full table: manuscript Table 4 (`results/tables/lowvolume.tex`). Tests: `results/tables/lowvolume_comparisons.csv`
+(paired over six seeds per density, Holm within each method's three densities; pooled over densities with the
+seed as unit).
+
+| Method | Frozen s = 0.1 / 0.5 / 0.9 | Re-tuned s = 0.1 / 0.5 / 0.9 |
+|---|---|---|
+| GB-CA (aggregates, no graph) | 0.049 / 0.052 / 0.055 | 0.047 / 0.052 / 0.051 |
+| GB-CAG | 0.066 / 0.409 / 0.570 | 0.078 / 0.445 / 0.600 |
+| Pure GNNs (range) | 0.046–0.074 / 0.065–0.133 / 0.058–0.151 | 0.050–0.074 / 0.065–0.133 / 0.058–0.162 |
+| SAGE+AG | 0.103 / 0.379 / 0.566 | 0.129 / 0.420 / 0.600 |
+| HGT+AG | 0.074 / 0.324 / 0.523 | 0.074 / 0.301 / 0.477 |
+| Overlap score (unsupervised) | 0.057 / 0.194 / 0.281 | same |
+
+**Pooled over densities:**
+
+* Pure GNNs are 0.23–0.29 (frozen) and 0.26–0.31 (re-tuned) below GB-CAG (Holm p ≤ 0.002 and ≤ 0.001).
+* SAGE+AG matches GB-CAG in both settings (+0.001 and +0.009).
+* The only significant advantage over GB-CAG in either setting: SAGE+AG at s = 0.1 after re-tuning (+0.051,
+  Holm p = 0.035), where every method is near chance.

@@ -310,6 +310,40 @@ check("fraud prevalence 10.5%", 0.105, (one.n_pos / one.n_test).mean(), 0.0006, 
 check("budget recall min 0.43", 0.43, rec[rec.method.isin(graphish)]["mean"].min(), 0.005, "0.43--0.48 in every regime")
 check("budget recall max 0.48", 0.48, rec[rec.method.isin(graphish)]["mean"].max(), 0.005)
 
+# Low volume, re-tuned hyperparameters (Section 6.6, second paragraph; abstract; discussion)
+rt = L[L.setting == "retuned"].set_index(["ring_density", "method"]).ring_ap_mean
+check("retuned GB-CAG s0.5 0.445", 0.445, rt[(0.5, "GB-CAG")], 0.0006, "0.445 and 0.600")
+check("retuned GB-CAG s0.9 0.600", 0.600, rt[(0.9, "GB-CAG")], 0.0006)
+pr = [rt[(d, m)] for d in [0.5, 0.9] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]]
+check("retuned pure GNN min s>=0.5 0.058", 0.058, min(pr), 0.0006, "between 0.058 and 0.162")
+check("retuned pure GNN max s>=0.5 0.162", 0.162, max(pr), 0.0006)
+check("abstract: pure GNNs at most 0.16", 0.16, max(max(pr), max(pure)), 0.005, "most 0.16")
+check("abstract: graph features 0.41-0.60 (low)", 0.41, min(fz[(0.5, "GB-CAG")], rt[(0.5, "GB-CAG")]), 0.005, "0.41--0.60")
+check("abstract: graph features up to 0.60", 0.60, max(fz[(0.9, "GB-CAG")], rt[(0.9, "GB-CAG")]), 0.005)
+for m in ["HAN", "RGCN", "SimpleHGN"]:
+    check(f"{m} unchanged configuration reproduces frozen results", 0, max(abs(rt[(d, m)] - fz[(d, m)]) for d in [0.1, 0.5, 0.9]), 1e-9)
+lr = LC[(LC.setting == "retuned") & (LC.metric == "ring_ap")]
+prt = lr[(lr.reference == "GB-CAG") & (lr.ring_density == "pooled")].set_index("method")
+gaps = [prt.loc[m, "mean_diff"] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]]
+check("retuned gap min 0.26", -0.26, max(gaps), 0.005, "0.26--0.31 below")
+check("retuned gap max 0.31", -0.31, min(gaps), 0.005)
+check("retuned gap Holm <= 0.001", 0.001, max(0.001, max(float(prt.loc[m, "t_p_holm"]) for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"])), 0.0)
+check("retuned SAGE+AG +0.009", 0.009, prt.loc["SAGE+AG", "mean_diff"], 0.0006, "$+0.009$")
+check("retuned SAGE+AG CI low", -0.048, prt.loc["SAGE+AG", "ci_low"], 0.0006, "$[-0.048, 0.065]$")
+check("retuned SAGE+AG CI high", 0.065, prt.loc["SAGE+AG", "ci_high"], 0.0006)
+rc = lr[(lr.reference == "GB-CA") & (lr.method == "GB-CAG") & (lr.ring_density != "pooled")].set_index("ring_density")
+check("retuned GB-CAG - GB-CA s0.5 0.39", 0.39, rc.loc["0.5", "mean_diff"], 0.005, "0.39\nand 0.55 above GB-CA")
+check("retuned GB-CAG - GB-CA s0.9 0.55", 0.55, rc.loc["0.9", "mean_diff"], 0.005)
+sig = lr[(lr.reference == "GB-CAG") & (lr.ring_density != "pooled") & (lr.mean_diff > 0) & (lr.t_p_holm < 0.05)]
+check("retuned: exactly one significant advantage over GB-CAG (SAGE+AG, s=0.1)", 1,
+      int(len(sig) == 1 and sig.iloc[0].method == "SAGE+AG" and sig.iloc[0].ring_density == "0.1"), 0)
+check("retuned SAGE+AG s0.1 Holm 0.035", 0.035, sig.iloc[0].t_p_holm, 0.0006, "Holm $p=0.035$")
+check("retuned SAGE+AG s0.1 AP 0.129", 0.129, rt[(0.1, "SAGE+AG")], 0.0006, "0.129 against 0.078")
+check("retuned GB-CAG s0.1 AP 0.078", 0.078, rt[(0.1, "GB-CAG")], 0.0006)
+check("discussion: overlap beats every pure GNN after re-tuning too", 1,
+      int(all(fz[(d, "Overlap-score")] > max(rt[(d, m)] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]) for d in [0.5, 0.9])), 0)
+check("discussion: structure adds 0.36-0.55 at low volume", 0.55, max(rc.loc["0.9", "mean_diff"], cells.loc["0.9", "mean_diff"]), 0.005, "0.36--0.55")
+
 bad = [c for c in checks if not c[0]]
 for ok, label, q, v, note in checks:
     if not ok:

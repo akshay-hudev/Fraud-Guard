@@ -50,15 +50,15 @@ public provider-labelled Medicare claims (5{,}410 providers).
 many claims as others, per-entity aggregates detected most
 rings (average precision 0.89--0.93), and graph features added up to 0.10 for
 dense rings. At low volume, aggregates were near chance (0.05), graph features
-reached 0.41--0.57 for moderately and densely linked rings, and pure GNNs at
-most 0.15. No GNN significantly outperformed gradient boosting with graph
-features in any setting; GNNs were 0.08--0.15 worse on isolated fraud, and
-routing claims to a GNN gained little. Recurring ring members inflated test
+reached 0.41--0.60 for moderately and densely linked rings, and pure GNNs at
+most 0.16. No pure GNN significantly outperformed gradient boosting with
+graph features in any setting; GNNs were 0.08--0.15 worse on isolated fraud,
+and routing to a GNN gained little. Recurring ring members inflated
 performance by up to 0.60. On the public data, gradient
 boosting on provider aggregates had the highest average precision (0.704).
 \textbf{Conclusion:} Relational structure helps when collusion forms dense
 blocks, most when ring members are not otherwise unusual, and engineered
-shared-patient features captured it better than message passing. Graph models
+shared-patient features captured it better than message passing alone. Graph models
 should be evaluated against graph-augmented tabular baselines on unseen
 entities.}
 
@@ -154,10 +154,11 @@ our default setting, per-entity aggregates capture most of the evidence; when
 they are not, aggregates fail and coordination structure carries almost all of
 it. Structure adds measurable value only when the ring's doctor--patient block
 is moderately or highly dense. Where it does, gradient boosting with a few
-engineered shared-patient features was as good as or better than every GNN we
-tested, and far better when ring volume was low; GNNs that also receive those
-features gained a small amount in average precision (AP; $+0.008$ averaged
-over regimes) that was not statistically significant. GNNs are clearly worse
+engineered shared-patient features was as good as or better than every pure
+GNN we tested, and far better when ring volume was low; GNNs that also
+receive those features gained little in average precision (AP; $+0.008$
+averaged over regimes at default volume, not statistically significant),
+and significantly only for sparse rings at low volume. GNNs are clearly worse
 on isolated fraud, because message passing dilutes claim-level anomalies. At
 default volume HGT's ring detection is structural: it collapses without degree
 encodings and survives with degree encodings as its only inputs. Routing
@@ -781,37 +782,38 @@ handicap any method, again after repeating the tuning protocol on
 low-volume development worlds.
 
 \begin{table}[h]
-\caption{Ring AP on unseen test rings at $\delta=0$ when ring volume is reduced from 16 to 4 claims per month (mean over six worlds per cell). At low volume ring patients are no longer outliers in claim volume, ring doctors carry no excess volume, and the chance level of ring AP falls from 0.080 to 0.021. Frozen: hyperparameters tuned at default volume; re-tuned: the tuning protocol repeated on low-volume development worlds (hybrids inherit their base configuration). Bold: best per column.}\label{tab:lowvolume}
+\caption{Ring AP on unseen test rings at $\delta=0$ when ring volume is reduced from 16 to 4 claims per month (mean over six worlds per cell). At low volume a ring patient files about as many claims as the 95th percentile of other patients and a ring doctor 1.3 times as many as other doctors (default: 5.7 and 2.5 times the averages), and the chance level of ring AP falls from 0.080 to 0.021. Frozen: hyperparameters tuned at default volume; re-tuned: the tuning protocol repeated on low-volume development worlds (hybrids inherit their base configuration). Bold: best per column.}\label{tab:lowvolume}
 \scriptsize
 \setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{@{}lcccccc@{}}
+\begin{tabular}{@{}lccccccccc@{}}
 \toprule
- & \multicolumn{3}{c}{Default volume} & \multicolumn{3}{c}{Low volume, frozen} \\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}
-Method / $s$ & 0.1 & 0.5 & 0.9 & 0.1 & 0.5 & 0.9 \\
+ & \multicolumn{3}{c}{Default volume} & \multicolumn{3}{c}{Low volume, frozen} & \multicolumn{3}{c}{Low volume, re-tuned} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+Method / $s$ & 0.1 & 0.5 & 0.9 & 0.1 & 0.5 & 0.9 & 0.1 & 0.5 & 0.9 \\
 \midrule
-GB-C & 0.084 & 0.086 & 0.087 & 0.024 & 0.023 & 0.022 \\
-MLP-C & 0.088 & 0.087 & 0.095 & 0.024 & 0.024 & 0.024 \\
-LR-CA & 0.923 & 0.888 & 0.868 & \textbf{0.106} & 0.087 & 0.088 \\
-RF-CA & 0.875 & 0.838 & 0.844 & 0.057 & 0.064 & 0.064 \\
-GB-CA & 0.925 & 0.905 & 0.889 & 0.049 & 0.052 & 0.055 \\
-GB-CAG & 0.930 & 0.983 & \textbf{0.990} & 0.066 & \textbf{0.409} & \textbf{0.570} \\
+GB-C & 0.084 & 0.086 & 0.087 & 0.024 & 0.023 & 0.022 & 0.023 & 0.023 & 0.022 \\
+MLP-C & 0.088 & 0.087 & 0.095 & 0.024 & 0.024 & 0.024 & 0.024 & 0.023 & 0.024 \\
+LR-CA & 0.923 & 0.888 & 0.868 & \textbf{0.106} & 0.087 & 0.088 & 0.090 & 0.083 & 0.089 \\
+RF-CA & 0.875 & 0.838 & 0.844 & 0.057 & 0.064 & 0.064 & 0.062 & 0.068 & 0.073 \\
+GB-CA & 0.925 & 0.905 & 0.889 & 0.049 & 0.052 & 0.055 & 0.047 & 0.052 & 0.051 \\
+GB-CAG & 0.930 & 0.983 & \textbf{0.990} & 0.066 & \textbf{0.409} & \textbf{0.570} & 0.078 & \textbf{0.445} & \textbf{0.600} \\
 \midrule
-SAGE & 0.938 & 0.963 & 0.976 & 0.074 & 0.108 & 0.131 \\
-RGCN & 0.933 & 0.953 & 0.954 & 0.066 & 0.112 & 0.142 \\
-HAN & 0.908 & 0.906 & 0.921 & 0.062 & 0.065 & 0.058 \\
-Simple-HGN & 0.915 & 0.960 & 0.957 & 0.074 & 0.133 & 0.151 \\
-HGT & 0.910 & 0.948 & 0.949 & 0.046 & 0.079 & 0.098 \\
+SAGE & 0.938 & 0.963 & 0.976 & 0.074 & 0.108 & 0.131 & 0.065 & 0.112 & 0.162 \\
+RGCN & 0.933 & 0.953 & 0.954 & 0.066 & 0.112 & 0.142 & 0.066 & 0.112 & 0.142 \\
+HAN & 0.908 & 0.906 & 0.921 & 0.062 & 0.065 & 0.058 & 0.062 & 0.065 & 0.058 \\
+Simple-HGN & 0.915 & 0.960 & 0.957 & 0.074 & 0.133 & 0.151 & 0.074 & 0.133 & 0.151 \\
+HGT & 0.910 & 0.948 & 0.949 & 0.046 & 0.079 & 0.098 & 0.050 & 0.082 & 0.108 \\
 \midrule
-SAGE+AG & \textbf{0.973} & \textbf{0.985} & 0.983 & 0.103 & 0.379 & 0.566 \\
-HGT+AG & 0.964 & 0.984 & 0.990 & 0.074 & 0.324 & 0.523 \\
-Overlap score & 0.254 & 0.937 & 0.985 & 0.057 & 0.194 & 0.281 \\
+SAGE+AG & \textbf{0.973} & \textbf{0.985} & 0.983 & 0.103 & 0.379 & 0.566 & \textbf{0.129} & 0.420 & 0.600 \\
+HGT+AG & 0.964 & 0.984 & 0.990 & 0.074 & 0.324 & 0.523 & 0.074 & 0.301 & 0.477 \\
+Overlap score & 0.254 & 0.937 & 0.985 & 0.057 & 0.194 & 0.281 & 0.057 & 0.194 & 0.281 \\
 \botrule
 \end{tabular}
 \end{table}
 
-Three results change. First, per-entity aggregates no longer detect rings:
-GB-CA reached a ring AP of 0.049--0.055, barely above chance. Second,
+With the hyperparameters of the main experiment, three results change.
+First, per-entity aggregates no longer detect rings: GB-CA reached a ring AP
+of 0.049--0.055, barely above chance. Second,
 coordination structure becomes the main source of evidence for moderately
 and densely linked rings: GB-CAG reached 0.409 and 0.570 at $s=0.5$ and
 $0.9$, 0.36 and 0.51 above GB-CA (Holm $p\le0.001$), against 0.066 at
@@ -825,7 +827,19 @@ it (SAGE+AG $+0.001$, 95\% CI $[-0.059, 0.061]$; HGT+AG $-0.041$
 $[-0.098, 0.015]$). On isolated fraud the GNNs were again below GB-CAG, by
 0.03--0.08, though not significantly with six seeds.
 
-%%LOWVOLUME-RETUNED
+Re-tuning on low-volume development worlds changed the selected configuration
+of most methods (HAN, RGCN and Simple-HGN kept theirs and reproduced their
+results exactly) but not these conclusions (Table~\ref{tab:lowvolume},
+right). GB-CAG improved slightly (0.445 and 0.600 at $s=0.5$ and $0.9$, 0.39
+and 0.55 above GB-CA), the pure GNNs stayed between 0.058 and 0.162 at
+$s\ge0.5$ and 0.26--0.31 below GB-CAG averaged over densities (Holm
+$p\le0.001$), and SAGE+AG matched GB-CAG on average ($+0.009$
+$[-0.048, 0.065]$). The only significant advantage over GB-CAG in either
+setting was that of SAGE+AG for sparse rings after re-tuning ($s=0.1$:
+0.129 against 0.078, Holm $p=0.035$), where every method was close to
+chance. It echoes the default-volume result, where the hybrids' largest gain
+was also for sparse rings, which suggests that message passing on top of the
+engineered features helps most where those features are weakest.
 
 \subsection{Routing claims to a GNN adds little beyond combining scores}\label{sec:routingres}
 Table~\ref{tab:cascade} and Fig.~\ref{fig:cascade} evaluate two-stage
@@ -1175,7 +1189,7 @@ selection favours the GNNs, and their shortfall is, if anything,
 understated.
 
 \begin{table}[h]
-\caption{Provider-level fraud detection on the public Medicare-style provider dataset (5-fold rotation; mean $\pm$ s.d. over folds). F1 at the validation-selected threshold; Recall@10\% = share of fraudulent providers among the top 10\% scored.}\label{tab:kaggle}
+\caption{Provider-level fraud detection on the public provider-labelled data (5-fold rotation; mean $\pm$ s.d. over folds). F1 at the validation-selected threshold; Recall@10\%: share of all fraudulent providers that rank among the top 10\% of providers by score.}\label{tab:kaggle}
 \footnotesize
 \begin{tabular}{@{}lcccc@{}}
 \toprule
@@ -1230,7 +1244,7 @@ labelling contains no exploitable relational signal for the models tested.
 Three conditions emerge from the controlled study. First, the trace of
 coordination must be dense enough to distinguish a ring from ordinary shared
 care: graph information added 0.04--0.10 AP at moderate and high density at
-default volume (most when ring claims looked legitimate) and 0.36--0.51 when
+default volume (most when ring claims looked legitimate) and 0.36--0.55 when
 ring volume was low, but nothing measurable at low density. Second, the value
 of structure depends on what else distinguishes ring members: at default
 volume their elevated utilisation, which per-entity counts capture, already
@@ -1253,20 +1267,23 @@ expressiveness argument for sum aggregation~\cite{xu2019gin}. GNNs also
 dilute claim-level anomalies through neighbourhood averaging, which made
 them markedly worse on isolated fraud, and they readily memorise the
 attributes of training-ring members, which inflates performance when rings
-recur but does not transfer to new rings. Hybrids that combine message
-passing with engineered features had a small gain over gradient boosting on
-ring fraud that was not significant with the seed as unit; whatever
+recur but does not transfer to new rings. At default volume, hybrids that
+combine message passing with engineered features had a small gain over
+gradient boosting on ring fraud that was not significant with the seed as
+unit; whatever
 structure message passing extracts beyond our features is small, and it
 comes at 9--40 times the training cost.
 
 The low-volume stress test sharpens this picture. Once ring members no
 longer stood out by volume, counting no longer sufficed, and the pure GNNs
 recovered only a small part of the co-occurrence structure that the
-engineered closure features summarise, whereas hybrids given those features
-matched gradient boosting. Message passing over two training periods with
-about 200 ring claims did not learn the shared-patient pattern that a single
-engineered feature states directly: at $s\ge0.5$ the unsupervised overlap
-score alone (0.194 and 0.281) had higher ring AP than every pure GNN.
+engineered closure features summarise, with the main hyperparameters and
+after re-tuning alike, whereas hybrids given those features came close to or
+matched gradient boosting and, for sparse rings, exceeded it. Message passing
+over two training periods with about 200 ring claims did not learn the
+shared-patient pattern that a single engineered feature states directly: at
+$s\ge0.5$ the unsupervised overlap score alone (0.194 and 0.281) had higher
+ring AP than every pure GNN in both settings.
 
 One caveat favours the engineered features: we designed them knowing the
 injected typology, a dense doctor--patient block. Their success shows that a
@@ -1309,7 +1326,7 @@ removes all three confounds. Because the generator, features, evaluation unit
 and tuning differ, numbers from the two set-ups are not directly comparable.
 
 \begin{table}[h]
-\caption{A small fixed benchmark (2,100 claims, five rings; simpler generator in the repository), re-analysed with its own split (date-sorted, 60/20/20), compared with our benchmark. Benchmark ranges span $\delta=0$ to $\delta=2$ ($s=0.5$, six worlds each; ring AP and recall of GB-C pooled over $s$). Shift and ROC-AUC use raw claim amounts, not adjusted for specialty, for both. Interval: exact 95\% binomial.}\label{tab:legacy}
+\caption{A small fixed benchmark (2,100 claims, five rings; an earlier, simpler generator of ours, included in the repository), re-analysed with its own split (date-sorted, 60/20/20), compared with our benchmark. Benchmark ranges span $\delta=0$ to $\delta=2$ ($s=0.5$, six worlds each; ring AP and recall of GB-C pooled over $s$). Shift and ROC-AUC use raw claim amounts, not adjusted for specialty, for both. Interval: exact 95\% binomial.}\label{tab:legacy}
 \scriptsize
 \begin{tabular}{@{}p{5.0cm}p{3.1cm}p{3.6cm}@{}}
 \toprule
@@ -1345,10 +1362,13 @@ methods perform on current Medicare claims.
 \subsection{Practical recommendations}
 \begin{itemize}
 \item Start with gradient boosting on claim features, per-entity aggregates
-  and a small set of shared-patient graph features; on our benchmark no GNN
-  was significantly better in any regime, at default or low ring volume, the
-  hybrids added no significant gain, and gradient boosting was 9--50 times
-  cheaper to train than the GNNs and hybrids.
+  and a small set of shared-patient graph features; on our benchmark no pure
+  GNN was significantly better in any regime, at default or low ring volume,
+  the hybrids gained significantly only for sparse rings at low volume, and
+  gradient boosting was 9--50 times cheaper to train than the GNNs and
+  hybrids. Where rings may be sparse, a hybrid may add a little, although
+  every method detected sparse rings poorly when they were not unusually
+  active.
 \item Do not infer the value of relational structure from rings whose members
   are unusually active: then aggregates already find them. When they are not,
   explicit co-occurrence features, or hybrids that receive them, were needed.
@@ -1376,8 +1396,8 @@ and overlaps over one audit period of claims, which a claims database can
 compute in batch, and the resulting model scored a whole period in a fraction
 of a second on a laptop CPU (Section~\ref{sec:results}). A GNN adds a
 graph-learning stack and 13--50 times the training cost of gradient boosting
-in our runs, without a measurable gain in our benchmark or on the public
-data. Because investigators examine
+in our runs; a pure GNN brought no measurable gain in our benchmark or on the
+public data, and a hybrid only for sparse, low-volume rings. Because investigators examine
 only the highest-ranked cases, such systems should be evaluated at the
 investigation budget and on providers and rings unseen in training.
 
@@ -1549,11 +1569,11 @@ Worlds per regime & 6 (seeds 1--6; the regimes of a seed share its legitimate cl
 \end{table}
 
 \begin{table}[h]
-\caption{Selected hyperparameters (equal budget per method; hybrids inherit their base configuration; methods sharing a search space were offered the same candidate configurations). Synthetic: tuned on development worlds; real data: tuned on a separate split. The configurations re-tuned for the low-volume stress test are in the repository (\texttt{results/tuning\_lowvolume}).}\label{tab:hyperparams}
+\caption{Selected hyperparameters (equal budget per method; hybrids inherit their base configuration; methods sharing a search space were offered the same candidate configurations). Synthetic: tuned on development worlds; public data: tuned on a separate split. The configurations re-tuned for the low-volume stress test are in the repository (\texttt{results/tuning\_lowvolume}).}\label{tab:hyperparams}
 \scriptsize
 \begin{tabular}{@{}p{2.2cm}p{5.0cm}p{5.0cm}@{}}
 \toprule
-Method & Synthetic benchmark & Real data \\
+Method & Synthetic benchmark & Public data \\
 \midrule
 LR & C=100 & C=1 \\
 RF & max depth=16; max features=sqrt; min samples leaf=3; n estimators=300 & max depth=16; max features=0.3; min samples leaf=10; n estimators=300 \\

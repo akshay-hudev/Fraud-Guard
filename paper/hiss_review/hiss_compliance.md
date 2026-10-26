@@ -26,7 +26,7 @@ Both pages were read in full. The "editorial policies" URL returned 404, and the
 
 | Requirement | Type | Verified text | Status |
 |---|---|---|---|
-| LaTeX with the Springer Nature template | R | "Manuscripts should be submitted in LaTeX." "We recommend using Springer Nature's LaTeX template and choosing the formatting option "[iicol]"." | Template used (`sn-jnl.cls` v12, `sn-vancouver-num`). The source stays single-column; `paper/make_hiss_bundle.py --iicol` builds the recommended two-column upload (29 pages, compiles cleanly) |
+| LaTeX with the Springer Nature template | R | "Manuscripts should be submitted in LaTeX." "We recommend using Springer Nature's LaTeX template and choosing the formatting option "[iicol]"." | Template used (`sn-jnl.cls` v12, `sn-vancouver-num`). The source stays single-column; `paper/make_hiss_bundle.py --iicol` builds the recommended two-column upload (30 pages, compiles cleanly) |
 | Editable source files at every submission | M | "Failing to submit a complete set of editable source files will result in your article not being considered for review." | Bundle built by `paper/make_hiss_bundle.py`: `.tex`, `sn-jnl.cls`, figure files, compiled PDF |
 | Title page: title, names, affiliations, corresponding e-mail | M | — | Present |
 | ORCID iDs | R | — | **Missing**; authors to add |

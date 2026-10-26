@@ -29,18 +29,19 @@ invented and no declaration was changed without the authors.
 * **Value of structure at default volume**: graph-aware methods beat gradient boosting without graph features
   (Holm p ≤ 0.021, except HAN). Structure adds up to 0.10 AP for dense rings at default volume.
 * **No GNN better than GB-CAG** in any regime, nor at low volume.
-* **Low ring volume**:
-  * Aggregates fall to near chance.
-  * GB-CAG reaches 0.41–0.57 for s ≥ 0.5.
-  * Pure GNNs are 0.23–0.29 AP lower (Holm p ≤ 0.002).
-  * Hybrids match GB-CAG.
-  * Re-tuning on low-volume development worlds: see `reproducibility_report.md` §4 and manuscript §6.6.
+* **Low ring volume**, with the main hyperparameters and after re-tuning alike:
+  * Aggregates fall to near chance (≈0.05; chance 0.021).
+  * GB-CAG reaches 0.41–0.60 for s ≥ 0.5.
+  * Pure GNNs are 0.23–0.31 AP lower (Holm p ≤ 0.002).
+  * The hybrid SAGE+AG matches GB-CAG on average. It is significantly better only for sparse rings after
+    re-tuning (s = 0.1: 0.129 vs. 0.078, Holm p = 0.035), where all methods are near chance.
 * **Memorisation**: recurring ring members inflate an attribute-only model by up to 0.60 AP.
 * **Public data**: GB-P has the highest mean AP; no graph-based method has a higher mean.
 
 ### Improved but not fully validated
 
-* **Hybrids' small ring-AP gain (+0.008)**: positive in 5 of 6 seeds, not significant.
+* **Hybrids' small ring-AP gain**: +0.008 at default volume, positive in 5 of 6 seeds, not significant; one
+  significant gain for sparse, low-volume rings after re-tuning (a single comparison in a near-chance regime).
 * **GNN shortfall on the public data**:
   * Conditional on the trained models, the provider bootstrap puts every GNN below GB-P.
   * Over rotations, the corrected test is not significant.
@@ -137,7 +138,7 @@ beneficiaries. It cannot validate ring detection or the dense-ring regime, and t
 **8. Changes completed to address them**
 
 * (1) Low-volume stress test with frozen and re-tuned hyperparameters, which removes the strongest confound
-  (ring volume). Designer-advantage caveat and narrowed real-data claims, with provenance stated honestly.
+  (ring volume) and strengthens the central claim for pure GNNs. Designer-advantage caveat and narrowed real-data claims, with provenance stated honestly.
 * (2) Ten verified closely related works added, contributions restated around conditions, mechanism and
   memorisation, real-data result framed as a replication, novelty table.
 * (3) Health-information-systems framing (claims data, audit budgets, batch computation) and HISS compliance

@@ -1,10 +1,10 @@
 {
   "provenance": {
-    "created_utc": "2026-10-26T10:15:05+00:00",
+    "created_utc": "2026-10-26T14:55:52+00:00",
     "git": {
-      "commit": "18131d2be4b4a88c1da0753cc1ec780b8f51c5bf",
-      "dirty": false,
-      "research_sources_sha256": "4a0bc11f20e34678"
+      "commit": "8c3434a3f485c681a056b12a16408ee22722e23a",
+      "dirty": true,
+      "research_sources_sha256": "4471b206d4968785"
     },
     "config_hash": "40c70da62144a4f8",
     "config": {
@@ -24,21 +24,30 @@
     }
   },
   "synthetic": {
-    "n_datasets": 54,
-    "seeds_per_cell": "{(0.0, 0.1): 6, (0.0, 0.5): 6, (0.0, 0.9): 6, (1.0, 0.1): 6, (1.0, 0.5): 6, (1.0, 0.9): 6, (2.0, 0.1): 6, (2.0, 0.5): 6, (2.0, 0.9): 6}",
+    "n_datasets": 108,
+    "seeds_per_cell": "{(0.0, 0.1): 12, (0.0, 0.5): 12, (0.0, 0.9): 12, (1.0, 0.1): 12, (1.0, 0.5): 12, (1.0, 0.9): 12, (2.0, 0.1): 12, (2.0, 0.5): 12, (2.0, 0.9): 12}",
     "best_method_per_cell": {
       "0.0/0.1": "SAGE+AG",
       "0.0/0.5": "SAGE+AG",
       "0.0/0.9": "GB-CAG",
-      "1.0/0.1": "HGT+AG",
-      "1.0/0.5": "HGT+AG",
-      "1.0/0.9": "SAGE+AG",
-      "2.0/0.1": "RGCN",
+      "1.0/0.1": "SAGE+AG",
+      "1.0/0.5": "SAGE+AG",
+      "1.0/0.9": "HGT+AG",
+      "2.0/0.1": "HGT+AG",
       "2.0/0.5": "SAGE+AG",
       "2.0/0.9": "SAGE+AG"
     }
   },
   "volume_signal": {
+    "2.0": {
+      "ring_prevalence": 0.011,
+      "ring_patient_claims": 2.989,
+      "other_patient_claims": 1.637,
+      "other_patient_claims_p95": 3.833,
+      "other_patient_claims_p99": 5.167,
+      "ring_doctor_claims": 17.671,
+      "other_doctor_claims": 15.543
+    },
     "4.0": {
       "ring_prevalence": 0.021,
       "ring_patient_claims": 3.71,
@@ -47,6 +56,15 @@
       "other_patient_claims_p99": 5.167,
       "ring_doctor_claims": 20.359,
       "other_doctor_claims": 15.554
+    },
+    "8.0": {
+      "ring_prevalence": 0.042,
+      "ring_patient_claims": 5.433,
+      "other_patient_claims": 1.635,
+      "other_patient_claims_p95": 3.833,
+      "other_patient_claims_p99": 5.167,
+      "ring_doctor_claims": 26.312,
+      "other_doctor_claims": 15.555
     },
     "16.0": {
       "ring_prevalence": 0.08,
@@ -511,7 +529,117 @@
       }
     },
     "best_nested": "GB-P",
-    "best_gnn_shared_tuning": 0.6755236194596852
+    "best_gnn_shared_tuning": 0.6755236194596852,
+    "vs_nested_gbp": {
+      "LR-P": {
+        "mean_diff": -0.0237,
+        "ci_low": -0.0548,
+        "ci_high": 0.0073,
+        "t_p_holm": 0.506
+      },
+      "RF-P": {
+        "mean_diff": -0.0261,
+        "ci_low": -0.0618,
+        "ci_high": 0.0096,
+        "t_p_holm": 0.506
+      },
+      "GB-PG": {
+        "mean_diff": -0.0124,
+        "ci_low": -0.045,
+        "ci_high": 0.0201,
+        "t_p_holm": 0.506
+      },
+      "GB-PGL": {
+        "mean_diff": -0.0191,
+        "ci_low": -0.0566,
+        "ci_high": 0.0184,
+        "t_p_holm": 0.506
+      },
+      "MLP-P": {
+        "mean_diff": -0.0176,
+        "ci_low": -0.0454,
+        "ci_high": 0.0103,
+        "t_p_holm": 0.506
+      }
+    }
+  },
+  "dose_response": {
+    "volumes": [
+      16.0,
+      8.0,
+      4.0,
+      2.0
+    ],
+    "chance": {
+      "2.0": 0.0108,
+      "4.0": 0.0213,
+      "8.0": 0.0418,
+      "16.0": 0.0802
+    },
+    "structure_gain_pooled": {
+      "16.0": 0.0612,
+      "8.0": 0.4156,
+      "4.0": 0.2959,
+      "2.0": 0.0017
+    },
+    "pure_gnn_minus_gbcag_pooled": {
+      "16.0": {
+        "SAGE": -0.0083,
+        "RGCN": -0.0207,
+        "HAN": -0.0555,
+        "SimpleHGN": -0.0234,
+        "HGT": -0.0315
+      },
+      "8.0": {
+        "SAGE": -0.103,
+        "RGCN": -0.1614,
+        "HAN": -0.2855,
+        "SimpleHGN": -0.1282,
+        "HGT": -0.1567
+      },
+      "4.0": {
+        "SAGE": -0.244,
+        "RGCN": -0.2416,
+        "HAN": -0.2864,
+        "SimpleHGN": -0.229,
+        "HGT": -0.2738
+      },
+      "2.0": {
+        "SAGE": -0.0035,
+        "RGCN": -0.0022,
+        "HAN": -0.0051,
+        "SimpleHGN": -0.0067,
+        "HGT": -0.0042
+      }
+    }
+  },
+  "hybrid_confirmation": {
+    "seeds": [
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ],
+    "n": 12,
+    "sage_ag_mean": 0.12862453466222543,
+    "gbcag_mean": 0.1043647461601739,
+    "mean_diff": 0.024259788502051516,
+    "ci_low": 0.0054517258005736015,
+    "ci_high": 0.043067851203529434,
+    "t_p": 0.01611167096211214,
+    "cohen_dz": 0.8195386457311127,
+    "wilcoxon_p": 0.00927734375,
+    "n_seeds_positive": 9,
+    "ring_chance": 0.02128791406116493,
+    "confirmed": true
   },
   "latency": {
     "worlds": 4,

@@ -1,5 +1,5 @@
 \begin{table}[h]
-\caption{Ring-fraud detection on unseen test rings: average precision of ring versus legitimate claims (chance level 0.08), mean over six worlds per regime. Bold: best per regime. Standard deviations are in the supplementary results files.}\label{tab:regime_ringap}
+\caption{Ring-fraud detection on unseen test rings: average precision of ring versus legitimate claims (chance level 0.08), mean over twelve worlds per regime. Bold: best per regime. Standard deviations are in the supplementary results files.}\label{tab:regime_ringap}
 \scriptsize
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}lccccccccc@{}}
@@ -8,22 +8,22 @@
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
 Method / $s$ & 0.1 & 0.5 & 0.9 & 0.1 & 0.5 & 0.9 & 0.1 & 0.5 & 0.9 \\
 \midrule
-GB-C & 0.084 & 0.086 & 0.087 & 0.329 & 0.326 & 0.334 & 0.805 & 0.818 & 0.809 \\
-MLP-C & 0.088 & 0.087 & 0.095 & 0.353 & 0.358 & 0.360 & 0.803 & 0.817 & 0.808 \\
-LR-CA & 0.923 & 0.888 & 0.868 & 0.968 & 0.958 & 0.952 & 0.988 & 0.986 & 0.987 \\
-RF-CA & 0.875 & 0.838 & 0.844 & 0.957 & 0.924 & 0.941 & 0.985 & 0.983 & 0.986 \\
-GB-CA & 0.925 & 0.905 & 0.889 & 0.966 & 0.938 & 0.944 & 0.985 & 0.986 & 0.989 \\
-GB-CAG & 0.930 & 0.983 & \textbf{0.990} & 0.960 & 0.976 & 0.992 & 0.990 & 0.995 & 0.994 \\
+GB-C & 0.082 & 0.083 & 0.084 & 0.327 & 0.327 & 0.324 & 0.807 & 0.809 & 0.807 \\
+MLP-C & 0.089 & 0.083 & 0.088 & 0.345 & 0.349 & 0.352 & 0.800 & 0.804 & 0.805 \\
+LR-CA & 0.903 & 0.871 & 0.856 & 0.964 & 0.955 & 0.947 & 0.989 & 0.986 & 0.986 \\
+RF-CA & 0.877 & 0.851 & 0.847 & 0.947 & 0.928 & 0.937 & 0.984 & 0.982 & 0.984 \\
+GB-CA & 0.919 & 0.896 & 0.886 & 0.953 & 0.936 & 0.938 & 0.986 & 0.985 & 0.986 \\
+GB-CAG & 0.924 & 0.970 & \textbf{0.990} & 0.949 & 0.976 & 0.992 & 0.989 & 0.993 & 0.996 \\
 \midrule
-SAGE & 0.938 & 0.963 & 0.976 & 0.973 & 0.986 & 0.991 & 0.994 & 0.993 & 0.994 \\
-RGCN & 0.933 & 0.953 & 0.954 & 0.970 & 0.982 & 0.986 & \textbf{0.995} & 0.994 & 0.996 \\
-HAN & 0.908 & 0.906 & 0.921 & 0.957 & 0.964 & 0.969 & 0.988 & 0.989 & 0.989 \\
-Simple-HGN & 0.915 & 0.960 & 0.957 & 0.966 & 0.980 & 0.982 & 0.992 & 0.992 & 0.993 \\
-HGT & 0.910 & 0.948 & 0.949 & 0.959 & 0.976 & 0.984 & 0.994 & 0.995 & 0.996 \\
+SAGE & 0.943 & 0.957 & 0.971 & 0.974 & 0.981 & 0.990 & 0.993 & 0.992 & 0.992 \\
+RGCN & 0.935 & 0.950 & 0.955 & 0.968 & 0.979 & 0.984 & 0.994 & 0.994 & 0.995 \\
+HAN & 0.900 & 0.899 & 0.921 & 0.958 & 0.961 & 0.967 & 0.989 & 0.987 & 0.988 \\
+Simple-HGN & 0.917 & 0.947 & 0.953 & 0.968 & 0.978 & 0.981 & 0.992 & 0.992 & 0.993 \\
+HGT & 0.923 & 0.933 & 0.955 & 0.961 & 0.976 & 0.977 & 0.993 & 0.993 & 0.993 \\
 \midrule
-SAGE+AG & \textbf{0.973} & \textbf{0.985} & 0.983 & 0.972 & 0.984 & \textbf{0.995} & 0.994 & \textbf{0.996} & \textbf{0.997} \\
-HGT+AG & 0.964 & 0.984 & 0.990 & \textbf{0.974} & \textbf{0.986} & 0.995 & 0.994 & 0.994 & 0.996 \\
-Overlap score & 0.254 & 0.937 & 0.985 & 0.296 & 0.922 & 0.989 & 0.341 & 0.932 & 0.981 \\
+SAGE+AG & \textbf{0.962} & \textbf{0.979} & 0.988 & \textbf{0.974} & \textbf{0.986} & 0.995 & 0.994 & \textbf{0.996} & \textbf{0.997} \\
+HGT+AG & 0.959 & 0.976 & 0.990 & 0.973 & 0.984 & \textbf{0.996} & \textbf{0.994} & 0.995 & 0.997 \\
+Overlap score & 0.283 & 0.906 & 0.982 & 0.305 & 0.903 & 0.980 & 0.317 & 0.896 & 0.978 \\
 \botrule
 \end{tabular}
 \end{table}

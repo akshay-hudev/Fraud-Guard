@@ -78,6 +78,17 @@ $PY -m research.experiments.sync_manuscript && $PY verify.py
 #     --methods SAGE RGCN HAN SimpleHGN HGT SAGE+G HGT+G
 ```
 
+**Second experimental round.** `paper/hiss_review/analysis_plan_round2.md` pre-declares, and
+`paper/hiss_review/run_round2.sh` runs, every job of the second round:
+
+* the main grid for seeds 7–12 (final N = 12);
+* ring volumes 8 and 2 at δ = 0;
+* the confirmatory hybrid test on fresh seeds 7–18;
+* repeated cross-validation (`kaggle_exp.py --stage eval --repeat 1..4`) on the public data;
+* nested GNN tuning (`--stage nested --nested-gnns`) on the public data.
+
+The round runs about 9 hours with four workers (`PARALLEL=4`).
+
 **Statistical units.** The nine regimes of one generator seed share their legitimate claims, isolated fraud and
 ring members (the generator draws them before applying δ and s), so comparisons pooled over regimes test the six
 seed means (`metrics.clustered_comparison`). The five real-data rotations share training folds, so comparisons

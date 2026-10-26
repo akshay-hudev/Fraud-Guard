@@ -213,7 +213,8 @@ def summarise_synthetic(summary: dict) -> None:
         t.loc[t.groupby(["ring_shift", "ring_density"])["mean"].idxmax()]
         .assign(cell=lambda x: x.ring_shift.astype(str) + "/" + x.ring_density.astype(str))
         .set_index("cell")["method"].to_dict())
-    timing = df.groupby("method")[["train_seconds", "infer_seconds"]].median()
+    # Timings from the first-round runs only: the second round ran under a different parallel load.
+    timing = df[df.seed.isin(ROUND1_SEEDS)].groupby("method")[["train_seconds", "infer_seconds"]].median()
     timing.to_csv(TABLES / "synthetic_timing.csv")
 
 
@@ -819,7 +820,7 @@ def summarise_dose_response(summary: dict) -> None:
              r"density $s$, mean over six worlds (seeds 1--6, which share their legitimate claims across volumes), "
              r"hyperparameters of the main experiment. Chance level: "
              + ", ".join(f"{chance[v]:.3f} at {v:g}" for v in vols) + r".}\label{tab:dose}",
-             r"\scriptsize", r"\setlength{\tabcolsep}{2.5pt}", r"\begin{tabular}{@{}l" + "c" * (len(vols) * len(dens)) + "@{}}",
+             r"\scriptsize", r"\setlength{\tabcolsep}{2pt}", r"\begin{tabular}{@{}l" + "c" * (len(vols) * len(dens)) + "@{}}",
              r"\toprule", r" & " + head + r" \\", rules,
              r"Method / volume & " + " & ".join(f"{v:g}" for _ in dens for v in vols) + r" \\", r"\midrule"]
     for m in DOSE_METHODS:

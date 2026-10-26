@@ -13,7 +13,9 @@ RESULTS = ROOT / "results"
 REQUIRED_TABLES = ["synthetic_ring_ap.csv", "synthetic_ring_ap_comparisons.csv", "synthetic_isolated_ap.csv",
                    "protocol_ring_ap.csv", "ablation_ring_ap.csv", "kaggle_metrics.csv", "kaggle_comparisons.csv",
                    "cascade_comparisons.csv", "reliance.csv", "kaggle_nested.csv", "hgt_arch.tex", "legacy.tex",
-                   "lowvolume.tex", "lowvolume_comparisons.csv", "volume_signal.csv", "kaggle_bootstrap.csv"]
+                   "lowvolume.tex", "lowvolume_comparisons.csv", "volume_signal.csv", "kaggle_bootstrap.csv",
+                   "dose_response.tex", "dose_response_comparisons.csv", "hybrid_confirmation.json",
+                   "kaggle_repeated.tex", "kaggle_repeated_comparisons.csv", "kaggle_nested.tex"]
 REQUIRED_FIGURES = ["fig_regime_ring_ap.pdf", "fig_delta_heatmaps.pdf", "fig_ablation.pdf", "fig_kaggle_ap.pdf",
                     "fig_protocol.pdf", "fig_cascade.pdf", "fig_ring_graph.pdf"]
 
@@ -49,7 +51,16 @@ counts = {
     "synthetic_lowvolume": check_runs("synthetic_lowvolume", ["method", "ring_ap", "seed", "ring_claims_per_month"]),
     "synthetic_lowvolume_retuned": check_runs("synthetic_lowvolume_retuned",
                                               ["method", "ring_ap", "seed", "ring_claims_per_month"]),
+    "synthetic_volume8": check_runs("synthetic_volume8", ["method", "ring_ap", "seed", "ring_claims_per_month"]),
+    "synthetic_volume2": check_runs("synthetic_volume2", ["method", "ring_ap", "seed", "ring_claims_per_month"]),
+    "synthetic_hybrid_confirm": check_runs("synthetic_hybrid_confirm", ["method", "ring_ap", "seed"]),
+    "kaggle_repeated": check_runs("kaggle_repeated", ["method", "fold", "repeat", "ap"]),
 }
+# Second round (paper/hiss_review/analysis_plan_round2.md): the main grid is complete for seeds 1-12.
+main_worlds = {(r["ring_shift"], r["ring_density"], r["seed"]) for f in (RESULTS / "synthetic" / "runs").glob("*.json")
+               for r in json.loads(f.read_text())["rows"] if r["ring_shift"] in (0.0, 1.0, 2.0) and 1 <= r["seed"] <= 12}
+if len(main_worlds) != 108:
+    problems.append(f"main grid: {len(main_worlds)} of 108 worlds (9 regimes x seeds 1-12)")
 for sub in ["synthetic_lowvolume", "synthetic_lowvolume_retuned"]:
     for f in sorted((RESULTS / sub / "runs").glob("*.json")):
         if any(row.get("ring_claims_per_month") != 4.0 for row in json.loads(f.read_text())["rows"]):

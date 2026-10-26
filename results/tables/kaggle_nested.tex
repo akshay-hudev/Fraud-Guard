@@ -1,0 +1,16 @@
+\begin{table}[h]
+\caption{Public data: hyperparameters re-selected inside every rotation (nested) versus selected once on a separate split (shared). AP mean over the five rotations; $\Delta$: nested $-$ shared with the corrected resampled 95\% CI. Hybrids inherit their base model's per-rotation choice.}\label{tab:kaggle_nested}
+\footnotesize
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Method & Nested AP & Shared AP & $\Delta$ [95\% CI] \\
+\midrule
+LR-P & 0.682 & 0.678 & $+0.003$ [$-0.008$, $+0.015$] \\
+RF-P & 0.680 & 0.681 & $-0.001$ [$-0.021$, $+0.019$] \\
+GB-P & 0.706 & 0.704 & $+0.002$ [$-0.016$, $+0.019$] \\
+GB-PG & 0.693 & 0.695 & $-0.001$ [$-0.033$, $+0.030$] \\
+GB-PGL & 0.687 & 0.697 & $-0.010$ [$-0.040$, $+0.020$] \\
+MLP-P & 0.688 & 0.685 & $+0.003$ [$-0.008$, $+0.014$] \\
+\botrule
+\end{tabular}
+\end{table}

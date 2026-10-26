@@ -62,10 +62,27 @@ $PY -m research.experiments.legacy_reanalysis
 $PY -m research.experiments.kaggle_exp --stage nested
 # 9. Cost benchmark: run alone, single thread
 OMP_NUM_THREADS=1 RESEARCH_THREADS=1 $PY -m research.experiments.latency
-# 10. Tables, statistics, figures; paste tables into the manuscript; then check artifacts
+# 10. Low-volume stress test (4 instead of 16 ring claims per month, delta = 0): with the main tuning (frozen),
+#     then with the tuning protocol repeated on low-volume development worlds (re-tuned)
+$PY -m research.experiments.synthetic --shifts 0.0 --seeds 1 2 3 4 5 6 --ring-claims-per-month 4 \
+    --out results/synthetic_lowvolume
+$PY -m research.experiments.tune --ring-claims-per-month 4 --out results/tuning_lowvolume
+$PY -m research.experiments.tune --merge --ring-claims-per-month 4 --out results/tuning_lowvolume
+$PY -m research.experiments.synthetic --shifts 0.0 --seeds 1 2 3 4 5 6 --ring-claims-per-month 4 \
+    --hps results/tuning_lowvolume/best_hyperparameters.json --out results/synthetic_lowvolume_retuned
+# 11. Tables, statistics, figures; paste tables into the manuscript; then check artifacts
 $PY -m research.experiments.analyze && $PY -m research.experiments.figures
 $PY -m research.experiments.sync_manuscript && $PY verify.py
+# Not run for the article (about 25 CPU-hours): re-select the GNNs per rotation on the real data
+# $PY -m research.experiments.kaggle_exp --stage nested --nested-gnns --tag gnn \
+#     --methods SAGE RGCN HAN SimpleHGN HGT SAGE+G HGT+G
 ```
+
+**Statistical units.** The nine regimes of one generator seed share their legitimate claims, isolated fraud and
+ring members (the generator draws them before applying δ and s), so comparisons pooled over regimes test the six
+seed means (`metrics.clustered_comparison`). The five real-data rotations share training folds, so comparisons
+over them use the corrected resampled t-test of Nadeau and Bengio (2003) (`metrics.corrected_resampled_comparison`).
+The naive values are kept in the CSVs (`naive_*` columns) for comparison.
 
 Steps 1–8 accept `--methods` / `--seeds` / `--shifts` / `--folds` subsets so they can be split across processes;
 finished runs are skipped on restart. Wall-clock on a 4-core Intel laptop CPU: roughly 2 h tuning, 3 h synthetic
@@ -85,3 +102,4 @@ grid, 1 h ablations, 2 h Kaggle, 3 h routing and HGT ablations (run in parallel)
 | `experiments/` | tuning, synthetic grid, ablations, routing, cost, legacy re-analysis, Kaggle, analysis, figures, manuscript table sync |
 | `tests/test_validity.py` | leakage, label-invariance, period isolation, ring disjointness, alignment, information flow |
 | `tests/test_routing_and_ablations.py` | routing uses validation only and is per-claim; ablation transforms; test-period rewiring; exact computation subgraphs |
+| `tests/test_statistics.py` | regimes of a seed share their background (why the seed is the unit); seed-level and corrected resampled tests |

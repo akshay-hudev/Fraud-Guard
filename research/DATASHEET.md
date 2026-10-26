@@ -21,8 +21,15 @@ Following the structure of *Datasheets for Datasets* (Gebru et al., 2021).
 * **Splits.** Four 6-month audit periods; periods 1–2 train, 3 validation, 4 test. Emergent protocol: four new
   rings per period with disjoint members; persistent protocol: the same four rings in every period.
 * **Known properties.** Ring patients have higher utilisation than average (recruitment is utilisation-weighted
-  and rings add claims); this degree signal is identical in every regime. At δ = 0 ring claims follow the
-  legitimate claim distribution of the doctor's specialty (tested with a two-sample KS test).
+  and rings add claims); this degree signal is identical in every regime and large at the default ring volume
+  (16 claims per month): a ring patient files 9.3 claims per test period against 1.6 for other patients
+  (99th percentile ≈ 5), a ring doctor 38 against 16. With `ring_claims_per_month = 4` (low-volume stress
+  test) these become 3.7 (≈ the 95th percentile of other patients) and 20, and ring prevalence falls from 8.0% to
+  2.1% of non-isolated claims (`results/tables/volume_signal.csv`). At δ = 0 ring claims follow the legitimate
+  claim distribution of the doctor's specialty (tested with a two-sample KS test).
+* **Shared background across regimes.** The generator draws entities, legitimate claims, isolated fraud and
+  recruited ring members before it applies δ and s, so the nine regimes of one seed share all of them and differ
+  only in their ring claims (tested). Analyses pooled over regimes must treat the seed as the unit.
 * **Missing data / noise.** None injected. Labels are noise-free and immediate (a limitation; see below).
 * **Confidentiality.** Fully synthetic; contains no real persons.
 

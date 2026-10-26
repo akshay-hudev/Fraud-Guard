@@ -22,7 +22,7 @@ from sklearn.metrics import precision_recall_curve
 from ..ledger import RESULTS_DIR
 from ..metrics import t_ci, val_threshold
 from ..synth.generator import GeneratorConfig, generate
-from .analyze import load_cascade, load_rows
+from .analyze import DOSE_SETS, ROUND1_SEEDS, load_cascade, load_rows
 from .cascade import ESCALATION, route
 from .synthetic import run_tag
 
@@ -157,6 +157,37 @@ def kaggle_dots(kag: pd.DataFrame) -> None:
     ax.grid(axis="y", visible=False)
     fig.tight_layout()
     fig.savefig(FIG / "fig_kaggle_ap.pdf", bbox_inches="tight")
+    plt.close(fig)
+
+
+def dose_response(df: pd.DataFrame) -> None:
+    """Ring AP against ring volume at delta = 0 (seeds 1-6), one panel per structural density."""
+    methods = ["GB-CA", "GB-CAG", "SAGE", "HGT", "SAGE+AG", "Overlap-score"]
+    style = {**STYLE, "SAGE+AG": (AQUA, "v", "--")}
+    dens_values = sorted(df.ring_density.unique())
+    fig, axes = plt.subplots(1, len(dens_values), figsize=(7.0, 2.5), sharey=True)
+    for ax, d in zip(np.atleast_1d(axes), dens_values):
+        sub = df[df.ring_density == d]
+        for m in methods:
+            g = sub[sub.method == m].groupby("volume")["ring_ap"]
+            mean, half = g.mean(), g.apply(_ci_half)
+            color, marker, ls = style[m]
+            ax.errorbar(mean.index, mean.values, yerr=half.values, color=color, marker=marker, ls=ls, ms=4,
+                        capsize=2, elinewidth=0.8, label=m.replace("Overlap-score", "Overlap score"), mec="white", mew=0.6)
+        chance = (sub.n_ring / (sub.n_test - sub.n_isolated)).groupby(sub.volume).mean()
+        ax.plot(chance.index, chance.values, color=GRAY, lw=0.9, ls=":", label="chance")
+        ax.set_xscale("log", base=2)
+        ax.set_xticks(sorted(df.volume.unique()), [f"{v:g}" for v in sorted(df.volume.unique())])
+        ax.minorticks_off()
+        ax.set_xlabel("ring claims per month")
+        ax.set_title(f"$\\delta$ = 0, $s$ = {d:g}", color=INK)
+        ax.set_ylim(0, 1.02)
+    np.atleast_1d(axes)[0].set_ylabel("ring AP (unseen rings)")
+    handles, labels = np.atleast_1d(axes)[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=len(labels), frameon=False, bbox_to_anchor=(0.5, -0.08),
+               fontsize=6.8)
+    fig.tight_layout(rect=(0, 0.08, 1, 1))
+    fig.savefig(FIG / "fig_dose_response.pdf", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -426,6 +457,13 @@ def main():
     prot = RESULTS_DIR / "tables" / "protocol_ring_ap.csv"
     if prot.exists():
         protocol_pairs(pd.read_csv(prot))
+    dose = []
+    for vol, sub in DOSE_SETS.items():
+        d = load_rows(sub)
+        if not d.empty:
+            dose.append(d[(d.ring_shift == 0.0) & d.seed.isin(ROUND1_SEEDS)].assign(volume=vol))
+    if len(dose) > 1:
+        dose_response(pd.concat(dose, ignore_index=True))
     print("figures written to", FIG)
 
 

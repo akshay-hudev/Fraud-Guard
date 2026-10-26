@@ -28,7 +28,12 @@ KAG_ORDER = ["LR-P", "RF-P", "GB-P", "GB-PG", "GB-PGL", "MLP-P", "SAGE", "RGCN",
 # Pre-specified design. Runs outside it (from an earlier, larger launch that was cut for compute)
 # are kept on disk but excluded so that every cell has the same replicates.
 DESIGN_SHIFTS = {0.0, 1.0, 2.0}
-DESIGN_SEEDS = set(range(1, 7))
+# Main grid: seeds 1-6 (first round) and 7-12 (second round; final N fixed in
+# paper/hiss_review/analysis_plan_round2.md). Secondary analyses (persistent rings, routing, ablations,
+# ring volume) stay on the first-round seeds.
+DESIGN_SEEDS = set(range(1, 13))
+ROUND1_SEEDS = set(range(1, 7))
+NUMBER_WORDS = {6: "six", 12: "twelve"}
 # Real-data rotations: one fold tests, three folds train, so the rotations' training sets overlap.
 KAGGLE_TEST_TRAIN_RATIO = 1 / 3
 
@@ -129,13 +134,13 @@ def _ci(lo: float, hi: float) -> str:
     return f"[{_sgn(lo)}, {_sgn(hi)}]"
 
 
-def pooled_latex(pooled: pd.DataFrame) -> str:
+def pooled_latex(pooled: pd.DataFrame, n_seeds: int) -> str:
     """Paired differences versus GB-CAG pooled over the nine regimes (seed as unit) for ring, isolated and overall AP."""
     ref = pooled[pooled.reference == "GB-CAG"]
     rows = ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT", "SAGE+AG", "HGT+AG", "MLP-C"]
     lines = [r"\begin{table}[h]",
              r"\caption{Paired difference in average precision versus GB-CAG, averaged over the nine regimes: "
-             r"mean $\Delta$ $\pm$ half-width of the 95\% $t$-interval over the six generator seeds, and "
+             rf"mean $\Delta$ $\pm$ half-width of the 95\% $t$-interval over the {NUMBER_WORDS.get(n_seeds, n_seeds)} generator seeds, and "
              r"Holm-adjusted paired $t$-test $p$ (within each metric). The nine regimes of a seed share its "
              r"legitimate claims, isolated fraud and ring members, so the seed, not the world, is the unit of "
              r"replication.}\label{tab:pooled}",
@@ -172,14 +177,15 @@ def summarise_synthetic(summary: dict) -> None:
         t.to_csv(TABLES / f"synthetic_{metric}.csv", index=False)
     t = regime_table(df, "ring_ap")
     show = SYN_ORDER
+    n_words = NUMBER_WORDS.get(int(n_seeds.min()), int(n_seeds.min()))
     (TABLES / "synthetic_ring_ap.tex").write_text(latex_regime(
         t, show, "Ring-fraud detection on unseen test rings: average precision of ring versus legitimate "
-                 "claims (chance level 0.08), mean over six worlds per regime. Bold: best per regime. "
+                 f"claims (chance level 0.08), mean over {n_words} worlds per regime. Bold: best per regime. "
                  "Standard deviations are in the supplementary results files.", "tab:regime_ringap"))
     tiso = regime_table(df, "isolated_ap")
     (TABLES / "synthetic_isolated_ap.tex").write_text(latex_regime(
         tiso, show, "Isolated-fraud detection: average precision of isolated-fraud versus legitimate claims "
-                    "(chance level 0.03), mean over six worlds per regime. Bold: best per regime.",
+                    f"(chance level 0.03), mean over {n_words} worlds per regime. Bold: best per regime.",
         "tab:regime_isoap"))
     comps = []
     for ref in ["GB-CAG", "GB-CA"]:
@@ -202,7 +208,7 @@ def summarise_synthetic(summary: dict) -> None:
     pooled["naive_t_p_holm"] = pooled.groupby(["metric", "reference"])["naive_t_p"].transform(lambda p: holm(p.tolist()))
     pooled.to_csv(TABLES / "synthetic_pooled.csv", index=False)
     pooled[pooled.metric == "ring_ap"].to_csv(TABLES / "synthetic_ring_ap_pooled.csv", index=False)
-    (TABLES / "synthetic_pooled.tex").write_text(pooled_latex(pooled))
+    (TABLES / "synthetic_pooled.tex").write_text(pooled_latex(pooled, int(n_seeds.min())))
     summary["synthetic"]["best_method_per_cell"] = (
         t.loc[t.groupby(["ring_shift", "ring_density"])["mean"].idxmax()]
         .assign(cell=lambda x: x.ring_shift.astype(str) + "/" + x.ring_density.astype(str))
@@ -217,11 +223,11 @@ LOWVOL_SETS = {"frozen": "synthetic_lowvolume", "retuned": "synthetic_lowvolume_
 LOWVOL_LABEL = {"default": "Default volume", "frozen": "Low volume, frozen", "retuned": "Low volume, re-tuned"}
 
 
-def volume_signal(summary: dict, seeds=range(1, 7), densities=(0.1, 0.5, 0.9)) -> None:
+def volume_signal(summary: dict, seeds=range(1, 7), densities=(0.1, 0.5, 0.9), volumes=(16.0, 8.0, 4.0, 2.0)) -> None:
     """Test-period claim volume of ring members versus everyone else, at default and low ring volume (delta = 0)."""
     from ..synth.generator import GeneratorConfig, generate
     rows = []
-    for volume in [GeneratorConfig.ring_claims_per_month, 4.0]:
+    for volume in volumes:
         for dens in densities:
             for seed in seeds:
                 w = generate(GeneratorConfig(ring_shift=0.0, ring_density=dens, seed=seed, ring_claims_per_month=volume))
@@ -278,6 +284,7 @@ def lowvolume_latex(t: pd.DataFrame, settings: list[str]) -> str:
 def summarise_lowvolume(summary: dict) -> None:
     """Stress test: ring volume 4 instead of 16 claims per month (delta = 0), against the default-volume runs."""
     base = load_rows("synthetic")
+    base = base[base.seed.isin(ROUND1_SEEDS)]           # the worlds whose backgrounds the low-volume runs share
     sets = {name: load_rows(sub) for name, sub in LOWVOL_SETS.items()}
     sets = {name: df[df.ring_shift == 0.0] for name, df in sets.items() if not df.empty}
     if base.empty or not sets:
@@ -412,8 +419,8 @@ def summarise_ablation(summary: dict) -> None:
     lines = [r"\begin{table}[h]",
              r"\caption{Mechanism ablations at $\delta=0$, $s=0.9$ (six worlds): ring AP (mean $\pm$ s.d.) and paired "
              r"change from the full model, with Holm-adjusted $p$ over every ablation comparison in this table and "
-             r"Table~\ref{tab:hgt_arch}. The tuned GNNs use three layers; HGT's single-factor variants are in "
-             r"Table~\ref{tab:hgt_arch}.}\label{tab:ablation}",
+             r"Table~\STabHGT{} of Online Resource~1, which lists HGT's single-factor variants. The tuned GNNs use three "
+             r"layers.}\label{tab:ablation}",
              r"\scriptsize", r"\begin{tabular}{@{}llcc@{}}", r"\toprule",
              r"Method & Variant & Ring AP & $\Delta$ vs.\ full \\", r"\midrule"]
     mech = {"GB-CA": ["full", "rewired", "ring_id_leak"], "GB-CAG": ["full", "rewired"],
@@ -433,7 +440,7 @@ def summarise_ablation(summary: dict) -> None:
             r"\caption{HGT single-factor ablations at $\delta=0$, $s=0.9$ (six worlds; one factor changed at a time "
             r"from the tuned configuration: 3 layers, 4 heads, hidden size 32). Ring AP (mean $\pm$ s.d.), isolated AP "
             r"(mean) and paired change from the full model; Holm-adjusted $p$ over every ablation comparison in this table "
-            r"and Table~\ref{tab:ablation}.}\label{tab:hgt_arch}",
+            r"and Table~\MainTabAblation{} of the article.}\label{tab:hgt_arch}",
             r"\scriptsize", r"\setlength{\tabcolsep}{2.5pt}", r"\begin{tabular}{@{}lcccc@{}}", r"\toprule",
             r"Variant & Ring AP & $\Delta$ ring AP & Isol.\ AP & $\Delta$ isol.\ AP \\", r"\midrule",
             f"Full model & {cell('HGT', 'full')} & -- & {cell('HGT', 'full', 'isolated_ap', sd=False)} & -- \\\\"]
@@ -630,6 +637,7 @@ def summarise_legacy(summary: dict) -> None:
     r = json.load(open(path))
     leg, bench = r["legacy"], r["benchmark_s0.5"]
     syn = load_rows("synthetic")
+    syn = syn[syn.seed.isin(ROUND1_SEEDS)]             # same worlds as benchmark() in legacy_reanalysis.py
     gbc = syn[syn.method == "GB-C"].groupby("ring_shift")[["ring_ap", "ring_recall"]].mean()
     comp = leg["split_composition"]
     n_test = sum(comp["test"].values())
@@ -676,16 +684,176 @@ def summarise_kaggle_nested(summary: dict) -> None:
         return
     rows = []
     for m in nested.method.unique():
-        a = nested[nested.method == m].set_index("fold")["ap"]
+        a = nested[nested.method == m].set_index("fold")["ap"].sort_index()
         b = shared[shared.method == m].set_index("fold")["ap"].reindex(a.index)
-        rows.append({"method": m, "nested_ap_mean": a.mean(), "nested_ap_sd": a.std(ddof=1), "shared_ap_mean": b.mean(),
+        rows.append({"method": m, "n_folds": len(a), "nested_ap_mean": a.mean(), "nested_ap_sd": a.std(ddof=1),
+                     "shared_ap_mean": b.mean(),
                      **corrected_resampled_comparison(a.to_numpy(), b.to_numpy(), KAGGLE_TEST_TRAIN_RATIO)})
     out = pd.DataFrame(rows)
     out.to_csv(TABLES / "kaggle_nested.csv", index=False)
+    # With every method selected per rotation, compare each with nested GB-P (no shared tuning left).
+    ref = nested[nested.method == "GB-P"].set_index("fold")["ap"]
+    vs = []
+    for m in [m for m in KAG_ORDER if m in set(nested.method) and m != "GB-P"]:
+        a = nested[nested.method == m].set_index("fold")["ap"]
+        common = a.index.intersection(ref.index)
+        if len(common) < 5:
+            continue
+        vs.append({"method": m, "reference": "GB-P (nested)",
+                   **corrected_resampled_comparison(a[common].to_numpy(), ref[common].to_numpy(), KAGGLE_TEST_TRAIN_RATIO)})
+    vs = pd.DataFrame(vs)
+    if len(vs):
+        vs["t_p_holm"] = holm(vs["t_p"].tolist())
+        vs.to_csv(TABLES / "kaggle_nested_vs_gbp.csv", index=False)
+    lines = [r"\begin{table}[h]",
+             r"\caption{Public data: hyperparameters re-selected inside every rotation (nested) versus selected once on a "
+             r"separate split (shared). AP mean over the five rotations; $\Delta$: nested $-$ shared with the corrected "
+             r"resampled 95\% CI. Hybrids inherit their base model's per-rotation choice.}\label{tab:kaggle_nested}",
+             r"\footnotesize", r"\begin{tabular}{@{}lccc@{}}", r"\toprule",
+             r"Method & Nested AP & Shared AP & $\Delta$ [95\% CI] \\", r"\midrule"]
+    o = out.set_index("method")
+    for m in [m for m in KAG_ORDER if m in o.index]:
+        r = o.loc[m]
+        lines.append(f"{LABEL.get(m, m)} & {r.nested_ap_mean:.3f} & {r.shared_ap_mean:.3f} & "
+                     f"{_sgn(r.mean_diff)} {_ci(r.ci_low, r.ci_high)} \\\\")
+    lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
+    (TABLES / "kaggle_nested.tex").write_text("\n".join(lines))
     gnn = shared[shared.method.isin(["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT", "SAGE+G", "HGT+G"])]
     summary["kaggle_nested"] = {"ap": out.set_index("method")[["nested_ap_mean", "shared_ap_mean"]].round(4).to_dict(orient="index"),
                                 "best_nested": str(out.loc[out.nested_ap_mean.idxmax(), "method"]),
-                                "best_gnn_shared_tuning": float(gnn.groupby("method")["ap"].mean().max())}
+                                "best_gnn_shared_tuning": float(gnn.groupby("method")["ap"].mean().max()),
+                                "vs_nested_gbp": vs.set_index("method")[["mean_diff", "ci_low", "ci_high", "t_p_holm"]].round(4)
+                                .to_dict(orient="index") if len(vs) else {}}
+
+
+def summarise_kaggle_repeated(summary: dict) -> None:
+    """Five-fold rotation repeated five times (repeat 0 = the reported split): 25 rotations per method."""
+    rep = load_rows("kaggle_repeated")
+    base = load_rows("kaggle")
+    if rep.empty or base.empty:
+        return
+    base = base[base.method.isin(rep.method.unique())].assign(repeat=0)
+    df = pd.concat([base, rep], ignore_index=True)
+    df["rotation"] = df["repeat"].astype(int) * 5 + df["fold"].astype(int)
+    piv = df.pivot_table(index="rotation", columns="method", values="ap")
+    rows = []
+    for m in [m for m in KAG_ORDER if m in piv and m != "GB-P"]:
+        ok = piv[[m, "GB-P"]].dropna()
+        rows.append({"method": m, "reference": "GB-P", **corrected_resampled_comparison(
+            ok[m].to_numpy(), ok["GB-P"].to_numpy(), KAGGLE_TEST_TRAIN_RATIO)})
+    c = pd.DataFrame(rows)
+    c["t_p_holm"] = holm(c["t_p"].tolist())
+    c.to_csv(TABLES / "kaggle_repeated_comparisons.csv", index=False)
+    stats_ = df.groupby("method")[["ap", "roc_auc", "recall_at_10pct"]].agg(["mean", "std", "count"])
+    stats_.to_csv(TABLES / "kaggle_repeated_metrics.csv")
+    lines = [r"\begin{table}[h]",
+             r"\caption{Public data, five-fold rotation repeated five times (25 rotations; the first repeat is the "
+             r"split reported in the article): AP mean $\pm$ s.d., and the difference from GB-P with the corrected "
+             r"repeated cross-validation 95\% CI and Holm-adjusted $p$ (variance factor $1/25 + 1/3$, 24 degrees of "
+             r"freedom).}\label{tab:kaggle_repeated}",
+             r"\footnotesize", r"\begin{tabular}{@{}lccc@{}}", r"\toprule",
+             r"Method & AP & $\Delta$ vs.\ GB-P [95\% CI] & $p$ \\", r"\midrule"]
+    cc = c.set_index("method")
+    for m in [m for m in KAG_ORDER if m in piv]:
+        a = stats_.loc[m, ("ap", "mean")], stats_.loc[m, ("ap", "std")]
+        if m == "GB-P":
+            lines.append(f"{m} & {a[0]:.3f} $\\pm$ {a[1]:.3f} & -- & -- \\\\")
+            continue
+        r = cc.loc[m]
+        p = "$<$0.001" if r.t_p_holm < 0.001 else f"{r.t_p_holm:.3f}"
+        lines.append(f"{LABEL.get(m, m)} & {a[0]:.3f} $\\pm$ {a[1]:.3f} & {_sgn(r.mean_diff)} {_ci(r.ci_low, r.ci_high)} & {p} \\\\")
+    lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
+    (TABLES / "kaggle_repeated.tex").write_text("\n".join(lines))
+    summary["kaggle_repeated"] = {"rotations_per_method": df.groupby("method")["rotation"].nunique().to_dict(),
+                                  "vs_gbp": cc[["mean_diff", "ci_low", "ci_high", "t_p_holm"]].round(4).to_dict(orient="index")}
+
+
+# Ring-volume dose-response at delta = 0 (seeds 1-6, hyperparameters of the main experiment).
+DOSE_SETS = {16.0: "synthetic", 8.0: "synthetic_volume8", 4.0: "synthetic_lowvolume", 2.0: "synthetic_volume2"}
+DOSE_METHODS = ["GB-C", "MLP-C", "LR-CA", "RF-CA", "GB-CA", "GB-CAG", "SAGE", "RGCN", "HAN", "SimpleHGN", "HGT",
+                "SAGE+AG", "HGT+AG", "Overlap-score"]
+
+
+def summarise_dose_response(summary: dict) -> None:
+    frames = []
+    for vol, sub in DOSE_SETS.items():
+        df = load_rows(sub)
+        if df.empty:
+            continue
+        df = df[(df.ring_shift == 0.0) & df.seed.isin(ROUND1_SEEDS)]
+        frames.append(df.assign(volume=vol))
+    if len(frames) < 2:
+        return
+    df = pd.concat(frames, ignore_index=True)
+    df["ring_chance"] = df["n_ring"] / (df["n_test"] - df["n_isolated"])
+    t = df.groupby(["volume", "ring_density", "method"])[["ring_ap", "isolated_ap", "ring_chance"]].agg(["mean", "std", "count"])
+    t.columns = [f"{a}_{b}" for a, b in t.columns]
+    t = t.reset_index()
+    t.to_csv(TABLES / "dose_response_ring_ap.csv", index=False)
+    rows = []
+    for vol, g in df.groupby("volume"):
+        piv = g.pivot_table(index=["ring_shift", "ring_density", "seed"], columns="method", values="ring_ap")
+        pairs = [("GB-CAG", "GB-CA")] + [(m, "GB-CAG") for m in GNN_PURE + ["SAGE+AG", "HGT+AG", "Overlap-score"]]
+        for m, ref in pairs:
+            if m not in piv or ref not in piv:
+                continue
+            for dens in sorted(g.ring_density.unique()):
+                cell = piv.xs(dens, level="ring_density")
+                rows.append({"volume": vol, "method": m, "reference": ref, "ring_density": dens,
+                             **paired_comparison(cell[m].to_numpy(), cell[ref].to_numpy())})
+            rows.append({"volume": vol, "method": m, "reference": ref, "ring_density": "pooled",
+                         **pooled_over_regimes(piv, m, ref)})
+    c = pd.DataFrame(rows)
+    pooled = c.ring_density == "pooled"
+    c.loc[pooled, "t_p_holm"] = c[pooled].groupby("volume")["t_p"].transform(lambda p: holm(p.tolist()))
+    c.loc[~pooled, "t_p_holm"] = c[~pooled].groupby(["volume", "method", "reference"])["t_p"].transform(lambda p: holm(p.tolist()))
+    c.to_csv(TABLES / "dose_response_comparisons.csv", index=False)
+    vols = sorted(df.volume.unique(), reverse=True)
+    dens = sorted(df.ring_density.unique())
+    m_ = t.set_index(["volume", "ring_density", "method"])["ring_ap_mean"]
+    chance = t.groupby("volume")["ring_chance_mean"].mean()
+    head = " & ".join(rf"\multicolumn{{{len(vols)}}}{{c}}{{$s={d:g}$}}" for d in dens)
+    rules = "".join(rf"\cmidrule(lr){{{2 + i * len(vols)}-{1 + (i + 1) * len(vols)}}}" for i in range(len(dens)))
+    lines = [r"\begin{table}[h]",
+             r"\caption{Ring AP at $\delta=0$ by ring volume (claims per ring per month; 16 is the default) and structural "
+             r"density $s$, mean over six worlds (seeds 1--6, which share their legitimate claims across volumes), "
+             r"hyperparameters of the main experiment. Chance level: "
+             + ", ".join(f"{chance[v]:.3f} at {v:g}" for v in vols) + r".}\label{tab:dose}",
+             r"\scriptsize", r"\setlength{\tabcolsep}{2.5pt}", r"\begin{tabular}{@{}l" + "c" * (len(vols) * len(dens)) + "@{}}",
+             r"\toprule", r" & " + head + r" \\", rules,
+             r"Method / volume & " + " & ".join(f"{v:g}" for _ in dens for v in vols) + r" \\", r"\midrule"]
+    for m in DOSE_METHODS:
+        vals = [m_.get((v, d, m), np.nan) for d in dens for v in vols]
+        lines.append(" & ".join([LABEL.get(m, m)] + ["--" if not np.isfinite(x) else f"{x:.3f}" for x in vals]) + r" \\")
+        if m in ("GB-CAG", "HGT"):
+            lines.append(r"\midrule")
+    lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
+    (TABLES / "dose_response.tex").write_text("\n".join(lines))
+    pc = c[pooled].set_index(["volume", "method"])
+    summary["dose_response"] = {
+        "volumes": vols, "chance": chance.round(4).to_dict(),
+        "structure_gain_pooled": {v: round(float(pc.loc[(v, "GB-CAG"), "mean_diff"]), 4) for v in vols},
+        "pure_gnn_minus_gbcag_pooled": {v: {m: round(float(pc.loc[(v, m), "mean_diff"]), 4) for m in GNN_PURE if (v, m) in pc.index} for v in vols}}
+
+
+def summarise_confirmation(summary: dict) -> None:
+    """Pre-declared confirmatory test (analysis_plan_round2.md, C): SAGE+AG vs GB-CAG, s = 0.1, volume 4, re-tuned."""
+    path = RESULTS_DIR / "synthetic_hybrid_confirm" / "runs"
+    if not path.exists():
+        return
+    rows = []
+    for f in sorted(path.glob("*.json")):
+        rows += json.load(open(f))["rows"]
+    df = pd.DataFrame(rows)
+    piv = df.pivot_table(index="seed", columns="method", values="ring_ap")
+    res = paired_comparison(piv["SAGE+AG"].to_numpy(), piv["GB-CAG"].to_numpy())
+    out = {"seeds": sorted(int(s) for s in piv.index), "n": res["n"], "sage_ag_mean": float(piv["SAGE+AG"].mean()),
+           "gbcag_mean": float(piv["GB-CAG"].mean()), **res,
+           "n_seeds_positive": int((piv["SAGE+AG"] > piv["GB-CAG"]).sum()),
+           "ring_chance": float((df.n_ring / (df.n_test - df.n_isolated)).mean()),
+           "confirmed": bool(res["t_p"] < 0.05 and res["mean_diff"] > 0)}
+    write_json(TABLES / "hybrid_confirmation.json", out)
+    summary["hybrid_confirmation"] = out
 
 
 def summarise_latency(summary: dict) -> None:
@@ -781,6 +949,9 @@ def main():
     summarise_cascade(summary)
     summarise_legacy(summary)
     summarise_kaggle_nested(summary)
+    summarise_kaggle_repeated(summary)
+    summarise_dose_response(summary)
+    summarise_confirmation(summary)
     summarise_latency(summary)
     write_json(RESULTS_DIR / "summary.json", {"provenance": provenance({"analysis": "analyze.py"}), **summary})
     print(json.dumps(summary, indent=1, default=str))

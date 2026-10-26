@@ -24,7 +24,8 @@ TO_SUPPLEMENT = {
 }
 # Online Resource macro -> label in the article
 TO_ARTICLE = {"MainSecLowVolume": "sec:lowvolume", "MainSecMechanism": "sec:mechanism",
-              "MainTabAblation": "tab:ablation", "MainTabProtocol": "tab:protocol", "MainTabKaggle": "tab:kaggle"}
+              "MainTabAblation": "tab:ablation", "MainTabProtocol": "tab:protocol", "MainTabKaggle": "tab:kaggle",
+              "MainTabLowVolume": "tab:lowvolume"}
 
 
 def macros(tex: Path) -> dict[str, str]:

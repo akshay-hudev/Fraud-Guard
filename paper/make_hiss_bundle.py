@@ -8,7 +8,8 @@ number in the manuscript (TikZ figures drawn inside the .tex are counted but nee
 \\includegraphics commands to match. The Springer Nature class file is not tracked in the repository (it is
 distributed with the journal's LaTeX template); pass the copy from the template download.
 
-Output: paper/hiss_submission/ and paper/hiss_submission.zip (both git-ignored).
+Output: paper/hiss_submission/ and paper/hiss_submission.zip (both git-ignored). The Online Resource
+(supplementary_material.tex) is uploaded as a PDF, ESM_1.pdf.
 """
 
 from __future__ import annotations
@@ -39,6 +40,8 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--cls", type=Path, required=True, help="sn-jnl.cls from the Springer Nature LaTeX template")
     ap.add_argument("--pdf", type=Path, help="compiled manuscript PDF to include")
+    ap.add_argument("--supplement-pdf", type=Path,
+                    help="compiled supplementary_material.tex, added as ESM_1.pdf (Online Resource 1; HISS wants PDF)")
     ap.add_argument("--iicol", action="store_true",
                     help="two-column layout recommended by HISS: [iicol] class option, every float spans both columns")
     args = ap.parse_args()
@@ -67,6 +70,8 @@ def main() -> None:
         shutil.copy(FIGURES / old, staging / new)
     if args.pdf:
         shutil.copy(args.pdf, staging / "fraud_detection_paper_compiled.pdf")
+    if args.supplement_pdf:
+        shutil.copy(args.supplement_pdf, staging / "ESM_1.pdf")
     if OUT.exists():
         shutil.rmtree(OUT)
     staging.rename(OUT)

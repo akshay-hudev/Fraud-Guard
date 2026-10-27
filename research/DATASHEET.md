@@ -25,7 +25,8 @@ Following the structure of *Datasheets for Datasets* (Gebru et al., 2021).
   (16 claims per month): a ring patient files 9.3 claims per test period against 1.6 for other patients
   (99th percentile ≈ 5), a ring doctor 38 against 16. With `ring_claims_per_month = 4` (low-volume stress
   test) these become 3.7 (≈ the 95th percentile of other patients) and 20, and ring prevalence falls from 8.0% to
-  2.1% of non-isolated claims (`results/tables/volume_signal.csv`). At δ = 0 ring claims follow the legitimate
+  2.1% of non-isolated claims; at 8 claims per month 5.4 and 26 (4.2%), at 2 claims per month 3.0 and 18 (1.1%)
+  (`results/tables/volume_signal.csv`). At δ = 0 ring claims follow the legitimate
   claim distribution of the doctor's specialty (tested with a two-sample KS test).
 * **Shared background across regimes.** The generator draws entities, legitimate claims, isolated fraud and
   recruited ring members before it applies δ and s, so the nine regimes of one seed share all of them and differ
@@ -34,8 +35,9 @@ Following the structure of *Datasheets for Datasets* (Gebru et al., 2021).
 * **Confidentiality.** Fully synthetic; contains no real persons.
 
 ## Collection process
-Not collected; simulated from fixed random seeds (evaluation worlds: seeds 1–6 per regime; development
-worlds for tuning: seeds 901, 902 at δ = 0.5, s = 0.5).
+Not collected; simulated from fixed random seeds (evaluation worlds: seeds 1–12 per regime, seeds 1–6 for the
+secondary analyses and ring-volume levels, seeds 7–18 for the confirmatory test at volume 4; development worlds for
+tuning: seeds 901, 902 at δ = 0.5, s = 0.5).
 
 ## Preprocessing
 Features are built per audit period from that period's claims only (`research/synth/features.py`); graphs

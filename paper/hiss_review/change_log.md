@@ -56,12 +56,86 @@ results are not overwritten: run records are append-only, superseded statistics 
 | Appendix | Generator table: low-volume setting and shared background; hyperparameter caption points to the re-tuned configurations | A3 |
 | References | 12 verified references added; 38 of 52 entries now carry verified DOIs; list re-ordered by first citation | A4, A17 |
 
+## Second round (2026-10-26): pre-declared experiments and restructuring
+
+The authors asked for the weaknesses of the first revision to be addressed: a less striking story, a
+smaller-looking novelty, length, a messier narrative and new openings for reviewers. The plan was
+`paper/hiss_review/analysis_plan_round2.md`, committed at `6c6a0c2` before any of its runs started. Every outcome
+is reported, including those that weaken earlier statements.
+
+### Code
+
+| File | Change |
+|---|---|
+| `research/experiments/kaggle_exp.py` | `--repeat` reshuffles the stratified folds (seed = repeat) for repeated cross-validation; output `results/kaggle_repeated/` (committed in `6c6a0c2`) |
+| `research/experiments/analyze.py` | `DESIGN_SEEDS` = 1–12, `ROUND1_SEEDS` = 1–6 for the secondary analyses; captions computed from the data; dose-response summary and table; confirmatory-test summary; repeated cross-validation (corrected test, J = 25); nested-vs-nested comparison on the public data; timing medians restricted to round-1 seeds (round-2 runs shared the CPU with more jobs) |
+| `research/experiments/figures.py` | Dose-response figure (`fig_dose_response.pdf`) |
+| `research/experiments/sync_manuscript.py` | Syncs the article and the Online Resource; whole-line `%%TABLE:` markers |
+| `verify.py` | Checks the round-2 run sets and that the main grid has all 108 worlds |
+| `paper/check_manuscript_numbers.py` | Checks both documents; twelve-seed values; new checks for the dose-response, confirmation, summary table and abstract |
+| `paper/check_cross_references.py` (new) | Compares the cross-document macros (`\STabHGT`, `\MainTabAblation`, …) with the numbers in both `.aux` files |
+| `paper/order_references.py` (new) | Checks and restores first-citation order of the bibliography |
+| `paper/make_hiss_bundle.py` | `--supplement-pdf` adds the Online Resource as `ESM_1.pdf` |
+| `paper/hiss_review/run_round2.sh` (new) | Runs every job of the round (136 jobs, four workers) |
+| `research/experiments/analyze.py` (after the runs) | Nested table also compares every method with nested GB-P; "same choice" when re-selection picked the shared configuration in every rotation; legacy table counts generated worlds and independent seeds (54 (6)) instead of calling the 54 worlds independent |
+| `paper/check_cross_references.py` (after the runs) | Also checks the article's reference numbers quoted in the Online Resource (`\bibcite`) |
+
+### New results
+
+| Directory | Content |
+|---|---|
+| `results/synthetic/runs/` | +54 worlds: the nine regimes for seeds 7–12 (final N = 12 per regime) |
+| `results/synthetic_volume8/`, `results/synthetic_volume2/` | Ring volumes 8 and 2 claims/month, δ = 0, three densities, seeds 1–6, all 14 methods, main hyperparameters |
+| `results/synthetic_hybrid_confirm/` | Confirmatory test: SAGE+AG and GB-CAG at δ = 0, s = 0.1, volume 4, re-tuned configurations, fresh seeds 7–18 |
+| `results/kaggle_repeated/runs/` | Public data, rotation repeated with reshuffled folds (repeats 1–4 × five rotations; with the reported split, 25 rotations) for LR-P, RF-P, GB-P, GB-PG, GB-PGL, MLP-P, SAGE, HAN, HGT |
+| `results/kaggle_nested/runs/fold<k>_gnn_*.json` | Public data, per-rotation selection for SAGE, RGCN, HAN, Simple-HGN, HGT (hybrids inherit), same budget of six candidates |
+
+### Outcomes
+
+| Question | Outcome |
+|---|---|
+| Do the twelve-seed results change the conclusions? | Mostly they sharpen them. No pure GNN beats GB-CAG on average (upper 95% limits ≤ +0.006). HAN is now significantly worse (−0.023, Holm p = 0.002). **New:** one significant per-regime advantage for a pure GNN, RGCN at δ = 2, s = 0.1 (+0.005, Holm p = 0.007, every method > 0.98). The statement "no GNN significantly better in any regime" was removed. **Changed:** the hybrids' gain over GB-CAG, not significant with six seeds (Holm p = 0.12/0.29), is significant with twelve (+0.010 [0.005, 0.015], Holm p = 0.006; +0.009 [0.004, 0.015], p = 0.016). GB-CAG now beats every pure GNN on overall AP (Holm p ≤ 0.004), where with six seeds SAGE and HGT were not significant |
+| Does the value of structure depend on ring volume? | Yes, non-monotonically. Structure gain (GB-CAG − GB-CA, mean over densities) is 0.06 at 16, 0.42 at 8, 0.30 at 4, and none at 2 claims per month (no method far above chance). Pure GNNs fall further behind GB-CAG as volume falls (0.01–0.06, 0.10–0.29, 0.23–0.29); the hybrids stay within 0.05 |
+| Is the exploratory hybrid result real? | **Confirmed** by the pre-declared test: +0.024 [0.005, 0.043], p = 0.016, Wilcoxon p = 0.009, nine of twelve seeds positive. About half the exploratory estimate (+0.051), and both methods remain near chance (0.129 and 0.104 vs. 0.021) |
+| Does repeated cross-validation resolve the public-data comparisons? | It narrows the intervals but leaves every difference non-significant after correction (smallest Holm p = 0.29, HAN; unadjusted 0.036). GB-P has the highest mean AP (0.693 over 25 rotations); graph features change it by −0.007 [−0.019, 0.006] and −0.006 [−0.019, 0.007]. A plain paired t-test would have called all eight differences significant |
+| Did shared tuning favour the GNNs on the public data? | **No, contrary to the earlier text.** Per-rotation selection changed GNN and hybrid AP by −0.008 (HGT) to +0.036 (RGCN), none significantly; SAGE chose its shared configuration in every rotation. The sentence "the shared selection favours the GNNs, and their shortfall is, if anything, understated" was removed. With every method selected per rotation, GB-P (0.706) stays best and every GNN and hybrid is 0.023–0.053 below it (smallest Holm p = 0.051) |
+
+### Manuscript and Online Resource
+
+| Part | Change |
+|---|---|
+| Structure | Details moved to a new Online Resource (`supplementary_material.tex`, Sections S1–S10): hyperparameters, routing, dose table, confirmation protocol, cost, HGT single-factor ablations, reliance, extra figures, public-data extras and the legacy re-analysis. The single-column article fell from 37 to 34 pages despite a new figure and table; the two-column bundle is 27 pages |
+| Abstract | Rebuilt around the map of conditions; results stated as bounds and intervals; 242 words |
+| Introduction | Five contributions: a map of when structure helps, the benchmark, quantified evaluation pitfalls, mechanism, the public-data check. Findings paragraph rewritten for twelve seeds, the dose-response and the confirmation |
+| Related work | Shortened (93 → 74 source lines), all citations kept |
+| 4.5 Statistics | Twelve seeds, 11 df; the two rounds and the pre-declared plan disclosed; secondary analyses on seeds 1–6 |
+| 5.3 Protocol | Repeated cross-validation (25 rotations, corrected test with J = 25; Nadeau & Bengio 2003, Bouckaert & Frank 2004) and nested selection for all methods |
+| 6 Results | Twelve-seed values throughout; RGCN exception; hybrid gain now significant; confirmatory test; dose-response paragraph and Fig. 5; routing and cost condensed |
+| 8 Public-data results | New paragraph on the two pre-specified checks (repeated cross-validation, per-rotation selection); the claim that shared tuning favours the GNNs replaced by the measured result |
+| 9 Discussion | New Table 8 (when relational structure helps); hybrid gain reframed as structure that message passing extracts beyond the engineered features; low-volume evidence; public-data paragraph gives the 25-rotation upper limits; limitations rewritten for the second round (twelve seeds, ring-volume levels, repeated rotations covering three GNNs) |
+| Appendix | Generator table: 12 seeds, ring-volume levels, confirmatory seeds |
+| References | Bouckaert & Frank (2004) added and verified (53 entries) |
+
+### Errors found and corrected during this round
+
+* The article's pooled and regime tables had not been re-synced after the twelve-seed analysis; `sync_manuscript`
+  now reports no differences.
+* The isolated-fraud table (`tab:regime_isoap`) had been deleted by an earlier edit of Section 6.5; restored.
+* Simple-HGN's pooled ring-AP difference is −0.006 (text said −0.007); the bound on the other GNNs' Holm p is ≥ 0.18
+  (text said ≥ 0.19; one value is 0.188); test-claim fraud prevalence is 10.5% (text said 10.4%).
+* The summary table gave the pure-GNN gap for dense rings at volume 4–8 as 0.10–0.29, which is the gap averaged over
+  densities; the per-cell range is 0.17–0.54.
+* "Little for sparse rings" contradicted volume 8 (+0.13); the text and table now give the per-volume values.
+
 ## Other files
 
 * `paper/references.bib`: same additions and DOIs.
 * `paper/reforms_checklist.md`: section references updated; statistical units and low-volume test added.
 * `paper/make_hiss_bundle.py`: builds the upload bundle with `Fig<N>` file names, optionally in the two-column layout HISS recommends (`--iicol`).
-* `paper/check_manuscript_numbers.py`: recomputes 241 numbers quoted in the text from the result artifacts (all pass).
-* `paper/fraud_detection_paper.pdf`: rebuilt from the revised source (single-column, 37 pages).
+* `paper/check_manuscript_numbers.py`: recomputes 241 numbers quoted in the text from the result artifacts (all pass);
+  345 checks across both documents after the second round (all pass).
+* `paper/fraud_detection_paper.pdf`: rebuilt from the revised source (single-column; 37 pages after the first round,
+  34 after the second).
+* `paper/supplementary_material.pdf` (new): the compiled Online Resource 1 (10 pages), uploaded as `ESM_1.pdf`.
 * `paper/hiss_review/*`: the audit documents.
 * `README.md`: licence line corrected.

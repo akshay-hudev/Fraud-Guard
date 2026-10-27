@@ -73,9 +73,10 @@ $PY -m research.experiments.synthetic --shifts 0.0 --seeds 1 2 3 4 5 6 --ring-cl
 # 11. Tables, statistics, figures; paste tables into the manuscript; then check artifacts
 $PY -m research.experiments.analyze && $PY -m research.experiments.figures
 $PY -m research.experiments.sync_manuscript && $PY verify.py
-# Not run for the article (about 25 CPU-hours): re-select the GNNs per rotation on the real data
-# $PY -m research.experiments.kaggle_exp --stage nested --nested-gnns --tag gnn \
-#     --methods SAGE RGCN HAN SimpleHGN HGT SAGE+G HGT+G
+# 12. Second round: seeds 7-12 of the main grid, ring volumes 8 and 2, the confirmatory hybrid test, repeated
+#     cross-validation and nested GNN tuning on the real data. The script lists every command (136 jobs):
+PARALLEL=4 bash paper/hiss_review/run_round2.sh
+#     kaggle_exp.py overwrites an existing rotation file, so rerun its commands only with the same method list.
 ```
 
 **Second experimental round.** `paper/hiss_review/analysis_plan_round2.md` pre-declares, and
@@ -90,10 +91,11 @@ $PY -m research.experiments.sync_manuscript && $PY verify.py
 The round runs about 9 hours with four workers (`PARALLEL=4`).
 
 **Statistical units.** The nine regimes of one generator seed share their legitimate claims, isolated fraud and
-ring members (the generator draws them before applying δ and s), so comparisons pooled over regimes test the six
-seed means (`metrics.clustered_comparison`). The five real-data rotations share training folds, so comparisons
-over them use the corrected resampled t-test of Nadeau and Bengio (2003) (`metrics.corrected_resampled_comparison`).
-The naive values are kept in the CSVs (`naive_*` columns) for comparison.
+ring members (the generator draws them before applying δ and s), so comparisons pooled over regimes test the twelve
+seed means (`metrics.clustered_comparison`; seeds 1–6 for the secondary analyses). The real-data rotations share
+training folds, so comparisons over them use the corrected resampled t-test of Nadeau and Bengio (2003)
+(`metrics.corrected_resampled_comparison`); over the 25 repeated rotations the variance factor is 1/25 + 1/3
+(Bouckaert and Frank 2004). The naive values are kept in the CSVs (`naive_*` columns) for comparison.
 
 Steps 1–8 accept `--methods` / `--seeds` / `--shifts` / `--folds` subsets so they can be split across processes;
 finished runs are skipped on restart. Wall-clock on a 4-core Intel laptop CPU: roughly 2 h tuning, 3 h synthetic

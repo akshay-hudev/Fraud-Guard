@@ -1,6 +1,6 @@
 # Reference verification (2026-10-25)
 
-Every entry in the manuscript's bibliography (52 entries, numbered by first citation as `sn-vancouver-num` requires)
+Every entry in the manuscript's bibliography (53 entries since 2026-10-26, numbered by first citation as `sn-vancouver-num` requires)
 was checked against a registry record. The check covered authors, title, venue, volume, issue, pages or article
 number, and year. Where the manuscript attributes a specific claim to a work, that claim was also checked against
 the work itself.
@@ -32,6 +32,7 @@ means the reference is cited for a method or dataset rather than a specific resu
 | platonov2023 | ICLR 2023 (iclr.cc virtual poster 11466; arXiv:2302.11640) | Duplicate nodes leaking between train and test strongly affected GNN performance on two benchmarks | arXiv abstract |
 | dalpozzolo2018 | Crossref 10.1109/TNNLS.2017.2736643: *IEEE TNNLS* 29(8):3784–3797 (2018) | Investigators examine only a limited number of cases | Abstract (OpenAlex): "only a small set of transactions are timely checked by investigators" |
 | nadeau2003 | Crossref 10.1023/A:1024068626366: *Machine Learning* 52(3):239–281 (2003) | Corrected resampled t-test, variance factor 1/J + n₂/n₁ | Not readable as primary text in this session. Formula confirmed by two independent secondary sources: the CRAN `correctR` vignette and the `MachineShop` documentation |
+| bouckaert2004 (added 2026-10-26) | Crossref 10.1007/978-3-540-24775-3_3: Bouckaert RR, Frank E, "Evaluating the replicability of significance tests for comparing learning algorithms", *Advances in Knowledge Discovery and Data Mining* (LNCS), Springer 2004, pp. 3–12; OpenAlex agrees; Open Library (ISBN 9783540220640) gives PAKDD 2004, Sydney, editors Dai, Srikant, Zhang | Cited with Nadeau & Bengio for the corrected test over repeated cross-validation (25 rotations) | The LNCS volume number could not be confirmed from a reachable registry (Crossref and OpenAlex leave it empty; DBLP blocked automated access), so it is omitted from the entry. Claim checked in the authors' accepted version (University of Waikato Research Commons, hdl 10289/1451, read 2026-10-26): Section 3 defines the "corrected repeated k-fold cv test" with variance factor 1/(k·r) + n₂/n₁ and k·r − 1 degrees of freedom, building on Nadeau & Bengio. Our use (k = 5, r = 5: 1/25 + 1/3, 24 df) matches |
 
 ## Existing references: DOIs added
 

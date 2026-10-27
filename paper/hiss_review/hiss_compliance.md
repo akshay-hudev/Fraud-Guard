@@ -26,15 +26,16 @@ Both pages were read in full. The "editorial policies" URL returned 404, and the
 
 | Requirement | Type | Verified text | Status |
 |---|---|---|---|
-| LaTeX with the Springer Nature template | R | "Manuscripts should be submitted in LaTeX." "We recommend using Springer Nature's LaTeX template and choosing the formatting option "[iicol]"." | Template used (`sn-jnl.cls` v12, `sn-vancouver-num`). The source stays single-column; `paper/make_hiss_bundle.py --iicol` builds the recommended two-column upload (30 pages, compiles cleanly) |
+| LaTeX with the Springer Nature template | R | "Manuscripts should be submitted in LaTeX." "We recommend using Springer Nature's LaTeX template and choosing the formatting option "[iicol]"." | Template used (`sn-jnl.cls` v12, `sn-vancouver-num`). The source stays single-column; `paper/make_hiss_bundle.py --iicol` builds the recommended two-column upload (27 pages after the second round, compiles cleanly) |
 | Editable source files at every submission | M | "Failing to submit a complete set of editable source files will result in your article not being considered for review." | Bundle built by `paper/make_hiss_bundle.py`: `.tex`, `sn-jnl.cls`, figure files, compiled PDF |
 | Title page: title, names, affiliations, corresponding e-mail | M | — | Present |
 | ORCID iDs | R | — | **Missing**; authors to add |
-| Structured abstract, 150–250 words: Purpose, Methods, Results, Conclusion | M | "Please provide a structured abstract of 150 to 250 words which should be divided into the following sections" | Present; word count re-checked after revision (see change log) |
+| Structured abstract, 150–250 words: Purpose, Methods, Results, Conclusion | M | "Please provide a structured abstract of 150 to 250 words which should be divided into the following sections" | Present: 242 words (248 if each numeric range is counted as two words), with the four headings |
 | 4–6 keywords | M | "Please provide 4 to 6 keywords which can be used for indexing purposes." | 6 keywords |
 | Decimal headings, at most three levels | M | — | Two numbered levels; unnumbered run-in `\paragraph` headings only |
 | Abbreviations defined at first mention | M | — | Checked; ROC-AUC and CI now defined at first use |
 | Footnotes, not endnotes | M | — | None used |
+| Supplementary information: cited in the text as "Online Resource" and numbered; each file includes the article title, journal name, author names and the corresponding author's affiliation and e-mail; each item has a concise caption; PDF for text | M (as read on 2026-10-25; the page redirected to a login on 2026-10-27, so it was not re-read) | — | `supplementary_material.tex` → `ESM_1.pdf` (10 pages); cited in the text as "Online Resource 1"; its title page names the article, the journal, and the authors with affiliation and e-mail addresses; the article's "Supplementary information" paragraph is its caption. Its cross-references to the article are checked by `paper/check_cross_references.py` |
 
 ## 3. References
 
@@ -51,7 +52,7 @@ Both pages were read in full. The "editorial policies" URL returned 404, and the
 |---|---|---|
 | Tables numbered and cited consecutively, with captions | M | Checked after revision |
 | Figures cited in order, captions in the text file, Arabic numbering | M | Checked after revision |
-| Figure file names "Fig" + number | M | "Name your figure files with "Fig" and the figure number, e.g., Fig1.eps." The repository keeps descriptive names; the submission bundle renames them (`Fig3.pdf` … `Fig9.pdf`). Figs. 1–2 are TikZ drawings inside the `.tex` |
+| Figure file names "Fig" + number | M | "Name your figure files with "Fig" and the figure number, e.g., Fig1.eps." The repository keeps descriptive names; the submission bundle renames them (`Fig3.pdf` … `Fig7.pdf`). Figs. 1–2 are TikZ drawings inside the `.tex`. The Online Resource's three figures are inside `ESM_1.pdf` |
 | Vector graphics with embedded fonts | M | Matplotlib PDFs with TrueType (Type 42) fonts embedded (`pdf.fonttype = 42`) |
 | Lettering Helvetica/Arial, about 8–12 pt | R | Figures use DejaVu Sans at 6.5–8.5 pt. **Not changed**: a cosmetic change, best done once the layout ([iicol] or not) is decided |
 | Colour that survives greyscale; no colour words in captions if printed in B&W | R | Every series has its own marker or line style. One caption (real-data figure) names colours; online colour is free of charge |

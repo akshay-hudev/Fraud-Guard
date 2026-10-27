@@ -42,12 +42,16 @@ limited to what was verified; "not verified" marks what could not be read. Searc
 1. A **controlled** healthcare-claims benchmark in which the feature-level signal (δ) and the structural density (s)
    of collusive rings vary independently, with entity-disjoint ("emergent") test rings and automated leakage tests.
    We found no study that varies the two signal sources independently for patient–provider claim graphs.
-2. **Conditions** under which relational structure adds value beyond per-entity aggregates (dense blocks, claims not
-   anomalous on their own), and how these conditions depend on ring volume (low-volume stress test, Section 6).
+2. **A map of conditions** under which relational structure adds value beyond per-entity aggregates (dense blocks,
+   claims not anomalous on their own, ring members not already conspicuous by volume), traced over four ring volumes
+   (16, 8, 4, 2 claims per month; Section 6.6 and Table 8 of the article). The value of structure peaks at
+   intermediate volume and vanishes when rings file about one claim per member.
 3. **Mechanism**: ring detection by GNNs is structural (counting); attention-based HGT needs degree encodings;
    message passing dilutes claim-level anomalies (isolated fraud).
-4. **Quantified memorisation**: recurring ring members inflate ring AP by up to 0.60 for an attribute-only model, by
-   amounts that differ between methods.
+4. **Quantified evaluation pitfalls**: recurring ring members inflate ring AP by up to 0.60 for an attribute-only
+   model, by amounts that differ between methods; and generated worlds that share their background data make pooled
+   tests anti-conservative unless the generator seed is the unit (Platonov et al. 2023 is the closest analogue for
+   the first).
 5. An evaluation of **two-stage routing** (GB → GNN) under validation-only selection.
 6. A real-data check under a stricter protocol than prior work on the dataset (provider-disjoint rotations, equal tuning
    budgets, corrected tests, graph-augmented tabular and hybrid baselines), with a descriptive explanation of the null

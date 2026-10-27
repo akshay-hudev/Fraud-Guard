@@ -54,10 +54,8 @@ uncommitted edits, so the flag was set, but none of the edits touched code the e
   applying the caption-only edits to `research/experiments/analyze.py` that existed at launch. `synthetic.py` does
   not import `analyze.py`.
 
-**Not run:**
-
-* Nested GNN tuning on the public data (≈25 CPU-hours). The command is in `unresolved_issues.md` (E-1).
-* Further volume levels, δ > 0 at low volume, training-seed replication and per-regime tuning (E-2 to E-4).
+**Not run in the first round:** nested GNN tuning (E-1) and further volume levels (E-2), both run in the second
+round (Section 5); δ > 0 at low volume, training-seed replication and per-regime tuning (still not run).
 
 ## 4. Low-volume results (δ = 0, ring AP; chance 0.021)
 
@@ -80,3 +78,51 @@ seed as unit).
 * SAGE+AG matches GB-CAG in both settings (+0.001 and +0.009).
 * The only significant advantage over GB-CAG in either setting: SAGE+AG at s = 0.1 after re-tuning (+0.051,
   Holm p = 0.035), where every method is near chance.
+
+## 5. Second round (2026-10-26)
+
+**Plan.** `paper/hiss_review/analysis_plan_round2.md`, committed at `6c6a0c2` (16:02:51 IST) before any run.
+
+**Runner.** `PARALLEL=4 bash paper/hiss_review/run_round2.sh` (each job with `RESEARCH_THREADS=2 OMP_NUM_THREADS=2`).
+Started 16:02:55, finished 23:47:43 IST (7 h 45 min): 136 jobs, 136 `done`, 0 `FAILED`
+(`results/round2_logs/queue.log`; per-job logs git-ignored).
+
+| Group | Command (per job) | Jobs | Outcome |
+|---|---|---|---|
+| A. Main grid, seeds 7–12 | `PY -m research.experiments.synthetic --shifts <δ> --densities <s> --seeds <g> --group all` | 54 | 54 worlds; the main grid has all 108 worlds (`verify.py`) |
+| B. Ring volumes 8 and 2 | as A with `--shifts 0.0 --ring-claims-per-month {8,2} --out results/synthetic_volume{8,2}` | 36 | 18 + 18 worlds |
+| C. Confirmatory test | `PY -m research.experiments.synthetic --shifts 0.0 --densities 0.1 --seeds 7 … 18 --ring-claims-per-month 4 --hps results/tuning_lowvolume/best_hyperparameters.json --methods GB-CAG SAGE+AG --out results/synthetic_hybrid_confirm` | 1 | 12 worlds |
+| E1. Nested HGT, Simple-HGN | `PY -m research.experiments.kaggle_exp --stage nested --nested-gnns --folds <k> --methods HGT HGT+G` (and `SimpleHGN`) | 10 | 5 + 5 rotation files |
+| D. Repeated cross-validation | `PY -m research.experiments.kaggle_exp --stage eval --repeat <1–4> --folds <k> --methods LR-P RF-P GB-P GB-PG GB-PGL MLP-P SAGE HAN HGT` | 20 | 20 rotation files (25 rotations with the reported split) |
+| E2. Nested RGCN, SAGE, HAN | as E1 with `RGCN`, `SAGE SAGE+G`, `HAN` | 15 | 15 rotation files |
+
+Then `PY -m research.experiments.analyze`, `PY -m research.experiments.figures` (dose-response figure),
+`PY -m research.experiments.sync_manuscript`, `PY verify.py` (all artifacts present),
+`PY paper/check_manuscript_numbers.py` (345/345), `PY paper/order_references.py --check`, and
+`PY paper/check_cross_references.py <build dir>` (27/27) after compiling both documents with Tectonic.
+`pytest research/tests` passes (27/27).
+
+**Provenance of the round-2 runs.** The git state is recorded when a process starts. Experiment code, meaning
+everything `synthetic.py` and `kaggle_exp.py` import, is identical in every state below; only `analyze.py`,
+`figures.py` and `sync_manuscript.py` changed, and no experiment imports them.
+
+| Recorded state | Runs | Explanation |
+|---|---|---|
+| `6c6a0c2`, clean, sources `eb03b4697c4919c4` | 4 synthetic | Equals the committed sources at `6c6a0c2` |
+| `6c6a0c2`, dirty, `1e7bfee25a2f3b9e` | 4 synthetic | Started while `analyze.py`/`figures.py` were being edited for `8c3434a` |
+| `6c6a0c2` or `8c3434a`, dirty, `14e8bec1584dcbeb` | 1 + 93 synthetic, 4 nested | Equals the committed sources at `8c3434a`; dirty only through `research/README.md` |
+| `5581e2e`, clean, `df47d889bd584376` | 6 nested, 11 repeated | Equals the committed sources at `430e014`/`5581e2e` |
+| `5581e2e`, dirty, `dfb870223106e371` | 15 nested, 9 repeated | Reproduced exactly by applying, to `5581e2e`, the one uncommitted edit of `analyze.py` that existed at launch (the extended nested table) |
+
+**Observations.**
+
+* Nested SAGE selected the shared configuration in all five rotations (validation AP 0.683 against 0.671 for the
+  runner-up in the shared tuning), so with deterministic training its nested and shared results are identical.
+* Round-2 runs shared the CPU with a different mix of concurrent jobs than round 1, so their wall-clock training
+  times are not comparable; the timing table uses round-1 seeds only.
+* The single-column article compiles to 34 pages, the Online Resource to 10, and the two-column bundle to 27 pages,
+  without errors, undefined references or overfull boxes. The bundle was unzipped into an empty directory and
+  compiled on its own.
+
+**Still not run:** training-seed replication (E-3), per-regime tuning (E-4), δ > 0 at reduced volume, and the
+repeated rotations for RGCN, Simple-HGN and the hybrids.

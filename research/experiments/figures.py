@@ -42,6 +42,9 @@ plt.rcParams.update({
     "axes.spines.top": False, "axes.spines.right": False, "axes.grid": True, "grid.color": GRID,
     "grid.linewidth": 0.6, "axes.axisbelow": True, "lines.linewidth": 1.6, "savefig.dpi": 300,
     "pdf.fonttype": 42, "font.family": ["Arial", "Helvetica", "DejaVu Sans"],
+    # Symbols such as delta in labels are set as math text, which otherwise falls back to DejaVu Sans.
+    "mathtext.fontset": "custom", "mathtext.rm": "Arial", "mathtext.it": "Arial:italic", "mathtext.bf": "Arial:bold",
+    "mathtext.sf": "Arial",
 })
 
 
@@ -97,7 +100,8 @@ def delta_heatmaps(df: pd.DataFrame, comp: pd.DataFrame) -> None:
             for j in range(M.shape[1]):
                 if np.isfinite(M[i, j]):
                     star = "*" if P[i, j] < 0.05 else ""
-                    ax.text(j, i, f"{M[i, j]:+.2f}{star}", ha="center", va="center", fontsize=8,
+                    label = f"{M[i, j]:+.2f}".replace("+0.00", "0.00").replace("-0.00", "0.00")
+                    ax.text(j, i, f"{label}{star}", ha="center", va="center", fontsize=8,
                             color="white" if abs(M[i, j]) > 0.6 * lim else INK)
         ax.set_xticks(range(len(dens)), [f"{d:g}" for d in dens])
         ax.set_yticks(range(len(shifts)), [f"{s:g}" for s in shifts])

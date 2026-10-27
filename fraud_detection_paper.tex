@@ -155,9 +155,9 @@ public provider-labelled data. Our contributions are:
   dense rings by counting shared counterparties, which explains when the
   engineered features suffice (Section~\ref{sec:mechanism}).
 \item \textbf{A check on public data}: a provider-labelled Medicare claims
-  dataset evaluated with a provider-disjoint protocol, equal tuning budgets
-  and tests corrected for overlapping training sets
-  (Section~\ref{sec:realdata}). It replicates, under stricter conditions, an
+  dataset evaluated with a provider-disjoint protocol, equal tuning budgets,
+  repeated cross-validation, per-rotation model selection and tests corrected
+  for overlapping training sets (Section~\ref{sec:realdata}). It replicates, under stricter conditions, an
   earlier finding on public Medicare provider data~\cite{yoo2023}. Its labels
   identify providers, not rings, so it tests whether graph information helps
   provider-level detection, not whether rings are detected.
@@ -1072,23 +1072,29 @@ overlap, would have called SAGE+G significantly worse (Holm $p=0.021$).
 Holding the trained models fixed, the provider-level bootstrap places the AP
 of every GNN and hybrid, and of GB-PG, below that of GB-P (95\% intervals
 from $[-0.108, -0.055]$ for RGCN to $[-0.048, -0.006]$ for HGT), so the
-shortfall does not depend on which providers happened to be tested; whether
-it would survive retraining cannot be resolved with five rotations.
+shortfall does not depend on which providers happened to be tested.
 ROC-AUC lies between 0.927 and 0.942 for all methods and
 recall among the top 10\% of providers between 0.59 and 0.64, so the methods
 rank providers similarly; the AP differences come from the top of the
 ranking. Under the same parallel load as before, median training time per
 rotation was 2--15 minutes for the GNNs (range 1.4--24 minutes) against 7~s
-for GB-P. Because the tuning split shares providers with the test folds, we
-re-selected the configuration of every tabular and MLP model inside each
-rotation, using only that rotation's validation fold. AP changed by at most
-0.010 (GB-P $0.706$ versus $0.704$; no paired difference significant), and
-GB-P remained the best method, so the overlap does not explain the ranking.
-The GNNs were not re-selected per rotation, which would take about 25
-CPU-hours; because selecting on providers that later appear in test folds is
-expected to make the selected configuration look better on them, the shared
-selection favours the GNNs, and their shortfall is, if anything,
-understated.
+for GB-P.
+
+The two pre-specified checks of this protocol left the picture unchanged
+(Online Resource~1, Section~\SSecKaggle). Over 25 rotations (five repetitions
+of the five-fold rotation), GB-P again had the highest mean AP (0.693), graph
+features changed it by $-0.007$ $[-0.019, 0.006]$ (GB-PG) and $-0.006$
+$[-0.019, 0.007]$ (GB-PGL), and SAGE, HAN and HGT were 0.025--0.034 below
+it. No difference was significant after the correction and Holm adjustment
+(smallest Holm $p=0.29$, HAN), whereas a plain paired $t$-test over the 25
+rotations would have called all eight significant. Re-selecting every
+method's configuration inside each rotation changed AP by at most 0.010 for
+the tabular models and the MLP and by $-0.008$ to $+0.036$ for the GNNs and
+hybrids, none significantly (SAGE chose its shared configuration in every
+rotation). Contrary to our expectation, the shared selection therefore did
+not systematically favour the GNNs. With every method selected inside each
+rotation, GB-P (0.706) remained the best, and every GNN and hybrid was
+0.023--0.053 below it (smallest Holm $p=0.051$).
 
 \begin{table}[h]
 \caption{Provider-level fraud detection on the public provider-labelled data (5-fold rotation; mean $\pm$ s.d. over folds). F1 at the validation-selected threshold; Recall@10\%: share of all fraudulent providers that rank among the top 10\% of providers by score.}\label{tab:kaggle}
@@ -1184,7 +1190,7 @@ Members not unusual (volume 4), sparse rings & Little & At most $+0.03$; all met
 \addlinespace[2pt]
 One claim per member (volume 2) & None detectable & None & No method \\
 \midrule
-Public provider-labelled data & Provider volume; no label assortativity & None (GB-PG $-0.009$) & Gradient boosting on provider aggregates \\
+Public provider-labelled data & Provider volume; no label assortativity & None (GB-PG $-0.007$, 25 rotations) & Gradient boosting on provider aggregates \\
 \botrule
 \end{tabular}
 \end{table}
@@ -1248,7 +1254,10 @@ three confounds.
 On the public provider-labelled data, gradient boosting on provider
 aggregates had the highest AP, and neither engineered graph features,
 label-neighbourhood features nor any GNN improved on it, in agreement with
-earlier comparisons on these data~\cite{yoo2023,mardani2024}. The labels are
+earlier comparisons on these data~\cite{yoo2023,mardani2024}. This held over
+25 rotations, where graph features changed GB-P's AP by at most $+0.006$ to
+$+0.007$ (upper 95\% limits), and with every model's configuration selected
+inside each rotation. The labels are
 not assortative through shared beneficiaries, and fraudulent providers differ
 mainly in volume, so the data sit in the regime where our benchmark also
 found no benefit from structure. This is consistent with the controlled
@@ -1329,13 +1338,11 @@ evaluated with one first stage, two GNNs and a grid of six escalation
 fractions, and cost excludes the upkeep of aggregates, graph features and
 degree counts as claims arrive.
 On the public data, labels are per provider, the source of the claims and of
-the labels is undocumented, the observation window is a single year, and
-five overlapping rotations give the corrected tests little power.
-Hyperparameters were selected on a split whose validation providers overlap
-the evaluation test folds;
-re-selecting the tabular and MLP configurations inside each rotation
-(Section~\ref{sec:realresults}) removes this overlap for those models, but
-the GNNs keep the shared selection, which if anything favours them.
+the labels is undocumented, and the observation window is a single year.
+Even 25 overlapping rotations leave the corrected tests little power for
+differences of a few hundredths of AP, and the repeated rotations covered
+only three of the five GNNs and neither hybrid. Each model was trained once
+per rotation.
 Finally, the benchmark does not model adaptive fraudsters, temporal ring
 dynamics, which temporal graph models target~\cite{rossi2020tgn}, or
 realistic coding semantics such as those of synthetic health
@@ -1403,12 +1410,13 @@ collusive schemes.
 \backmatter
 
 \bmhead{Supplementary information}
-Online Resource~1 (PDF) contains the cost measurements, the single-factor
-ablations of HGT, the input-reliance analysis, the re-analysis of the small
-fixed benchmark, figures of the mechanism ablations and of new versus
-recurring rings, the full ring-volume dose-response, repeated
-cross-validation and per-rotation tuning on the public data, the
-confirmatory test of the hybrid result, and the selected hyperparameters.
+Online Resource~1 (PDF) contains the selected hyperparameters, the
+two-stage routing evaluation, the full ring-volume dose-response, the
+confirmatory test of the hybrid result, the cost measurements, the
+single-factor ablations of HGT, the input-reliance analysis, figures of the
+mechanism ablations and of new versus recurring rings, repeated
+cross-validation and per-rotation tuning on the public data, and the
+re-analysis of the small fixed benchmark.
 The repository contains the per-world results (including standard
 deviations, F1, ROC-AUC and recall at a fixed investigation budget for every
 regime and method), the tuning logs and the run records from which every
@@ -1429,8 +1437,8 @@ code regenerates them.
 \item \textbf{Consent for publication.} Not applicable: the manuscript
   contains no individual person's data in any form; it uses synthetic data
   and a public dataset with pseudonymous identifiers only.
-\item \textbf{Data availability.} The synthetic benchmark, including the
-  low-volume setting, is generated by the released code from fixed seeds. The
+\item \textbf{Data availability.} The synthetic benchmark, at every ring
+  volume studied, is generated by the released code from fixed seeds. The
   public provider-labelled data are available from Kaggle~\cite{kaggle2019}
   under CC0; file checksums are listed in the repository.
 \item \textbf{Code availability.} Code, configurations, tests and result

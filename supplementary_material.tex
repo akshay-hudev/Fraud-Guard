@@ -15,6 +15,8 @@
 \newcommand{\MainTabProtocol}{6}
 \newcommand{\MainTabKaggle}{7}
 \newcommand{\MainTabLowVolume}{4}
+\newcommand{\MainRefNadeau}{48}
+\newcommand{\MainRefBouckaert}{49}
 
 \renewcommand{\thetable}{S\arabic{table}}
 \renewcommand{\thefigure}{S\arabic{figure}}
@@ -329,23 +331,74 @@ destroys the ring block.}
 \end{figure}
 
 \section{Repeated cross-validation and per-rotation tuning on the public data}\label{sec:s_kaggle}
-%%TEXT:kaggle
+Both analyses were specified in the plan for the second round of experiments before they were run.
 
-%%TABLE:tab:kaggle_repeated
+\textbf{Repeated cross-validation.} The provider-disjoint five-fold rotation of the article (fold $k$ test,
+fold $k+1$ validation, three training folds) was repeated with the stratified fold assignment reshuffled four more
+times (seeds 1--4), giving 25 rotations with the article's split as the first. To save compute, the repetitions
+covered the tabular models, the MLP and three GNNs (SAGE, HAN, HGT); RGCN, Simple-HGN and the hybrids were run on
+the article's split only. Hyperparameters are those of the shared selection. Each method is compared with GB-P by
+the corrected repeated cross-validation $t$-test (Nadeau and Bengio 2003; Bouckaert and Frank 2004; references
+\MainRefNadeau{} and \MainRefBouckaert{} of the article), which inflates the variance
+of the mean difference by $1/25 + 1/3$ instead of $1/25$, with 24 degrees of freedom, and the eight $p$-values are
+Holm-adjusted. Table~\ref{tab:kaggle_repeated} shows the result. GB-P has the highest mean AP; graph features change
+it by $-0.007$ and $-0.006$, with upper 95\% limits of $+0.006$ and $+0.007$; the GNNs are 0.025--0.034 lower.
+No difference is significant after adjustment (smallest Holm $p=0.29$, HAN; unadjusted $p=0.036$). Without the
+correction, every difference would be significant (all unadjusted $p<0.01$), which shows how strongly
+overlapping training sets inflate a plain paired test.
 
 \begin{table}[h]
-\caption{Public data: hyperparameters re-selected inside every rotation (nested) versus selected once on a separate split (shared). AP mean over the five rotations; $\Delta$: nested $-$ shared with the corrected resampled 95\% CI. Hybrids inherit their base model's per-rotation choice.}\label{tab:kaggle_nested}
+\caption{Public data, five-fold rotation repeated five times (25 rotations; the first repeat is the split reported in the article): AP mean $\pm$ s.d., and the difference from GB-P with the corrected repeated cross-validation 95\% CI and Holm-adjusted $p$ (variance factor $1/25 + 1/3$, 24 degrees of freedom).}\label{tab:kaggle_repeated}
 \footnotesize
 \begin{tabular}{@{}lccc@{}}
 \toprule
-Method & Nested AP & Shared AP & $\Delta$ [95\% CI] \\
+Method & AP & $\Delta$ vs.\ GB-P [95\% CI] & $p$ \\
 \midrule
-LR-P & 0.682 & 0.678 & $+0.003$ [$-0.008$, $+0.015$] \\
-RF-P & 0.680 & 0.681 & $-0.001$ [$-0.021$, $+0.019$] \\
-GB-P & 0.706 & 0.704 & $+0.002$ [$-0.016$, $+0.019$] \\
-GB-PG & 0.693 & 0.695 & $-0.001$ [$-0.033$, $+0.030$] \\
-GB-PGL & 0.687 & 0.697 & $-0.010$ [$-0.040$, $+0.020$] \\
-MLP-P & 0.688 & 0.685 & $+0.003$ [$-0.008$, $+0.014$] \\
+LR-P & 0.674 $\pm$ 0.046 & $-0.019$ [$-0.044$, $+0.006$] & 0.704 \\
+RF-P & 0.674 $\pm$ 0.041 & $-0.019$ [$-0.042$, $+0.005$] & 0.704 \\
+GB-P & 0.693 $\pm$ 0.045 & -- & -- \\
+GB-PG & 0.686 $\pm$ 0.045 & $-0.007$ [$-0.019$, $+0.006$] & 0.704 \\
+GB-PGL & 0.687 $\pm$ 0.046 & $-0.006$ [$-0.019$, $+0.007$] & 0.704 \\
+MLP-P & 0.676 $\pm$ 0.042 & $-0.017$ [$-0.042$, $+0.009$] & 0.704 \\
+SAGE & 0.665 $\pm$ 0.058 & $-0.028$ [$-0.066$, $+0.010$] & 0.704 \\
+HAN & 0.659 $\pm$ 0.046 & $-0.034$ [$-0.066$, $-0.002$] & 0.289 \\
+HGT & 0.668 $\pm$ 0.050 & $-0.025$ [$-0.055$, $+0.005$] & 0.704 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\textbf{Per-rotation (nested) selection.} The shared selection uses a separate 60/20/20 split whose validation
+providers also appear in the test folds of the rotations. Re-selecting each method's configuration inside every
+rotation, from the same six candidates and on that rotation's validation fold only, removes this overlap.
+Table~\ref{tab:kaggle_nested} compares nested with shared selection, and every method with GB-P when both are
+selected inside each rotation. Re-selection changed AP by at most 0.010 for the tabular models and the MLP and by
+$-0.008$ (HGT) to $+0.036$ (RGCN) for the GNNs and hybrids, with no change significant; SAGE selected its shared
+configuration in all five rotations, and SAGE+G inherits it, so their results are identical. We had expected the
+shared selection to favour the GNNs; it did not do so systematically. With every method selected inside each
+rotation, GB-P remains the best method, and every GNN and hybrid is 0.023--0.053 below it (smallest Holm $p=0.051$
+for SAGE and SAGE+G).
+
+\begin{table}[h]
+\caption{Public data: hyperparameters re-selected inside every rotation (nested) versus selected once on a separate split (shared; Table~\MainTabKaggle{} of the article). AP mean over the five rotations. Nested $-$ shared: change from re-selection; vs.\ nested GB-P: difference from GB-P when both are selected inside each rotation, with Holm-adjusted $p$. Intervals are corrected resampled 95\% CIs. Same choice: the shared configuration was selected in every rotation, so the results are identical. Hybrids inherit their base model's per-rotation choice.}\label{tab:kaggle_nested}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Method & Nested AP & Nested $-$ shared [95\% CI] & vs.\ nested GB-P [95\% CI] & $p$ \\
+\midrule
+LR-P & 0.682 & $+0.003$ [$-0.008$, $+0.015$] & $-0.024$ [$-0.055$, $+0.007$] & 0.607 \\
+RF-P & 0.680 & $-0.001$ [$-0.021$, $+0.019$] & $-0.026$ [$-0.062$, $+0.010$] & 0.607 \\
+GB-P & 0.706 & $+0.002$ [$-0.016$, $+0.019$] & -- & -- \\
+GB-PG & 0.693 & $-0.001$ [$-0.033$, $+0.030$] & $-0.012$ [$-0.045$, $+0.020$] & 0.607 \\
+GB-PGL & 0.687 & $-0.010$ [$-0.040$, $+0.020$] & $-0.019$ [$-0.057$, $+0.018$] & 0.607 \\
+MLP-P & 0.688 & $+0.003$ [$-0.008$, $+0.014$] & $-0.018$ [$-0.045$, $+0.010$] & 0.607 \\
+SAGE & 0.664 & same choice & $-0.042$ [$-0.062$, $-0.022$] & 0.051 \\
+RGCN & 0.657 & $+0.036$ [$-0.014$, $+0.086$] & $-0.049$ [$-0.103$, $+0.005$] & 0.527 \\
+HAN & 0.670 & $+0.003$ [$-0.023$, $+0.030$] & $-0.036$ [$-0.089$, $+0.017$] & 0.607 \\
+Simple-HGN & 0.682 & $+0.012$ [$-0.032$, $+0.056$] & $-0.023$ [$-0.048$, $+0.001$] & 0.527 \\
+HGT & 0.668 & $-0.008$ [$-0.034$, $+0.019$] & $-0.038$ [$-0.065$, $-0.011$] & 0.177 \\
+SAGE+G & 0.653 & same choice & $-0.053$ [$-0.078$, $-0.027$] & 0.051 \\
+HGT+G & 0.661 & $+0.013$ [$-0.018$, $+0.043$] & $-0.045$ [$-0.096$, $+0.006$] & 0.527 \\
 \botrule
 \end{tabular}
 \end{table}
@@ -393,7 +446,7 @@ Ring vs.\ legitimate log-amount shift (s.d.) & 1.49 & 0.11 ($\delta=0$) to 1.87 
 ROC-AUC of claim amount alone, ring vs.\ legitimate & 0.94 & 0.53 to 0.90 \\
 Ring AP, GB on claim attributes only & 1.000 & 0.086 to 0.811 \\
 Ring recall, GB on claim attributes only & 21/21 [0.84, 1.00] & 0.15 to 0.76 \\
-Independent datasets & 1 & 54 \\
+Generated datasets (independent generator seeds) & 1 (1) & 54 (6) \\
 \botrule
 \end{tabular}
 \end{table}

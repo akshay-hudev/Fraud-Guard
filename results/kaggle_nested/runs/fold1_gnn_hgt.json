@@ -1,0 +1,83 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-26T15:33:53+00:00",
+    "git": {
+      "commit": "8c3434a3f485c681a056b12a16408ee22722e23a",
+      "dirty": true,
+      "research_sources_sha256": "14e8bec1584dcbeb"
+    },
+    "config_hash": "6740a778730e8892",
+    "config": {
+      "fold": 1,
+      "methods": [
+        "HGT",
+        "HGT+G"
+      ],
+      "budget": 6
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "data": {
+      "n_providers": 5410,
+      "n_fraud": 506,
+      "P_hash": "11c2c5f183b47228",
+      "files": "data/external/kaggle_provider_fraud"
+    }
+  },
+  "rows": [
+    {
+      "method": "HGT",
+      "fold": 1,
+      "hp": {
+        "dropout": 0.1,
+        "heads": 4,
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.01,
+        "weight_decay": 0.001
+      },
+      "ap": 0.5928558498305647,
+      "roc_auc": 0.9161998768684207,
+      "f1": 0.5643564356435643,
+      "precision": 0.5643564356435643,
+      "recall": 0.5643564356435643,
+      "recall_at_10pct": 0.5742574257425742,
+      "threshold": 0.7688127160072327,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.749079437738139
+    },
+    {
+      "method": "HGT+G",
+      "fold": 1,
+      "hp": {
+        "dropout": 0.1,
+        "heads": 4,
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.01,
+        "weight_decay": 0.001
+      },
+      "ap": 0.5954837312769862,
+      "roc_auc": 0.9190056620340933,
+      "f1": 0.5497630331753555,
+      "precision": 0.5272727272727272,
+      "recall": 0.5742574257425742,
+      "recall_at_10pct": 0.5544554455445545,
+      "threshold": 0.8329687118530273,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.7285759548581072
+    }
+  ]
+}

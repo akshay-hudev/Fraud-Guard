@@ -1,0 +1,83 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-26T17:57:39+00:00",
+    "git": {
+      "commit": "5581e2e7f52362452378cfc7a32541f17d05853b",
+      "dirty": true,
+      "research_sources_sha256": "dfb870223106e371"
+    },
+    "config_hash": "32b5d80d21db8db8",
+    "config": {
+      "fold": 2,
+      "methods": [
+        "SAGE",
+        "SAGE+G"
+      ],
+      "budget": 6
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "data": {
+      "n_providers": 5410,
+      "n_fraud": 506,
+      "P_hash": "11c2c5f183b47228",
+      "files": "data/external/kaggle_provider_fraud"
+    }
+  },
+  "rows": [
+    {
+      "method": "SAGE",
+      "fold": 2,
+      "hp": {
+        "aggr": "mean",
+        "dropout": 0.3,
+        "hidden": 64,
+        "layers": 3,
+        "lr": 0.003,
+        "weight_decay": 0.0001
+      },
+      "ap": 0.7054788050892026,
+      "roc_auc": 0.9596895469363451,
+      "f1": 0.6509433962264151,
+      "precision": 0.6216216216216216,
+      "recall": 0.6831683168316832,
+      "recall_at_10pct": 0.6732673267326733,
+      "threshold": 0.8598687052726746,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.6876185648674702
+    },
+    {
+      "method": "SAGE+G",
+      "fold": 2,
+      "hp": {
+        "aggr": "mean",
+        "dropout": 0.3,
+        "hidden": 64,
+        "layers": 3,
+        "lr": 0.003,
+        "weight_decay": 0.0001
+      },
+      "ap": 0.7104945582673081,
+      "roc_auc": 0.9581554485723802,
+      "f1": 0.6445497630331753,
+      "precision": 0.6181818181818182,
+      "recall": 0.6732673267326733,
+      "recall_at_10pct": 0.6534653465346535,
+      "threshold": 0.9016899466514587,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.6537207552612024
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-26T16:39:48+00:00",
+    "git": {
+      "commit": "5581e2e7f52362452378cfc7a32541f17d05853b",
+      "dirty": false,
+      "research_sources_sha256": "df47d889bd584376"
+    },
+    "config_hash": "f99efa862023c1fa",
+    "config": {
+      "fold": 3,
+      "methods": [
+        "HGT",
+        "HGT+G"
+      ],
+      "budget": 6
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "data": {
+      "n_providers": 5410,
+      "n_fraud": 506,
+      "P_hash": "11c2c5f183b47228",
+      "files": "data/external/kaggle_provider_fraud"
+    }
+  },
+  "rows": [
+    {
+      "method": "HGT",
+      "fold": 3,
+      "hp": {
+        "dropout": 0.1,
+        "heads": 2,
+        "hidden": 32,
+        "layers": 3,
+        "lr": 0.003,
+        "weight_decay": 0.001
+      },
+      "ap": 0.6916492629775166,
+      "roc_auc": 0.9446513458685318,
+      "f1": 0.6434782608695652,
+      "precision": 0.5736434108527132,
+      "recall": 0.7326732673267327,
+      "recall_at_10pct": 0.6534653465346535,
+      "threshold": 0.8333035707473755,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.7175001505660759
+    },
+    {
+      "method": "HGT+G",
+      "fold": 3,
+      "hp": {
+        "dropout": 0.1,
+        "heads": 2,
+        "hidden": 32,
+        "layers": 3,
+        "lr": 0.003,
+        "weight_decay": 0.001
+      },
+      "ap": 0.6771512632825044,
+      "roc_auc": 0.9398572884811418,
+      "f1": 0.6305418719211823,
+      "precision": 0.6274509803921569,
+      "recall": 0.6336633663366337,
+      "recall_at_10pct": 0.6336633663366337,
+      "threshold": 0.9058260917663574,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.6451464649716944
+    }
+  ]
+}

@@ -1,10 +1,10 @@
 {
   "provenance": {
-    "created_utc": "2026-10-26T14:55:52+00:00",
+    "created_utc": "2026-10-26T18:29:53+00:00",
     "git": {
-      "commit": "8c3434a3f485c681a056b12a16408ee22722e23a",
+      "commit": "5581e2e7f52362452378cfc7a32541f17d05853b",
       "dirty": true,
-      "research_sources_sha256": "4471b206d4968785"
+      "research_sources_sha256": "fd71caa6028a50cb"
     },
     "config_hash": "40c70da62144a4f8",
     "config": {
@@ -526,6 +526,34 @@
       "MLP-P": {
         "nested_ap_mean": 0.6881,
         "shared_ap_mean": 0.6849
+      },
+      "HAN": {
+        "nested_ap_mean": 0.6697,
+        "shared_ap_mean": 0.6662
+      },
+      "HGT": {
+        "nested_ap_mean": 0.668,
+        "shared_ap_mean": 0.6755
+      },
+      "HGT+G": {
+        "nested_ap_mean": 0.6606,
+        "shared_ap_mean": 0.6478
+      },
+      "RGCN": {
+        "nested_ap_mean": 0.6567,
+        "shared_ap_mean": 0.6206
+      },
+      "SAGE": {
+        "nested_ap_mean": 0.6639,
+        "shared_ap_mean": 0.6639
+      },
+      "SAGE+G": {
+        "nested_ap_mean": 0.6527,
+        "shared_ap_mean": 0.6527
+      },
+      "SimpleHGN": {
+        "nested_ap_mean": 0.6822,
+        "shared_ap_mean": 0.6702
       }
     },
     "best_nested": "GB-P",
@@ -535,31 +563,136 @@
         "mean_diff": -0.0237,
         "ci_low": -0.0548,
         "ci_high": 0.0073,
-        "t_p_holm": 0.506
+        "t_p_holm": 0.6072
       },
       "RF-P": {
         "mean_diff": -0.0261,
         "ci_low": -0.0618,
         "ci_high": 0.0096,
-        "t_p_holm": 0.506
+        "t_p_holm": 0.6072
       },
       "GB-PG": {
         "mean_diff": -0.0124,
         "ci_low": -0.045,
         "ci_high": 0.0201,
-        "t_p_holm": 0.506
+        "t_p_holm": 0.6072
       },
       "GB-PGL": {
         "mean_diff": -0.0191,
         "ci_low": -0.0566,
         "ci_high": 0.0184,
-        "t_p_holm": 0.506
+        "t_p_holm": 0.6072
       },
       "MLP-P": {
         "mean_diff": -0.0176,
         "ci_low": -0.0454,
         "ci_high": 0.0103,
-        "t_p_holm": 0.506
+        "t_p_holm": 0.6072
+      },
+      "SAGE": {
+        "mean_diff": -0.0418,
+        "ci_low": -0.0616,
+        "ci_high": -0.022,
+        "t_p_holm": 0.0507
+      },
+      "RGCN": {
+        "mean_diff": -0.0489,
+        "ci_low": -0.1026,
+        "ci_high": 0.0048,
+        "t_p_holm": 0.5269
+      },
+      "HAN": {
+        "mean_diff": -0.036,
+        "ci_low": -0.0886,
+        "ci_high": 0.0166,
+        "t_p_holm": 0.6072
+      },
+      "SimpleHGN": {
+        "mean_diff": -0.0235,
+        "ci_low": -0.0483,
+        "ci_high": 0.0014,
+        "t_p_holm": 0.5269
+      },
+      "HGT": {
+        "mean_diff": -0.0376,
+        "ci_low": -0.0645,
+        "ci_high": -0.0108,
+        "t_p_holm": 0.1771
+      },
+      "SAGE+G": {
+        "mean_diff": -0.0529,
+        "ci_low": -0.0784,
+        "ci_high": -0.0274,
+        "t_p_holm": 0.0507
+      },
+      "HGT+G": {
+        "mean_diff": -0.045,
+        "ci_low": -0.0961,
+        "ci_high": 0.0061,
+        "t_p_holm": 0.5269
+      }
+    }
+  },
+  "kaggle_repeated": {
+    "rotations_per_method": {
+      "GB-P": 25,
+      "GB-PG": 25,
+      "GB-PGL": 25,
+      "HAN": 25,
+      "HGT": 25,
+      "LR-P": 25,
+      "MLP-P": 25,
+      "RF-P": 25,
+      "SAGE": 25
+    },
+    "vs_gbp": {
+      "LR-P": {
+        "mean_diff": -0.0189,
+        "ci_low": -0.0439,
+        "ci_high": 0.0061,
+        "t_p_holm": 0.7035
+      },
+      "RF-P": {
+        "mean_diff": -0.0186,
+        "ci_low": -0.0417,
+        "ci_high": 0.0045,
+        "t_p_holm": 0.7035
+      },
+      "GB-PG": {
+        "mean_diff": -0.0068,
+        "ci_low": -0.0192,
+        "ci_high": 0.0056,
+        "t_p_holm": 0.7035
+      },
+      "GB-PGL": {
+        "mean_diff": -0.006,
+        "ci_low": -0.0189,
+        "ci_high": 0.0069,
+        "t_p_holm": 0.7035
+      },
+      "MLP-P": {
+        "mean_diff": -0.0166,
+        "ci_low": -0.0424,
+        "ci_high": 0.0092,
+        "t_p_holm": 0.7035
+      },
+      "SAGE": {
+        "mean_diff": -0.0279,
+        "ci_low": -0.0662,
+        "ci_high": 0.0103,
+        "t_p_holm": 0.7035
+      },
+      "HAN": {
+        "mean_diff": -0.0343,
+        "ci_low": -0.0662,
+        "ci_high": -0.0024,
+        "t_p_holm": 0.2895
+      },
+      "HGT": {
+        "mean_diff": -0.025,
+        "ci_low": -0.0553,
+        "ci_high": 0.0052,
+        "t_p_holm": 0.7035
       }
     }
   },

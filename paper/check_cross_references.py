@@ -1,8 +1,9 @@
 """Check the numbers the article and its Online Resource use for each other's sections, tables and figures.
 
 The two documents are compiled separately, so they refer to each other through macros (\\STabHGT in the article,
-\\MainTabAblation in the Online Resource). This script compares every macro with the number LaTeX assigned to the
-corresponding label, read from the .aux files of both compiled documents:
+\\MainTabAblation in the Online Resource; \\MainRefNadeau for a reference number of the article). This script
+compares every macro with the number LaTeX assigned to the corresponding label or reference, read from the .aux
+files of both compiled documents:
 
     python paper/check_cross_references.py <build dir containing both .tex and .aux files>
 """
@@ -25,7 +26,7 @@ TO_SUPPLEMENT = {
 # Online Resource macro -> label in the article
 TO_ARTICLE = {"MainSecLowVolume": "sec:lowvolume", "MainSecMechanism": "sec:mechanism",
               "MainTabAblation": "tab:ablation", "MainTabProtocol": "tab:protocol", "MainTabKaggle": "tab:kaggle",
-              "MainTabLowVolume": "tab:lowvolume"}
+              "MainTabLowVolume": "tab:lowvolume", "MainRefNadeau": "nadeau2003", "MainRefBouckaert": "bouckaert2004"}
 
 
 def macros(tex: Path) -> dict[str, str]:
@@ -33,7 +34,10 @@ def macros(tex: Path) -> dict[str, str]:
 
 
 def labels(aux: Path) -> dict[str, str]:
-    return dict(re.findall(r"\\newlabel\{([^}]+)\}\{\{([^}]*)\}", aux.read_text()))
+    """Numbers of labels and of bibliography entries (\\bibcite) in a compiled document."""
+    text = aux.read_text()
+    return {**dict(re.findall(r"\\newlabel\{([^}]+)\}\{\{([^}]*)\}", text)),
+            **dict(re.findall(r"\\bibcite\{([^}]+)\}\{\{([^}]*)\}", text))}
 
 
 def main() -> None:

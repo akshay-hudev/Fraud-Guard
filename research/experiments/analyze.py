@@ -660,7 +660,8 @@ def summarise_legacy(summary: dict) -> None:
          f"{gbc.loc[0.0, 'ring_ap']:.3f} to {gbc.loc[2.0, 'ring_ap']:.3f}"),
         ("Ring recall, GB on claim attributes only", f"{gb['ring_recall_counts'][0]}/{gb['ring_recall_counts'][1]} "
          f"[{lo:.2f}, {hi:.2f}]", f"{gbc.loc[0.0, 'ring_recall']:.2f} to {gbc.loc[2.0, 'ring_recall']:.2f}"),
-        ("Independent datasets", "1", "54"),
+        # The nine regimes of a seed share their background, so the independent units are the seeds.
+        ("Generated datasets (independent generator seeds)", "1 (1)", f"{syn.groupby(['ring_shift', 'ring_density', 'seed']).ngroups} ({syn.seed.nunique()})"),
     ]
     lines = [r"\begin{table}[h]",
              r"\caption{A small fixed benchmark (2,100 claims, five rings; an earlier, simpler generator of ours, "
@@ -708,15 +709,29 @@ def summarise_kaggle_nested(summary: dict) -> None:
         vs.to_csv(TABLES / "kaggle_nested_vs_gbp.csv", index=False)
     lines = [r"\begin{table}[h]",
              r"\caption{Public data: hyperparameters re-selected inside every rotation (nested) versus selected once on a "
-             r"separate split (shared). AP mean over the five rotations; $\Delta$: nested $-$ shared with the corrected "
-             r"resampled 95\% CI. Hybrids inherit their base model's per-rotation choice.}\label{tab:kaggle_nested}",
-             r"\footnotesize", r"\begin{tabular}{@{}lccc@{}}", r"\toprule",
-             r"Method & Nested AP & Shared AP & $\Delta$ [95\% CI] \\", r"\midrule"]
+             r"separate split (shared; Table~\MainTabKaggle{} of the article). AP mean over the five rotations. "
+             r"Nested $-$ shared: change from re-selection; "
+             r"vs.\ nested GB-P: difference from GB-P when both are selected inside each rotation, with Holm-adjusted $p$. "
+             r"Intervals are corrected resampled 95\% CIs. Same choice: the shared configuration was selected in every "
+             r"rotation, so the results are identical. Hybrids inherit their base model's per-rotation "
+             r"choice.}\label{tab:kaggle_nested}",
+             r"\scriptsize", r"\setlength{\tabcolsep}{3pt}", r"\begin{tabular}{@{}lcccc@{}}", r"\toprule",
+             r"Method & Nested AP & Nested $-$ shared [95\% CI] & vs.\ nested GB-P [95\% CI] & $p$ \\",
+             r"\midrule"]
     o = out.set_index("method")
+    v = vs.set_index("method") if len(vs) else pd.DataFrame()
     for m in [m for m in KAG_ORDER if m in o.index]:
         r = o.loc[m]
-        lines.append(f"{LABEL.get(m, m)} & {r.nested_ap_mean:.3f} & {r.shared_ap_mean:.3f} & "
-                     f"{_sgn(r.mean_diff)} {_ci(r.ci_low, r.ci_high)} \\\\")
+        if m in v.index:
+            q = v.loc[m]
+            p = "$<$0.001" if q.t_p_holm < 0.001 else f"{q.t_p_holm:.3f}"
+            ref = f"{_sgn(q.mean_diff)} {_ci(q.ci_low, q.ci_high)} & {p}"
+        else:
+            ref = "-- & --"
+        # Zero variance: the shared configuration was re-selected in every rotation (deterministic training).
+        same = r.mean_diff == 0 and np.isnan(r.ci_low)
+        change = "same choice" if same else f"{_sgn(r.mean_diff)} {_ci(r.ci_low, r.ci_high)}"
+        lines.append(f"{LABEL.get(m, m)} & {r.nested_ap_mean:.3f} & {change} & {ref} \\\\")
     lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
     (TABLES / "kaggle_nested.tex").write_text("\n".join(lines))
     gnn = shared[shared.method.isin(["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT", "SAGE+G", "HGT+G"])]

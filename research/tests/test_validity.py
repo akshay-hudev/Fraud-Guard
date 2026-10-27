@@ -169,3 +169,74 @@ def test_recall_at_budget_and_threshold():
     assert recall_at_budget(y, s, 0.2) == pytest.approx(2 / 3)
     thr = val_threshold(y, s)
     assert 0.05 < thr <= 0.8
+
+
+# ---- Third revision round: fraud-specialised GNNs and ring shapes ----
+
+@pytest.mark.parametrize("kind", ["bwgnn", "care"])
+def test_fraud_gnns_use_relation_neighbours(world, prepared, kind):
+    """BWGNN and CARE-GNN read neighbours on the claim-claim relations (same check as for HAN)."""
+    _, _, graphs = prepared
+    meta = build_metapath_graphs(world, {"train": graphs["train"][:1]})["train"][0]
+    torch.manual_seed(0)
+    model = GraphModel(kind, meta, hidden=16, layers=1, dropout=0.0, order=2).eval()
+    if kind == "care":
+        model.convs[0].p.fill_(1.0)               # keep every neighbour, so the perturbed one is used
+    src, dst = meta["claim", "cdc", "claim"].edge_index
+    target, neighbour = int(dst[0]), int(src[0])
+    with torch.no_grad():
+        base = model(meta)[target].item()
+        m2 = copy.copy(meta)
+        x = meta["claim"].x.clone()
+        x[neighbour] += 5
+        m2["claim"].x = x
+        assert abs(model(m2)[target].item() - base) > 1e-5
+
+
+def test_beta_wavelet_coefficients_match_closed_form():
+    from scipy.special import beta as beta_fn
+    from research.models.gnn import beta_wavelet_coefficients
+    w = np.linspace(0, 2, 9)
+    for order in [2, 3]:
+        for i, coef in enumerate(beta_wavelet_coefficients(order)):
+            direct = (w / 2) ** i * (1 - w / 2) ** (order - i) / beta_fn(i + 1, order + 1 - i)
+            assert np.allclose(np.polyval(coef[::-1], w), direct)
+
+
+def test_care_thresholds_move_by_tau_within_bounds(world, prepared):
+    _, _, graphs = prepared
+    meta = build_metapath_graphs(world, {"train": graphs["train"][:1]})["train"][0]
+    model = GraphModel("care", meta, hidden=8, layers=1, dropout=0.0).train()
+    layer = model.convs[0]
+    for _ in range(3):
+        model(meta)
+        model.end_epoch()
+    assert all(abs(float(p) - 0.5) <= 3 * layer.tau + 1e-9 and layer.tau <= float(p) <= 1.0 for p in layer.p)
+
+
+def test_default_ring_shape_reproduces_recorded_worlds():
+    """Adding ring shapes left the default generator unchanged: seed 1, delta 0, s 0.1 hashes as recorded."""
+    from research.ledger import frame_hash, stable_hash
+    cfg = GeneratorConfig(ring_shift=0.0, ring_density=0.1, seed=1)
+    w = generate(cfg)
+    assert frame_hash(w.claims) == "d05e54021379a441" and frame_hash(w.truth) == "b4a6955af0fa39d6"
+    assert stable_hash(cfg.as_dict()) == "a4e02932e0a1bc91"
+
+
+@pytest.mark.parametrize("shape", ["hub", "pairs"])
+def test_ring_shapes(shape):
+    w = generate(SMALL.with_(ring_shape=shape))
+    c, t = w.claims, w.truth
+    members = {}
+    for rid in sorted(set(t.loc[t.ring_id > 0, "ring_id"])):
+        rc = c[(t.ring_id == rid).to_numpy()]
+        pats = rc.groupby("patient_id")["doctor_id"].nunique()
+        assert pats.max() <= 2                               # every patient linked to at most two ring doctors
+        if shape == "hub":                                   # one doctor sees (nearly) every ring patient
+            per_doc = rc.groupby("doctor_id")["patient_id"].nunique()
+            assert per_doc.max() >= 0.8 * rc.patient_id.nunique() and (per_doc < per_doc.max()).sum() >= 1
+        members[rid] = (set(rc.doctor_id), set(rc.patient_id))
+    rings = list(members.values())
+    for i in range(len(rings)):                              # emergent protocol: disjoint members across rings
+        for j in range(i + 1, len(rings)):
+            assert not rings[i][0] & rings[j][0] and not rings[i][1] & rings[j][1]

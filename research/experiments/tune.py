@@ -42,6 +42,11 @@ SPACES = {
     "HAN": {**GNN_SPACE, "heads": [2, 4]},
     "SimpleHGN": {**GNN_SPACE, "heads": [2, 4]},
     "HGT": {**GNN_SPACE, "heads": [2, 4]},
+    # Fraud-specialised GNNs: BWGNN has one filter bank of order 2 or 3 (no stacked layers); CARE-GNN was
+    # published with one layer, so its depth is chosen from one or two.
+    "BWGNN": {"hidden": [32, 64], "order": [2, 3], "dropout": [0.1, 0.3], "lr": [1e-3, 3e-3, 1e-2],
+              "weight_decay": [1e-5, 1e-4, 1e-3]},
+    "CARE-GNN": {**GNN_SPACE, "layers": [1, 2]},
     "SAGE+AG": {**GNN_SPACE, "aggr": ["sum", "mean"]},
     "HGT+AG": {**GNN_SPACE, "heads": [2, 4]},
 }
@@ -78,7 +83,7 @@ def evaluate_config(method: str, hp: dict, prepared: dict) -> float:
         return fit_mlp(feature_matrix(tab, cols, "C"), y, hp, 0)["best_val_ap"]
     if method in GRAPH_METHODS:
         g = graphs
-        if GRAPH_METHODS[method] == "han":
+        if GRAPH_METHODS[method] in ("han", "bwgnn", "care"):
             prepared.setdefault("meta", build_metapath_graphs(world, graphs))
             g = prepared["meta"]
         return fit_graph(GRAPH_METHODS[method], g, hp, 0)["best_val_ap"]

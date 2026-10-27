@@ -47,8 +47,8 @@ def fit_graph(kind: str, graphs: dict, hp: dict, seed: int, max_epochs: int = 20
     """
     set_seed(seed)
     g_tr, g_va, g_te = (_as_list(graphs[k]) for k in ["train", "val", "test"])
-    model = GraphModel(kind, g_tr[0], hidden=hp["hidden"], layers=hp["layers"], heads=hp.get("heads", 2),
-                       dropout=hp["dropout"], aggr=hp.get("aggr", "mean"), target=target)
+    model = GraphModel(kind, g_tr[0], hidden=hp["hidden"], layers=hp.get("layers", 1), heads=hp.get("heads", 2),
+                       dropout=hp["dropout"], aggr=hp.get("aggr", "mean"), target=target, order=hp.get("order", 2))
     opt = torch.optim.AdamW(model.parameters(), lr=hp["lr"], weight_decay=hp["weight_decay"])
     y_tr = [g[target].y[g[target].target_mask].float() for g in g_tr]
     pw = _pos_weight(torch.cat(y_tr))
@@ -62,9 +62,12 @@ def fit_graph(kind: str, graphs: dict, hp: dict, seed: int, max_epochs: int = 20
         for g, y in zip(g_tr, y_tr):
             loss = F.binary_cross_entropy_with_logits(model(g)[g[target].target_mask], y, pos_weight=pw,
                                                       reduction="sum") / n_tr
+            # CARE-GNN's similarity loss, weighted by this graph's share of the training claims (0 for other models).
+            loss = loss + model.aux_loss(g) * len(y) / n_tr
             loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
+        model.end_epoch()                     # CARE-GNN adapts its neighbour-selection thresholds; no-op otherwise
         model.eval()
         with torch.no_grad():
             ap = _ap(y_va, _scores(model, g_va, target))

@@ -36,12 +36,14 @@ NESTED_METHODS = ["LR-P", "RF-P", "GB-P", "GB-PG", "GB-PGL", "MLP-P"]
 BUDGET = 6
 TABULAR = {"LR-P": ("lr", "P"), "RF-P": ("rf", "P"), "GB-P": ("gb", "P"), "GB-PG": ("gb", "PG"), "GB-PGL": ("gb", "PGL")}
 GRAPH = {"SAGE": ("sage", "P"), "RGCN": ("rgcn", "P"), "HAN": ("han", "P"), "SimpleHGN": ("simplehgn", "P"),
-         "HGT": ("hgt", "P"), "SAGE+G": ("sage", "PG"), "HGT+G": ("hgt", "PG")}
+         "HGT": ("hgt", "P"), "SAGE+G": ("sage", "PG"), "HGT+G": ("hgt", "PG"),
+         # Fraud-specialised GNNs on the provider-only meta-path graph that HAN uses.
+         "BWGNN": ("bwgnn", "P"), "CARE-GNN": ("care", "P")}
 ALL_METHODS = list(TABULAR) + ["MLP-P"] + list(GRAPH)
 HYBRID_BASE = {"SAGE+G": "SAGE", "HGT+G": "HGT"}
 SPACE_OF = {"LR-P": "LR-CA", "RF-P": "RF-CA", "GB-P": "GB-CA", "GB-PG": "GB-CA", "GB-PGL": "GB-CA",
             "MLP-P": "MLP-C", "SAGE": "SAGE", "RGCN": "RGCN", "HAN": "HAN", "SimpleHGN": "SimpleHGN",
-            "HGT": "HGT", "SAGE+G": "SAGE+AG", "HGT+G": "HGT+AG"}
+            "HGT": "HGT", "SAGE+G": "SAGE+AG", "HGT+G": "HGT+AG", "BWGNN": "BWGNN", "CARE-GNN": "CARE-GNN"}
 
 
 def splits(repeat: int = 0) -> list[tuple[np.ndarray, np.ndarray, np.ndarray]]:
@@ -104,7 +106,7 @@ def run_method(name: str, hp: dict, train, val, test, seed: int = 0) -> dict:
                        {"train": y[train], "val": y[val], "test": y[test]}, hp, seed)
     kind, groups = GRAPH[name]
     X = features(data, groups, train)
-    g = (build_metapath_graph if kind == "han" else build_graph)(data, X, y)
+    g = (build_metapath_graph if kind in ("han", "bwgnn", "care") else build_graph)(data, X, y)
     graphs = {k: _masked(g, rows, len(y)) for k, rows in [("train", train), ("val", val), ("test", test)]}
     return fit_graph(kind, graphs, hp, seed, max_epochs=100, patience=10, target="provider")
 

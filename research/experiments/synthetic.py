@@ -34,7 +34,9 @@ TABULAR_METHODS = {          # name: (family, feature groups)
     "GB-CA": ("gb", "CA"),
     "GB-CAG": ("gb", "CAG"),
 }
-GRAPH_METHODS = {"SAGE": "sage", "RGCN": "rgcn", "HAN": "han", "SimpleHGN": "simplehgn", "HGT": "hgt"}
+GRAPH_METHODS = {"SAGE": "sage", "RGCN": "rgcn", "HAN": "han", "SimpleHGN": "simplehgn", "HGT": "hgt",
+                 # Fraud-specialised GNNs (third revision round), on the claim-only relation graphs that HAN uses.
+                 "BWGNN": "bwgnn", "CARE-GNN": "care"}
 # Hybrids: graph models whose claim nodes also receive the engineered A+G features.
 HYBRID_METHODS = {"SAGE+AG": "sage", "HGT+AG": "hgt"}
 ALL_METHODS = (list(TABULAR_METHODS) + ["MLP-C"] + list(GRAPH_METHODS) + list(HYBRID_METHODS)
@@ -93,7 +95,7 @@ def run_dataset(cfg: GeneratorConfig, methods: list[str], hps: dict, model_seed:
             res = fit_mlp(feature_matrix(tab, cols, "C"), y, hps[name], model_seed)
         elif name in GRAPH_METHODS:
             g = graphs
-            if GRAPH_METHODS[name] == "han":
+            if GRAPH_METHODS[name] in ("han", "bwgnn", "care"):
                 meta = meta or build_metapath_graphs(world, graphs)
                 g = meta
             res = fit_graph(GRAPH_METHODS[name], g, hps[name], model_seed)
@@ -127,9 +129,14 @@ def run_dataset(cfg: GeneratorConfig, methods: list[str], hps: dict, model_seed:
 
 
 def run_tag(cfg: GeneratorConfig, model_seed: int) -> str:
-    # Ring volume appears in the tag only when it differs from the default, so existing tags are unchanged.
-    volume = "" if cfg.ring_claims_per_month == GeneratorConfig.ring_claims_per_month else f"_v{cfg.ring_claims_per_month:g}"
-    return f"{cfg.protocol}_d{cfg.ring_shift}_s{cfg.ring_density}{volume}_g{cfg.seed}_m{model_seed}"
+    # Ring volume, shape and size appear in the tag only when they differ from the defaults, so existing tags are
+    # unchanged.
+    d = GeneratorConfig()
+    volume = "" if cfg.ring_claims_per_month == d.ring_claims_per_month else f"_v{cfg.ring_claims_per_month:g}"
+    shape = "" if cfg.ring_shape == d.ring_shape else f"_{cfg.ring_shape}"
+    size = "" if (cfg.ring_doctors, cfg.ring_patients) == (d.ring_doctors, d.ring_patients) else \
+        f"_r{cfg.ring_doctors}x{cfg.ring_patients}"
+    return f"{cfg.protocol}_d{cfg.ring_shift}_s{cfg.ring_density}{shape}{size}{volume}_g{cfg.seed}_m{model_seed}"
 
 
 def load_hps(path: Path) -> dict:
@@ -146,6 +153,10 @@ def main():
     ap.add_argument("--ring-claims-per-month", type=float, default=GeneratorConfig.ring_claims_per_month,
                     help="ring claim volume (default 16; the low-volume stress test uses 4)")
     ap.add_argument("--model-seed", type=int, default=0, help="training seed (all reported runs use 0)")
+    ap.add_argument("--ring-shape", default=GeneratorConfig.ring_shape, choices=["block", "hub", "pairs"],
+                    help="how ring patients are linked to ring doctors (generator docstring)")
+    ap.add_argument("--ring-doctors", type=int, default=GeneratorConfig.ring_doctors)
+    ap.add_argument("--ring-patients", type=int, default=GeneratorConfig.ring_patients)
     ap.add_argument("--methods", nargs="+", default=ALL_METHODS)
     ap.add_argument("--hps", default=str(RESULTS_DIR / "tuning" / "best_hyperparameters.json"))
     ap.add_argument("--out", default=str(RESULTS_DIR / "synthetic"))
@@ -154,7 +165,8 @@ def main():
     hps, out = load_hps(Path(args.hps)), Path(args.out)
     for shift, dens, seed in itertools.product(args.shifts, args.densities, args.seeds):
         cfg = GeneratorConfig(ring_shift=shift, ring_density=dens, seed=seed, persistent_rings=args.persistent,
-                              ring_claims_per_month=args.ring_claims_per_month)
+                              ring_claims_per_month=args.ring_claims_per_month, ring_shape=args.ring_shape,
+                              ring_doctors=args.ring_doctors, ring_patients=args.ring_patients)
         if (out / "runs" / f"{run_tag(cfg, args.model_seed)}__{args.group}.json").exists():
             continue
         print(f"[{run_tag(cfg, args.model_seed)} {args.group}]", flush=True)

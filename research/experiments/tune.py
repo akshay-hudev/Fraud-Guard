@@ -95,11 +95,17 @@ def main():
     ap.add_argument("--merge", action="store_true", help="merge trial files into best_hyperparameters.json")
     ap.add_argument("--ring-claims-per-month", type=float, default=GeneratorConfig.ring_claims_per_month,
                     help="ring volume of the development worlds (the low-volume stress test re-tunes at 4)")
+    ap.add_argument("--ring-shift", type=float, default=DEV_REGIME["ring_shift"],
+                    help="feature shift of the development worlds (per-regime tuning re-tunes at an evaluation regime)")
+    ap.add_argument("--ring-density", type=float, default=DEV_REGIME["ring_density"],
+                    help="structural density of the development worlds")
     ap.add_argument("--out", default=str(RESULTS_DIR / "tuning"))
     args = ap.parse_args()
     out_dir = Path(args.out)
-    dev_regime = (DEV_REGIME if args.ring_claims_per_month == GeneratorConfig.ring_claims_per_month
-                  else {**DEV_REGIME, "ring_claims_per_month": args.ring_claims_per_month})
+    # With the defaults the regime equals DEV_REGIME, so the provenance of the main tuning is unchanged.
+    dev_regime = {"ring_shift": args.ring_shift, "ring_density": args.ring_density}
+    if args.ring_claims_per_month != GeneratorConfig.ring_claims_per_month:
+        dev_regime["ring_claims_per_month"] = args.ring_claims_per_month
     if args.merge:
         trials = {}
         for f in sorted(out_dir.glob("trials_*.json")):

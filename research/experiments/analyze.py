@@ -19,10 +19,17 @@ from ..metrics import clustered_comparison, corrected_resampled_comparison, holm
 
 TABLES = RESULTS_DIR / "tables"
 SYN_ORDER = ["LR-CA", "RF-CA", "GB-C", "GB-CA", "GB-CAG", "MLP-C", "SAGE", "RGCN", "HAN", "SimpleHGN", "HGT",
-             "SAGE+AG", "HGT+AG", "Overlap-score"]
-GNN_PURE = ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]
+             "BWGNN", "CARE-GNN", "SAGE+AG", "HGT+AG", "Overlap-score"]
+GNN_GENERAL = ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]
+# Fourth round (paper/hiss_review/analysis_plan_round4.md): fraud-specialised GNNs join the GNN family, so the
+# Holm families over methods grow.
+FRAUD_GNN = ["BWGNN", "CARE-GNN"]
+GNN_PURE = GNN_GENERAL + FRAUD_GNN
 KAG_ORDER = ["LR-P", "RF-P", "GB-P", "GB-PG", "GB-PGL", "MLP-P", "SAGE", "RGCN", "HAN", "SimpleHGN", "HGT",
-             "SAGE+G", "HGT+G"]
+             "BWGNN", "CARE-GNN", "SAGE+G", "HGT+G"]
+# Row groups of the method tables, separated by rules.
+SYN_GROUPS = [["GB-C", "MLP-C", "LR-CA", "RF-CA", "GB-CA", "GB-CAG"], GNN_GENERAL, FRAUD_GNN,
+              ["SAGE+AG", "HGT+AG", "Overlap-score"]]
 
 
 # Pre-specified design. Runs outside it (from an earlier, larger launch that was cut for compute)
@@ -106,10 +113,9 @@ def latex_regime(t: pd.DataFrame, methods: list[str], caption: str, label: str) 
              r"\setlength{\tabcolsep}{4pt}",
              r"\begin{tabular}{@{}l" + "c" * len(cells) + "@{}}", r"\toprule",
              r" & " + head1 + r" \\", rules, r"Method / $s$ & " + head2 + r" \\", r"\midrule"]
-    groups = [["GB-C", "MLP-C", "LR-CA", "RF-CA", "GB-CA", "GB-CAG"], ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"],
-              ["SAGE+AG", "HGT+AG", "Overlap-score"]]
+    groups = [g for g in ([m for m in group if m in methods and m in set(t["method"])] for group in SYN_GROUPS) if g]
     for gi, group in enumerate(groups):
-        for m in [m for m in group if m in methods]:
+        for m in group:
             row = [LABEL.get(m, m)]
             for c in cells:
                 r = t[(t.ring_shift == c[0]) & (t.ring_density == c[1]) & (t.method == m)]
@@ -137,7 +143,7 @@ def _ci(lo: float, hi: float) -> str:
 def pooled_latex(pooled: pd.DataFrame, n_seeds: int) -> str:
     """Paired differences versus GB-CAG pooled over the nine regimes (seed as unit) for ring, isolated and overall AP."""
     ref = pooled[pooled.reference == "GB-CAG"]
-    rows = ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT", "SAGE+AG", "HGT+AG", "MLP-C"]
+    rows = [m for m in GNN_PURE + ["SAGE+AG", "HGT+AG", "MLP-C"] if m in set(ref.method)]
     lines = [r"\begin{table}[h]",
              r"\caption{Paired difference in average precision versus GB-CAG, averaged over the nine regimes: "
              rf"mean $\Delta$ $\pm$ half-width of the 95\% $t$-interval over the {NUMBER_WORDS.get(n_seeds, n_seeds)} generator seeds, and "
@@ -266,8 +272,8 @@ def lowvolume_latex(t: pd.DataFrame, settings: list[str]) -> str:
              r"\scriptsize", r"\setlength{\tabcolsep}{3.5pt}",
              r"\begin{tabular}{@{}l" + "c" * len(cols) + "@{}}", r"\toprule", r" & " + head + r" \\", rules,
              r"Method / $s$ & " + " & ".join(f"{d:g}" for _ in settings for d in dens) + r" \\", r"\midrule"]
-    groups = [["GB-C", "MLP-C", "LR-CA", "RF-CA", "GB-CA", "GB-CAG"], ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"],
-              ["SAGE+AG", "HGT+AG", "Overlap-score"]]
+    present = set(t.index.get_level_values("method"))
+    groups = [g for g in ([m for m in group if m in present] for group in SYN_GROUPS) if g]
     for gi, group in enumerate(groups):
         for m in group:
             row = [LABEL.get(m, m)]
@@ -786,8 +792,7 @@ def summarise_kaggle_repeated(summary: dict) -> None:
 
 # Ring-volume dose-response at delta = 0 (seeds 1-6, hyperparameters of the main experiment).
 DOSE_SETS = {16.0: "synthetic", 8.0: "synthetic_volume8", 4.0: "synthetic_lowvolume", 2.0: "synthetic_volume2"}
-DOSE_METHODS = ["GB-C", "MLP-C", "LR-CA", "RF-CA", "GB-CA", "GB-CAG", "SAGE", "RGCN", "HAN", "SimpleHGN", "HGT",
-                "SAGE+AG", "HGT+AG", "Overlap-score"]
+DOSE_METHODS = [m for group in SYN_GROUPS for m in group]
 
 
 def summarise_dose_response(summary: dict) -> None:
@@ -838,10 +843,11 @@ def summarise_dose_response(summary: dict) -> None:
              r"\scriptsize", r"\setlength{\tabcolsep}{2pt}", r"\begin{tabular}{@{}l" + "c" * (len(vols) * len(dens)) + "@{}}",
              r"\toprule", r" & " + head + r" \\", rules,
              r"Method / volume & " + " & ".join(f"{v:g}" for _ in dens for v in vols) + r" \\", r"\midrule"]
-    for m in DOSE_METHODS:
+    present = set(t.method)
+    for m in [m for m in DOSE_METHODS if m in present]:
         vals = [m_.get((v, d, m), np.nan) for d in dens for v in vols]
         lines.append(" & ".join([LABEL.get(m, m)] + ["--" if not np.isfinite(x) else f"{x:.3f}" for x in vals]) + r" \\")
-        if m in ("GB-CAG", "HGT"):
+        if m in ("GB-CAG", "HGT", "CARE-GNN"):
             lines.append(r"\midrule")
     lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
     (TABLES / "dose_response.tex").write_text("\n".join(lines))
@@ -909,7 +915,8 @@ def _method_table(values: pd.Series, cols: list[tuple], heads: list[tuple[str, i
     lines = [r"\begin{table}[h]", rf"\caption{{{caption}}}\label{{{label}}}", r"\scriptsize", r"\setlength{\tabcolsep}{3.5pt}",
              r"\begin{tabular}{@{}l" + "c" * len(cols) + "@{}}", r"\toprule", r" & " + head + r" \\", rules,
              corner + " & " + " & ".join(sub) + r" \\", r"\midrule"]
-    groups = [["GB-C", "MLP-C", "LR-CA", "RF-CA", "GB-CA", "GB-CAG"], GNN_PURE, ["SAGE+AG", "HGT+AG", "Overlap-score"]]
+    present = set(values.index.get_level_values(-1))
+    groups = [g for g in ([m for m in group if m in present] for group in SYN_GROUPS) if g]
     for gi, group in enumerate(groups):
         for m in group:
             row = [LABEL.get(m, m)]
@@ -1078,7 +1085,7 @@ def summarise_regime_tuning(summary: dict) -> None:
              "".join(rf"\cmidrule(lr){{{2 + 4 * i}-{5 + 4 * i}}}" for i in range(len(dens))),
              r"Method & " + " & ".join([r"Main & Re-tuned & $\Delta$ & $p$"] * len(dens)) + r" \\",
              r"\midrule"]
-    for m in [m for m in SYN_ORDER if m != "Overlap-score"]:
+    for m in [m for m in SYN_ORDER if m != "Overlap-score" and m in set(rt.method)]:
         row = [LABEL.get(m, m)]
         for d in dens:
             row += [f"{main.get((d, m), np.nan):.3f}", f"{ret.get((d, m), np.nan):.3f}"]
@@ -1095,6 +1102,72 @@ def summarise_regime_tuning(summary: dict) -> None:
                          .to_dict(orient="index").items()}
     summary["regimetuned"] = {"worlds": int(rt.groupby(["ring_density", "seed"]).ngroups),
                               "retuned_minus_main": pick("re-tuned - main"), "vs_gbcag": pick("vs GB-CAG (re-tuned)")}
+
+
+# Fourth round, part B: other ring shapes and sizes at delta = 0 (seeds 1-6, main hyperparameters).
+SHAPE_LABEL = {("hub", 4, 12): "Hub", ("pairs", 8, 24): "Distributed", ("block", 2, 6): "Small block",
+               ("block", 8, 24): "Large block"}
+SHAPE_ORDER = ["Hub", "Distributed", "Small block", "Large block"]
+
+
+def _shape_cells(df: pd.DataFrame) -> pd.DataFrame:
+    # The default block shape is not written into the run records (it reproduces the earlier worlds exactly).
+    shape = df["ring_shape"].fillna("block") if "ring_shape" in df else pd.Series("block", index=df.index)
+    df = df.assign(ring_shape=shape)
+    df["shape"] = [SHAPE_LABEL[(s, int(d), int(p))] for s, d, p in zip(df.ring_shape, df.ring_doctors, df.ring_patients)]
+    # Per-member volume relative to the default ring (16 claims per month for 12 patients).
+    full = 16.0 * df["ring_patients"] / 12.0
+    df["volume"] = np.where(np.isclose(df["ring_claims_per_month"], full), "full", "half")
+    return df
+
+
+def summarise_shapes(summary: dict) -> None:
+    sh = load_rows("synthetic_shapes")
+    if sh.empty:
+        return
+    sh = _shape_cells(sh)
+    sh = sh.assign(ring_chance=sh["n_ring"] / (sh["n_test"] - sh["n_isolated"]))
+    t = sh.groupby(["shape", "volume", "method"])[["ring_ap", "isolated_ap", "ap", "ring_chance"]].agg(["mean", "std", "count"])
+    t.columns = [f"{a}_{b}" for a, b in t.columns]
+    t = t.reset_index()
+    t.to_csv(TABLES / "shapes_ring_ap.csv", index=False)
+    rows = []
+    for (shape, vol), g in sh.groupby(["shape", "volume"]):
+        for metric in ["ring_ap", "isolated_ap"]:
+            piv = g.pivot_table(index="seed", columns="method", values=metric)
+            for m in [m for m in GNN_PURE + ["SAGE+AG", "HGT+AG"] if m in piv]:
+                rows.append({"shape": shape, "volume": vol, "metric": metric, "reference": "GB-CAG", "method": m,
+                             **paired_comparison(piv[m].to_numpy(), piv["GB-CAG"].to_numpy())})
+            rows.append({"shape": shape, "volume": vol, "metric": metric, "reference": "GB-CA", "method": "GB-CAG",
+                         **paired_comparison(piv["GB-CAG"].to_numpy(), piv["GB-CA"].to_numpy())})
+    c = pd.DataFrame(rows)
+    # Families (analysis_plan_round4.md): the GNNs and hybrids against GB-CAG within one shape-volume cell; the
+    # structure gain GB-CAG - GB-CA across the eight cells, as across the nine regimes of the main grid.
+    vs = c.reference == "GB-CAG"
+    c.loc[vs, "t_p_holm"] = c[vs].groupby(["shape", "volume", "metric"])["t_p"].transform(lambda p: holm(p.tolist()))
+    c.loc[~vs, "t_p_holm"] = c[~vs].groupby("metric")["t_p"].transform(lambda p: holm(p.tolist()))
+    c.to_csv(TABLES / "shapes_comparisons.csv", index=False)
+    cols = [(s, v) for s in SHAPE_ORDER for v in ["full", "half"] if ((t["shape"] == s) & (t["volume"] == v)).any()]
+    vals = t.set_index(["shape", "volume", "method"])["ring_ap_mean"]
+    chance = t.groupby(["shape", "volume"])["ring_chance_mean"].mean()
+    caption = (r"Ring AP on unseen test rings for other ring shapes and sizes ($\delta=0$, six worlds per column, seeds "
+               r"1--6, hyperparameters of the main experiment). Hub: one hub doctor and three spoke doctors, twelve "
+               r"patients, each linked to the hub and one spoke; distributed: eight doctors and 24 patients, each "
+               r"patient linked to two ring doctors; small and large block: 2 doctors and 6 patients or 8 and 24, "
+               r"$s=0.5$. Full: per-member claim volume of the default ring; half: half of it. Chance level "
+               rf"{chance.min():.3f}--{chance.max():.3f}. Bold: best per column.")
+    heads = [(s, n) for s in SHAPE_ORDER if (n := sum(1 for c_ in cols if c_[0] == s))]
+    (TABLES / "shapes.tex").write_text(_method_table(vals, cols, heads, [v for _, v in cols], caption, "tab:shapes",
+                                                     corner="Method / volume"))
+    ring = c[c.metric == "ring_ap"]
+    pick = lambda df: [{k: (round(v, 4) if isinstance(v, float) else v) for k, v in r.items()} for r in
+                       df[["shape", "volume", "method", "mean_diff", "ci_low", "ci_high", "t_p_holm"]].to_dict(orient="records")]
+    summary["shapes"] = {
+        "worlds": int(sh.groupby(["shape", "volume", "seed"]).ngroups),
+        "chance": {f"{s} | {v}": round(float(x), 4) for (s, v), x in chance.items()},
+        "above_gbcag": pick(ring[(ring.reference == "GB-CAG") & (ring.mean_diff > 0) & (ring.t_p_holm < 0.05)]),
+        "below_gbcag": pick(ring[(ring.reference == "GB-CAG") & (ring.mean_diff < 0) & (ring.t_p_holm < 0.05)]),
+        "structure_gain": pick(ring[ring.reference == "GB-CA"])}
 
 
 def summarise_latency(summary: dict) -> None:
@@ -1137,7 +1210,7 @@ def hyperparameter_table() -> None:
     pairs = [("LR", "LR-CA", "LR-P"), ("RF", "RF-CA", "RF-P"), ("GB (C)", "GB-C", None), ("GB (C+A / P)", "GB-CA", "GB-P"),
              ("GB (C+A+G / P+G)", "GB-CAG", "GB-PG"), ("GB (P+G+L)", None, "GB-PGL"), ("MLP", "MLP-C", "MLP-P"),
              ("SAGE", "SAGE", "SAGE"), ("RGCN", "RGCN", "RGCN"), ("HAN", "HAN", "HAN"), ("Simple-HGN", "SimpleHGN", "SimpleHGN"),
-             ("HGT", "HGT", "HGT")]
+             ("HGT", "HGT", "HGT"), ("BWGNN", "BWGNN", "BWGNN"), ("CARE-GNN", "CARE-GNN", "CARE-GNN")]
     fmt_hp = lambda d: "; ".join(f"{k.replace('_', ' ')}={tex(v)}" for k, v in sorted(d.items())) if d else "--"
     for name, s_key, k_key in pairs:
         lines.append(f"{name} & {fmt_hp(syn.get(s_key)) if s_key else '--'} & {fmt_hp(kag.get(k_key)) if k_key else '--'} \\\\")
@@ -1196,6 +1269,7 @@ def main():
     summarise_lowvolume_shift(summary)
     summarise_training_seeds(summary)
     summarise_regime_tuning(summary)
+    summarise_shapes(summary)
     summarise_latency(summary)
     write_json(RESULTS_DIR / "summary.json", {"provenance": provenance({"analysis": "analyze.py"}), **summary})
     print(json.dumps(summary, indent=1, default=str))

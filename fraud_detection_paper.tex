@@ -23,12 +23,15 @@
 \newcommand{\SSecRouting}{S2}\newcommand{\STabRouting}{S2}\newcommand{\SFigRouting}{S1}
 \newcommand{\SSecDose}{S3}\newcommand{\STabDose}{S3}
 \newcommand{\SSecConfirm}{S4}
-\newcommand{\SSecCost}{S5}
-\newcommand{\SSecHGT}{S6}\newcommand{\STabHGT}{S4}
-\newcommand{\SSecReliance}{S7}
+\newcommand{\SSecShift}{S5}\newcommand{\STabShift}{S4}
+\newcommand{\SSecSeeds}{S6}\newcommand{\STabSeeds}{S5}
+\newcommand{\SSecRegime}{S7}\newcommand{\STabRegime}{S6}
+\newcommand{\SSecCost}{S8}
+\newcommand{\SSecHGT}{S9}\newcommand{\STabHGT}{S7}
+\newcommand{\SSecReliance}{S10}
 \newcommand{\SFigAblation}{S2}\newcommand{\SFigProtocol}{S3}
-\newcommand{\SSecKaggle}{S9}\newcommand{\STabKaggleRepeated}{S5}\newcommand{\STabKaggleNested}{S6}
-\newcommand{\SSecLegacy}{S10}\newcommand{\STabLegacy}{S7}
+\newcommand{\SSecKaggle}{S12}\newcommand{\STabKaggleRepeated}{S8}\newcommand{\STabKaggleNested}{S9}
+\newcommand{\SSecLegacy}{S13}\newcommand{\STabLegacy}{S10}
 
 \begin{document}
 
@@ -172,9 +175,12 @@ per member are found by no method. Structure adds most when the ring's
 doctor--patient block is moderately or highly dense. Where it does, gradient boosting with a few
 engineered shared-patient features was as good as or better than every pure
 GNN we tested, and far better when ring volume was low; GNNs that also receive
-those features gained a small but reliable amount in average precision (AP;
-$+0.01$ averaged over regimes), most for sparse rings, where a pre-declared
-test on fresh seeds confirmed it at low volume. GNNs are clearly worse
+those features gained a small amount in average precision (AP; $+0.01$
+averaged over regimes, of the order of the variation between training runs),
+most for sparse rings, where a pre-declared test on fresh seeds confirmed it
+at low volume. Some pure GNNs beat that gradient-boosting model, but only for sparse
+rings at reduced volume whose claims were also anomalous, where structure
+added little and logistic regression without graph inputs beat it too. GNNs are clearly worse
 on isolated fraud, because message passing dilutes claim-level anomalies. At
 default volume HGT's ring detection is structural: it collapses without degree
 encodings and survives with degree encodings as its only inputs. Routing
@@ -208,7 +214,8 @@ directly~\cite{akoglu2010oddball,beutel2013copycatch,hooi2016fraudar}. GNNs
 have been applied to review fraud~\cite{wang2019fdgars}, underground-forum
 key players~\cite{zhang2019player2vec} and camouflaged or class-imbalanced
 fraudsters~\cite{dou2020care,liu2021pcgnn}, and spectral analyses argue that
-standard message passing can blur anomalies~\cite{tang2022bwgnn}.
+standard message passing can blur anomalies~\cite{tang2022bwgnn}; we include
+CARE-GNN and the spectral BWGNN among the compared methods.
 Heterogeneous GNNs use relation-specific weights
 (RGCN~\cite{schlichtkrull2018}), attention over hand-chosen meta-paths
 (HAN~\cite{wang2019han}) or attention parameterised by node and edge type
@@ -430,6 +437,15 @@ claim-intrinsic attributes.}
   Simple-HGN~\cite{lv2021} and HGT~\cite{hu2020hgt}. All share the same
   per-type input projection, residual connections with layer normalisation,
   and two-layer classification head.
+\item \textbf{Fraud-specialised GNNs}: BWGNN~\cite{tang2022bwgnn}, which replaces
+  message passing by band-pass Beta-wavelet filters on each relation, and
+  CARE-GNN~\cite{dou2020care}, which keeps, on each relation, only the
+  neighbours whose predicted labels are closest to the node's own, with
+  thresholds adapted during training. Both run on the claim-only relation
+  graphs that HAN uses, keep their published layer structure and share the
+  input projection and classification head; CARE-GNN is trained full-batch
+  with the class-weighted loss used for every other model rather than with
+  under-sampling.
 \item \textbf{Hybrids}: SAGE+AG and HGT+AG, whose claim nodes also receive the
   A and G features, testing whether message passing adds information beyond
   the engineered features. Hybrids reuse the tuned configuration of their base
@@ -441,8 +457,12 @@ Tabular models use scikit-learn~\cite{pedregosa2011} and graph models PyTorch
 Geometric~\cite{fey2019}. Neural models are trained full-batch with AdamW,
 class-weighted binary cross-entropy and early stopping on validation average
 precision (patience 20, at most 200 epochs). Every model is trained once per
-world with the same training seed, so variation between worlds includes
-variation due to initialisation.
+world with the same training seed. Because a network's initial weights depend
+only on the seed and the layer sizes, every world, including the development
+worlds used for tuning, starts from the same initial weights, so variation
+between worlds does not include variation due to initialisation; a
+replication with two further training seeds is reported in Online
+Resource~1, Section~\SSecSeeds.
 
 \paragraph{Hyperparameters.} Every method receives the same budget of up to
 ten configurations (the first being a default), selected by mean validation
@@ -480,7 +500,10 @@ Each of the nine regimes is replicated with twelve worlds (generator seeds
 1--12), 108 worlds in total. Seeds 1--6 formed a first round; seeds 7--12
 were added in a second round whose size, analyses and reporting were fixed in
 a plan committed to the repository before any of its runs started, after the
-first round's results had been seen. Within a regime the twelve worlds are
+first round's results had been seen. A third round, planned in the same way,
+added three robustness checks: a feature shift at reduced ring volume,
+replication over training seeds and per-regime tuning (Online Resource~1,
+Sections~\SSecShift--\SSecRegime). Within a regime the twelve worlds are
 independent, and methods are compared with paired $t$-tests over them.
 Because the nine regimes of a seed share most of their data
 (Section~\ref{sec:generator}), comparisons pooled over regimes average each
@@ -573,16 +596,16 @@ bootstrap of the difference in AP from the best method (1{,}000 resamples
 within each rotation's test fold and label, trained models held fixed); it
 reflects which providers happen to be tested, not retraining variability.
 To gain power, we repeated the five-fold rotation four more times with
-reshuffled folds (25 rotations in all) for the tabular models, the MLP and
-three GNNs (SAGE, HAN and HGT; RGCN, Simple-HGN and the hybrids were omitted
-to save compute), and compared each method with GB-P by the same corrected
-test with $J=25$ (24 degrees of freedom)~\cite{nadeau2003,bouckaert2004}.
+reshuffled folds (25 rotations in all) for every method and compared each
+with GB-P by the same corrected test with $J=25$ (24 degrees of
+freedom)~\cite{nadeau2003,bouckaert2004}.
 Because the tuning split shares providers with the test folds, we also
 re-selected every method's configuration inside each rotation of the first
 repetition, with the same budget and using only that rotation's validation
 fold (nested selection; the hybrids inherit their base GNN's choice). Both
-analyses belong to the pre-specified second round of experiments
-(Section~\ref{sec:stats}).
+analyses were pre-specified in the second round of experiments, which
+covered three of the GNNs in the repeated rotations; the third round added
+the others and the hybrids (Section~\ref{sec:stats}).
 
 \section{Results on the Controlled Benchmark}\label{sec:results}
 
@@ -690,15 +713,23 @@ method--regime pairs, mostly for dense rings and for HAN (Holm-adjusted
 within each nine-regime family).
 
 The hybrids, which add message passing on top of the engineered features,
-gained a small but statistically reliable amount over GB-CAG: $+0.010$
+gained a small but statistically significant amount over GB-CAG: $+0.010$
 $[0.005, 0.015]$ for SAGE+AG (Holm $p=0.006$) and $+0.009$ $[0.004, 0.015]$
 for HGT+AG ($p=0.016$). The gain was largest for sparse rings whose claims
 look legitimate ($\delta=0$, $s=0.1$: $+0.038$ and $+0.035$, Holm $p=0.007$
 and $0.018$), where the engineered features add least, and a pre-declared
 test on fresh seeds confirmed it at low ring volume
-(Section~\ref{sec:lowvolume}). Message passing therefore carries some
-information beyond our engineered features, most of it for sparse rings,
-but it does not replace them.
+(Section~\ref{sec:lowvolume}). The gain is, however, of the order of the
+variation between training runs. Averaged over three training seeds (seeds
+1--6, $\delta=0$), SAGE+AG's advantage fell from $+0.013$ to $+0.009$ over
+the three densities and from $+0.043$ to $+0.030$ for sparse rings, neither
+significant with six seeds; because the tuning used the same training seed as
+the reported runs, part of the gain may be specific to it (Online
+Resource~1, Section~\SSecSeeds). Re-tuning every method in the sparse and
+dense $\delta=0$ regimes changed no method's ring AP significantly, and no GNN
+or hybrid then exceeded GB-CAG significantly (Section~\SSecRegime). Message
+passing therefore carries little information beyond our engineered features,
+most of it for sparse rings, and it does not replace them.
 
 \begin{table}[h]
 \caption{Paired difference in average precision versus GB-CAG, averaged over the nine regimes: mean $\Delta$ $\pm$ half-width of the 95\% $t$-interval over the twelve generator seeds, and Holm-adjusted paired $t$-test $p$ (within each metric). The nine regimes of a seed share its legitimate claims, isolated fraud and ring members, so the seed, not the world, is the unit of replication.}\label{tab:pooled}
@@ -870,6 +901,20 @@ method is far above chance. Pure GNNs fall further behind GB-CAG as volume
 decreases, by 0.01--0.06 AP at 16, 0.10--0.29 at 8 and 0.23--0.29 at 4 claims
 per month, whereas the hybrids stay within 0.05 of it at every volume.
 
+When ring claims were also shifted at volume 4 ($\delta=1$ and $2$; Online
+Resource~1, Section~\SSecShift), the moderately and densely linked rings at
+$\delta=1$ behaved as at $\delta=0$: graph features added 0.29--0.30 AP
+(Holm $p<0.01$) and the pure GNNs were 0.11--0.29 below GB-CAG. For sparse
+rings, where graph features added little, SAGE and HAN at both shifts and
+RGCN at $\delta=2$ outperformed GB-CAG by 0.07--0.18 (Holm $p\le0.030$ within
+each method's three densities), the only cells of the main and
+reduced-volume experiments in which a pure GNN did so by more than 0.01 AP.
+Logistic regression on claim and aggregate features, which sees no graph,
+outperformed GB-CAG there as well ($+0.11$ and $+0.06$), which suggests that
+the advantage lies in learning a weak claim-level shift from few ring claims
+rather than in detecting coordination. Pooled over densities, no method
+outperformed GB-CAG at either shift.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{fig_dose_response.pdf}
@@ -921,7 +966,7 @@ differ only in which ring links exist. In this world GB-CAG flagged 81 and 91 of
 $s=0.1$ and $s=0.9$, and HGT 62 and 94: the graph model gains most where the
 block is dense, as in the averages of Table~\ref{tab:regime_ringap}. The
 figure illustrates one world only; the quantitative statements rest on all
-54.
+108 worlds of the main grid.
 
 \begin{figure}[t]
 \centering
@@ -1084,10 +1129,11 @@ The two pre-specified checks of this protocol left the picture unchanged
 (Online Resource~1, Section~\SSecKaggle). Over 25 rotations (five repetitions
 of the five-fold rotation), GB-P again had the highest mean AP (0.693), graph
 features changed it by $-0.007$ $[-0.019, 0.006]$ (GB-PG) and $-0.006$
-$[-0.019, 0.007]$ (GB-PGL), and SAGE, HAN and HGT were 0.025--0.034 below
-it. No difference was significant after the correction and Holm adjustment
-(smallest Holm $p=0.29$, HAN), whereas a plain paired $t$-test over the 25
-rotations would have called all eight significant. Re-selecting every
+$[-0.019, 0.007]$ (GB-PGL), the five GNNs were 0.025--0.092 and the hybrids
+0.039--0.063 below it. Only RGCN's deficit was significant after the
+correction and Holm adjustment (Holm $p=0.008$; next smallest $0.052$,
+SAGE+G), whereas a plain paired $t$-test over the 25 rotations would have
+called all twelve differences significant. Re-selecting every
 method's configuration inside each rotation changed AP by at most 0.010 for
 the tabular models and the MLP and by $-0.008$ to $+0.036$ for the GNNs and
 hybrids, none significantly (SAGE chose its shared configuration in every
@@ -1176,7 +1222,7 @@ ring claims per month (default 16).}\label{tab:map}
 \toprule
 Setting & Main evidence for rings & Structure gain & What works \\
 \midrule
-Ring claims anomalous ($\delta=2$) & Claim attributes & None: all methods with aggregates $>0.98$ & Any tabular model with aggregates \\
+Ring claims anomalous ($\delta=2$) & Claim attributes & None at volume 16 (all methods with aggregates $>0.98$) or 4 ($+0.04$, n.s.) & Any tabular model with aggregates \\
 \addlinespace[2pt]
 Members unusually active (volume 16), sparse rings ($s=0.1$) & Member volume, repeated doctor--patient pairs & $+0.005$ & GB-CA(G); hybrids add $+0.035$ to $+0.038$ \\
 \addlinespace[2pt]
@@ -1187,6 +1233,10 @@ Members moderately active (volume 8), sparse rings & Volume and shared patients 
 Members moderately active or not unusual (volume 4--8), dense rings & Shared patients & $+0.36$ to $+0.61$ & GB-CAG or hybrids; pure GNNs 0.17--0.54 lower \\
 \addlinespace[2pt]
 Members not unusual (volume 4), sparse rings & Little & At most $+0.03$; all methods near chance & Hybrid slightly better ($+0.024$, confirmed) \\
+\addlinespace[2pt]
+Members not unusual (volume 4), claims mildly anomalous ($\delta=1$), dense rings & Shared patients and claim attributes & $+0.29$ to $+0.30$ & GB-CAG or hybrids; pure GNNs 0.11--0.29 lower \\
+\addlinespace[2pt]
+Members not unusual (volume 4), claims anomalous ($\delta\ge1$), sparse rings & Claim attributes & At most $+0.02$ & SAGE, HAN (and RGCN at $\delta=2$) and logistic regression, $+0.06$ to $+0.18$ over GB-CAG \\
 \addlinespace[2pt]
 One claim per member (volume 2) & None detectable & None & No method \\
 \midrule
@@ -1209,11 +1259,15 @@ dilute claim-level anomalies through neighbourhood averaging, which made
 them markedly worse on isolated fraud, and they readily memorise the
 attributes of training-ring members, which inflates performance when rings
 recur but does not transfer to new rings. Hybrids that combine message
-passing with the engineered features gained a small but reliable amount over
-gradient boosting on ring fraud ($+0.009$ to $+0.010$ AP), most for sparse
-rings, where the engineered features are weakest; that is the structure
-message passing extracts beyond our features, and it comes at 9--40 times the
-training cost.
+passing with the engineered features gained a small amount over gradient
+boosting on ring fraud ($+0.009$ to $+0.010$ AP, of the order of the
+variation between training runs), most for sparse rings, where the engineered
+features are weakest; that is the structure message passing extracts beyond
+our features, and it comes at 9--40 times the training cost. The one setting
+in which pure GNNs clearly beat gradient boosting with graph features, sparse
+rings at reduced volume whose claims were also shifted, is one in which
+structure added little and a linear model without graph inputs beat it as
+well.
 
 The ring-volume experiments sharpen this picture. Once ring members no
 longer stood out by volume, counting no longer sufficed, and the pure GNNs
@@ -1277,7 +1331,9 @@ methods perform on current Medicare claims.
   passing on top of the engineered features gained about 0.01 AP, most for
   sparse rings; where rings may be sparse, a hybrid is worth testing,
   although every method detected sparse rings poorly when their members were
-  not unusually active.
+  not unusually active. Keep a linear model among the baselines as well:
+  where such rings' claims were also mildly anomalous, logistic regression
+  and several GNNs outperformed gradient boosting.
 \item Do not infer the value of relational structure from rings whose members
   are unusually active: then aggregates already find them. When they are not,
   explicit co-occurrence features, or hybrids that receive them, were needed.
@@ -1316,18 +1372,22 @@ simple, labels are noise-free and immediate, rings are static during their
 active period and of a single size, and ring prevalence (8\% of the
 non-isolated test-period claims at default volume) is far above realistic
 levels so that each world has enough positives for stable estimates; the
-ring-volume experiments lower it to 1.1--4.2\% but cover only $\delta=0$ and
-six seeds. The engineered graph features were designed with knowledge of the
+ring-volume experiments lower it to 1.1--4.2\% but rest on six seeds and
+cover $\delta>0$ only at four claims per month. The engineered graph features were designed with knowledge of the
 injected typology, which favours them over learned message passing
 (Section~\ref{sec:discussion}). We tuned each method once, on development
 worlds from a single regime ($\delta=0.5$, $s=0.5$), and once more for
-volume 4; per-regime tuning could change small differences. The twelve seeds
+volume 4; re-tuning in two further regimes changed no result significantly,
+but other regimes were not re-tuned. The twelve seeds
 per regime are the unit of replication: pooled tests have eleven degrees of
 freedom and cannot resolve differences much below 0.005--0.01 AP, and the
 persistent-ring, ablation, routing and ring-volume analyses rest on six
 seeds. Seeds 7--12 were added after the first results had been seen, under a
 plan fixed before the new runs; the first-round results remain in the
-repository. Each model was trained once per world. Graph models were trained
+repository. Each model was trained once per world, from the same initial
+weights as in tuning; a replication with two further training seeds covered
+five methods at $\delta=0$ and showed that the GNNs' variation between
+training runs is comparable to their variation between worlds. Graph models were trained
 full-batch on graphs of about 11{,}000 nodes per period; larger graphs would
 need sampling-based training~\cite{hamilton2017sage}. The architecture and
 reliance analyses were run in one regime ($\delta=0$, $s=0.9$) with one
@@ -1340,9 +1400,8 @@ degree counts as claims arrive.
 On the public data, labels are per provider, the source of the claims and of
 the labels is undocumented, and the observation window is a single year.
 Even 25 overlapping rotations leave the corrected tests little power for
-differences of a few hundredths of AP, and the repeated rotations covered
-only three of the five GNNs and neither hybrid. Each model was trained once
-per rotation.
+differences of a few hundredths of AP. Each model was trained once per
+rotation.
 Finally, the benchmark does not model adaptive fraudsters, temporal ring
 dynamics, which temporal graph models target~\cite{rossi2020tgn}, or
 realistic coding semantics such as those of synthetic health
@@ -1389,9 +1448,13 @@ otherwise unusual: then per-entity aggregates detected little, while a ring
 filing about one claim per member could not be found at all. Gradient
 boosting with a handful of engineered shared-patient features matched or
 outperformed five heterogeneous GNNs on average at a fraction of the cost,
-and at reduced ring volume it detected far more rings than any pure GNN;
-adding message passing on top of those features gained about 0.01 AP, most
-for sparse rings, and routing high-risk claims to a GNN gained little. GNNs
+and at reduced ring volume it detected far more of the densely linked rings
+than any pure GNN;
+adding message passing on top of those features gained about 0.01 AP, of the
+order of the variation between training runs, most for sparse rings, and
+routing high-risk claims to a GNN gained little. Some pure GNNs outperformed
+it, but only for sparse rings with mildly anomalous claims at reduced volume, where a
+linear model without graph inputs did so too. GNNs
 generalised to new rings only with reverse relations, sufficient depth and
 counting ability, degraded isolated-fraud detection, and could memorise known
 ring members in ways that inflate conventional evaluations. A small fixed
@@ -1412,7 +1475,9 @@ collusive schemes.
 \bmhead{Supplementary information}
 Online Resource~1 (PDF) contains the selected hyperparameters, the
 two-stage routing evaluation, the full ring-volume dose-response, the
-confirmatory test of the hybrid result, the cost measurements, the
+confirmatory test of the hybrid result, three robustness checks (feature
+shift at reduced ring volume, training-seed replication and per-regime
+tuning), the cost measurements, the
 single-factor ablations of HGT, the input-reliance analysis, figures of the
 mechanism ablations and of new versus recurring rings, repeated
 cross-validation and per-rotation tuning on the public data, and the
@@ -1443,7 +1508,8 @@ code regenerates them.
   under CC0; file checksums are listed in the repository.
 \item \textbf{Code availability.} Code, configurations, tests and result
   records are available at \url{https://github.com/akshay-hudev/Fraud-Guard}
-  (directory \texttt{research/}) under the MIT licence. An archived release
+  (directory \texttt{research/}; the version described here is tagged
+  \texttt{hiss-submission-v1}) under the MIT licence. An archived release
   with a DOI will be provided upon acceptance.
 \item \textbf{Author contribution.} H M Akshay: conceptualization,
   methodology, software, investigation, formal analysis, data curation,

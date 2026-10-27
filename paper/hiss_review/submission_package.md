@@ -20,7 +20,7 @@ It writes `paper/hiss_submission/` and `paper/hiss_submission.zip`, both git-ign
 | `Fig3.pdf` … `Fig7.pdf` | Figure | Vector PDFs with embedded TrueType fonts. Figs. 1–2 are TikZ drawings inside the `.tex` |
 | `fraud_detection_paper_compiled.pdf` | Compiled manuscript PDF | Required alongside LaTeX source |
 | `ESM_1.pdf` | Supplementary material (Online Resource 1) | Compiled from `supplementary_material.tex`; cited in the article as "Online Resource 1"; title page carries the article title, journal and authors |
-| Cover letter | Cover letter | **To be written by the authors.** Suggested content: (1) scope fit (health information systems: payer claims data, audit decision support); (2) relation to Yoo et al. 2023 and the replication aspect; (3) disclosure of the earlier manuscript version if applicable (U-7); (4) code and data availability with the tagged repository version (U-1); (5) no competing interests; (6) not under consideration elsewhere |
+| Cover letter | Cover letter | **Not sent:** the authors decided on 2026-10-27 to submit without one. The corresponding author has confirmed that the manuscript is not under consideration elsewhere and that the earlier version was not submitted anywhere (U-7); give the same answers if the submission form asks |
 
 ## Not uploaded, but referenced and available
 

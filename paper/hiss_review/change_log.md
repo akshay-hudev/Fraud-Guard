@@ -127,6 +127,68 @@ is reported, including those that weaken earlier statements.
   densities; the per-cell range is 0.17–0.54.
 * "Little for sparse rings" contradicted volume 8 (+0.13); the text and table now give the per-volume values.
 
+## Third round (2026-10-27): the remaining optional experiments
+
+The authors asked for the optional experiments of `unresolved_issues.md` to be run before submission. The plan was
+`paper/hiss_review/analysis_plan_round3.md`, committed at `2eb368c` before any of its runs started. E-5 (real data
+with labelled collusion) and E-6 (latency of a deployed system) cannot be run and are stated as limitations.
+
+### Code
+
+| File | Change |
+|---|---|
+| `research/experiments/tune.py` | `--ring-shift` and `--ring-density` set the development regime, for per-regime tuning (committed in `2eb368c`) |
+| `research/experiments/analyze.py` (after the runs) | Summaries and tables for E-2 (`lowvolume_shift*`), E-3 (`modelseeds*`) and E-4 (`regimetuned*`); drafted outside `research/` during the runs and moved in afterwards, so that the run records stay clean |
+| `research/experiments/sync_manuscript.py` | Three new Online Resource tables |
+| `verify.py` | Checks the three new run sets, that the E-2 runs are at volume 4, and the two per-regime tuning files |
+| `paper/check_manuscript_numbers.py` | 113 new checks (E-2, E-3, E-4, E-7); 458 in all |
+| `paper/check_cross_references.py` | Macros for the three new Online Resource sections and tables |
+| `paper/hiss_review/check_initial_weights.py` (new) | Shows that a GNN's initial weights are identical in every world for a given training seed |
+
+### New results
+
+| Directory | Content |
+|---|---|
+| `results/synthetic_lowvolume_shift/` | E-2: δ = 1 and 2 at ring volume 4, three densities, seeds 1–6, all 14 methods, main hyperparameters (36 worlds) |
+| `results/synthetic_modelseeds/` | E-3: training seeds 1 and 2 for GB-CAG, SAGE, HGT, SAGE+AG, HGT+AG at δ = 0, three densities, seeds 1–6 |
+| `results/tuning_regime_d0.0_s0.1/`, `results/tuning_regime_d0.0_s0.9/` | E-4: the tuning protocol repeated at δ = 0, s = 0.1 and 0.9 |
+| `results/synthetic_regimetuned/` | E-4: all 14 methods with the per-regime configurations, seeds 1–6 (12 worlds) |
+| `results/kaggle_repeated/runs/r<rep>_fold<k>_extra.json` | E-7: RGCN, Simple-HGN, SAGE+G, HGT+G over the four repeated rotations |
+
+### Outcomes
+
+| Question | Outcome |
+|---|---|
+| E-2: does a claim-level shift change the low-volume conclusions? | For dense rings at δ = 1 structure is again the main evidence (GB-CAG − GB-CA +0.288 and +0.301, Holm p < 0.01) and pure GNNs are 0.11–0.29 below GB-CAG. **New:** for sparse rings at δ = 1 and 2, SAGE and HAN (and RGCN at δ = 2) beat GB-CAG by 0.07–0.18 (Holm p ≤ 0.030 within each method's densities), the first sizeable pure-GNN advantages in the study; logistic regression without graph inputs beat GB-CAG there too (+0.11, +0.06), so the advantage is attributed to learning a weak claim-level shift from few ring claims, not to detecting coordination. Pooled over densities no method beats GB-CAG. At δ = 2 structure is redundant (+0.036, n.s.) |
+| E-3: do the comparisons survive averaging over training seeds? | The pure-GNN deficits and the isolated-fraud deficits do. **The hybrid gain shrinks:** SAGE+AG +0.013 → +0.009 pooled, +0.043 (Holm p = 0.032) → +0.030 (p = 0.18) for sparse rings. Training seed 0 gave SAGE+AG its highest sparse-ring AP of the three seeds. GNN training-seed s.d. (HGT 0.022–0.034) is comparable to the s.d. between worlds |
+| E-3, incidental: are training runs independent across worlds? | **No.** With a fixed training seed, a GNN's initial weights depend only on the layer sizes, so every world, including the tuning worlds, starts from identical weights (`check_initial_weights.py`). The Methods sentence "variation between worlds includes variation due to initialisation" was wrong and was corrected |
+| E-4: does the single tuning regime drive the regime-level conclusions? | No. Re-tuning changed the configuration of 8 (s = 0.1) and 7 (s = 0.9) of 11 tuned methods but no method's ring AP significantly (largest −0.042, SAGE, Holm p = 0.51). With all methods re-tuned no GNN or hybrid beats GB-CAG significantly (largest SAGE+AG +0.043, Holm p = 0.092) |
+| E-7: repeated rotations for the remaining GNNs and the hybrids | GB-P stays best over 25 rotations. GNNs are 0.025–0.092 and hybrids 0.039–0.063 below it; RGCN's deficit is significant (−0.092, Holm p = 0.008 over the twelve comparisons). The eight round-2 p-values were re-adjusted within the larger family (HAN 0.29 → 0.33) |
+
+### Manuscript and Online Resource
+
+| Part | Change |
+|---|---|
+| Online Resource | New Sections S5 (feature shift at reduced volume, Table S4), S6 (training-seed replication, Table S5), S7 (per-regime tuning, Table S6); later sections and tables renumbered (S8–S13, S7–S10); S12 rewritten for twelve comparisons |
+| Introduction | Hybrid gain described as "of the order of the variation between training runs"; the sparse, shifted, low-volume exception stated |
+| 4.3 Models | Training-seed sentence corrected (identical initial weights across worlds) |
+| 4.5 Statistics | Third round disclosed |
+| 5.3 Protocol | Repeated rotations now cover every method |
+| 6.4 | "Statistically reliable" → "statistically significant"; training-seed and per-regime-tuning results added; "carries some information" → "carries little information" |
+| 6.6 | New paragraph on δ = 1 and 2 at volume 4 |
+| 8 | Repeated-rotation results for all methods; RGCN significant |
+| 9 Discussion | Two new rows in Table 8 and the δ = 2 row extended to volume 4; the exception in 9.2; a recommendation to keep a linear baseline; limitations rewritten (δ > 0 at volume 4 covered, re-tuning in two regimes, shared initial weights, all methods in the repeated rotations) |
+| Conclusion | Hybrid gain qualified; the exception stated; "far more rings" restricted to densely linked rings |
+
+### Errors found and corrected during this round
+
+* The Methods claimed that variation between worlds includes variation due to initialisation; it does not (see
+  above).
+* The draft text said "eleven" comparisons on the public data; there are twelve (`check_manuscript_numbers.py`).
+* Three p-value bounds rounded below the actual value (Holm p = 0.0021 written as ≤ 0.002; 0.0032 as ≤ 0.003);
+  now "p < 0.01".
+* The Online Resource's per-regime tuning table was 86 pt too wide; confidence intervals moved to the CSV.
+
 ## Other files
 
 * `paper/references.bib`: same additions and DOIs.

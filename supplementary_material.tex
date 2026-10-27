@@ -40,7 +40,8 @@ Models'', \textit{Health Information Science and Systems}}
 
 \abstract{This Online Resource accompanies the article named in the title. It contains material summarised
 but not shown in full there: the selected hyperparameters, the two-stage routing evaluation, the ring-volume
-dose-response, the confirmatory test of the hybrid result, the cost of training and scoring, single-factor
+dose-response, the confirmatory test of the hybrid result, three robustness checks (feature shift at reduced
+ring volume, training-seed replication and per-regime tuning), the cost of training and scoring, single-factor
 ablations of HGT, which inputs the trained models use, figures of the mechanism ablations and of new versus
 recurring rings, repeated cross-validation and per-rotation tuning on the public data, and a re-analysis of a
 small fixed benchmark. Every number is generated from the run records in the article's code repository.}
@@ -206,6 +207,153 @@ at $\alpha=0.05$. SAGE+AG had a mean ring AP of 0.129 against 0.104 for GB-CAG: 
 chance level of 0.021. By the pre-declared rule the advantage is confirmed; its size is about half the
 exploratory estimate.
 
+\section{Feature shift at reduced ring volume}\label{sec:s_shift}
+In the article, ring volume was reduced to 4 claims per month only at $\delta=0$ (Section~\MainSecLowVolume{}).
+Here that test is repeated with ring claims also shifted, $\delta=1$ and $2$, as fixed in the plan for the third
+round of experiments before its runs (\texttt{paper/hiss\_review/analysis\_plan\_round3.md}): seeds 1--6, all 14
+methods, the hyperparameters of the main experiment, and legitimate claims, isolated fraud and ring members shared
+with the $\delta=0$ and default-volume worlds of the same seed. Table~\ref{tab:lowvolume_shift} gives ring AP.
+Per-density $p$-values are Holm-adjusted within each method's three densities, pooled ones over methods with the
+seed as unit; every comparison is in the repository (\texttt{results/tables/lowvolume\_shift\_comparisons.csv}).
+
+With a moderate shift ($\delta=1$), coordination structure was again the main evidence for moderately and densely
+linked rings: GB-CAG exceeded GB-CA by $+0.288$ and $+0.301$ at $s=0.5$ and $0.9$ (Holm $p<0.01$), against
+$+0.039$ and $+0.048$ at default volume, and by $+0.017$ at $s=0.1$ (not significant). With a strong shift
+($\delta=2$) the claims themselves carried most of the evidence and the structure gain was small ($+0.036$ pooled
+over densities, 95\% CI $[-0.002, 0.074]$, Holm $p=0.27$), as at default volume.
+
+For sparse rings ($s=0.1$), several methods outperformed GB-CAG, one of them without graph inputs. At $\delta=1$,
+HAN exceeded it by $+0.178$ (Holm $p=0.020$), SAGE by $+0.139$ ($p=0.030$), SAGE+AG by $+0.123$ ($p=0.042$) and
+logistic regression on claim and aggregate features (LR-CA) by $+0.109$ ($p=0.022$); at $\delta=2$, SAGE, HAN,
+RGCN, both hybrids and LR-CA exceeded it by $+0.053$ to $+0.087$ (Holm $p\le0.037$). Gradient boosting was
+comparatively weak in these cells (GB-CA 0.269 against 0.395 for LR-CA at $\delta=1$), and the best pure GNNs were
+0.03--0.07 above LR-CA (SAGE 0.425 and HAN 0.464 at $\delta=1$; this comparison was not tested). Because a linear
+model without graph inputs also outperformed gradient boosting here, these advantages are better explained by how
+well each model learns a weak claim-level shift from about 200 training ring claims than by message passing
+detecting coordination, which added little for sparse rings.
+
+For moderately and densely linked rings at $\delta=1$, the pure GNNs were 0.11--0.29 below GB-CAG (significantly
+only for HGT, Holm $p<0.01$, with six seeds) and SAGE+AG was 0.04--0.07 above it (Holm $p\ge0.079$). Pooled over
+densities, no method had significantly higher ring AP than GB-CAG at either shift (largest: SAGE+AG, $+0.079$
+$[0.013, 0.146]$ at $\delta=1$, Holm $p=0.20$, and $+0.037$ $[0.016, 0.057]$ at $\delta=2$, $p=0.055$), and HGT
+was significantly lower at $\delta=1$ ($-0.202$, $p=0.007$). On isolated fraud the GNNs and hybrids were again
+below GB-CAG, by 0.02--0.11 pooled over densities (significantly for SAGE, HAN and HGT+AG at $\delta=1$ and for
+HGT+AG at $\delta=2$).
+
+\begin{table}[h]
+\caption{Ring AP on unseen test rings at ring volume 4 claims per month when ring claims are also shifted ($\delta=1$ and $2$; mean over six worlds, seeds 1--6, hyperparameters of the main experiment). Chance level 0.021. The $\delta=0$ results are in Table~\MainTabLowVolume{} of the article. Bold: best per column.}\label{tab:lowvolume_shift}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & \multicolumn{3}{c}{$\delta=1$} & \multicolumn{3}{c}{$\delta=2$} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Method / $s$ & 0.1 & 0.5 & 0.9 & 0.1 & 0.5 & 0.9 \\
+\midrule
+GB-C & 0.152 & 0.139 & 0.160 & 0.648 & 0.664 & 0.642 \\
+MLP-C & 0.161 & 0.164 & 0.161 & 0.656 & 0.651 & 0.646 \\
+LR-CA & 0.395 & 0.412 & 0.412 & 0.837 & 0.835 & 0.823 \\
+RF-CA & 0.207 & 0.217 & 0.212 & 0.693 & 0.715 & 0.717 \\
+GB-CA & 0.269 & 0.293 & 0.275 & 0.785 & 0.814 & 0.807 \\
+GB-CAG & 0.286 & 0.582 & 0.576 & 0.780 & 0.859 & 0.874 \\
+\midrule
+SAGE & 0.425 & 0.466 & 0.463 & \textbf{0.866} & 0.861 & 0.848 \\
+RGCN & 0.391 & 0.397 & 0.440 & 0.850 & 0.836 & 0.815 \\
+HAN & \textbf{0.464} & 0.444 & 0.410 & 0.853 & 0.870 & 0.857 \\
+Simple-HGN & 0.338 & 0.419 & 0.403 & 0.805 & 0.818 & 0.791 \\
+HGT & 0.251 & 0.303 & 0.285 & 0.779 & 0.794 & 0.778 \\
+\midrule
+SAGE+AG & 0.409 & \textbf{0.654} & \textbf{0.620} & 0.855 & \textbf{0.882} & \textbf{0.884} \\
+HGT+AG & 0.353 & 0.566 & 0.564 & 0.832 & 0.848 & 0.849 \\
+Overlap score & 0.052 & 0.164 & 0.211 & 0.040 & 0.124 & 0.272 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\section{Training-seed replication}\label{sec:s_seeds}
+Every reported run trains each model once per world, with training seed 0, and the tuning used the same seed.
+Because a network's initial weights depend only on the seed and the layer sizes, which are the same in every
+world, each reported GNN run starts from the weights with which its configuration was selected (checked for SAGE
+and HGT on a development and a test world; \texttt{paper/hiss\_review/check\_initial\_weights.py}). To separate
+initialisation from world variance, GB-CAG, SAGE, HGT and the two hybrids were retrained with training seeds 1 and 2
+at $\delta=0$, all three densities and seeds 1--6, with the main hyperparameters, as fixed in the plan for the third
+round. Table~\ref{tab:modelseeds} compares each method with GB-CAG with training seed 0 only and with each world's
+mean over the three seeds; per-density results are in the repository
+(\texttt{results/tables/modelseeds\_comparisons.csv}).
+
+Averaging over training seeds left the pure GNNs below GB-CAG (SAGE $-0.011$, HGT $-0.040$ pooled over densities)
+and reduced the hybrids' advantage (SAGE+AG $+0.013$ with seed 0, $+0.009$ with the mean of three; HGT+AG $+0.012$
+and $+0.007$); with six seeds none of these pooled differences is significant after Holm adjustment. For sparse
+rings, where the hybrids gained most, SAGE+AG exceeded GB-CAG by $+0.043$ with seed 0 (Holm $p=0.032$) but by
+$+0.030$ with the mean of three ($p=0.18$): its mean ring AP was 0.973 with seed 0 against 0.965 and 0.956 with
+seeds 1 and 2, while GB-CAG's ranged from 0.930 to 0.938. On isolated fraud the GNNs' and hybrids' deficits were
+unchanged ($-0.086$ to $-0.219$ with the mean of three seeds, Holm $p\le0.003$). Training-seed variation was small
+for GB-CAG (standard deviation of ring AP within a world 0.001--0.005) but, for HGT, comparable to the variation
+between worlds (0.022--0.034 against 0.028--0.029). The hybrids' small advantage reported in the article is
+therefore of the order of the variation between training seeds, and part of it may be specific to the seed used
+for tuning.
+
+\begin{table}[h]
+\caption{Training-seed replication at $\delta=0$ (seeds 1--6, three densities, training seeds 0--2). Ring AP difference from GB-CAG pooled over densities (seed as unit, Holm-adjusted $p$), with the reported training seed only and with each world's mean over three training seeds; and the standard deviation of ring AP across training seeds within a world and across worlds (means over densities).}\label{tab:modelseeds}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{Seed 0 only} & \multicolumn{2}{c}{Mean of 3 seeds} & \multicolumn{2}{c}{s.d. of ring AP} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Method & $\Delta$ [95\% CI] & $p$ & $\Delta$ [95\% CI] & $p$ & training & worlds \\
+\midrule
+GB-CAG & -- & -- & -- & -- & 0.003 & 0.014 \\
+SAGE & $-0.008$ [$-0.022$, $+0.005$] & 0.227 & $-0.010$ [$-0.026$, $+0.005$] & 0.283 & 0.011 & 0.016 \\
+HGT & $-0.032$ [$-0.068$, $+0.005$] & 0.227 & $-0.040$ [$-0.068$, $-0.012$] & 0.060 & 0.027 & 0.028 \\
+SAGE+AG & $+0.013$ [$+0.003$, $+0.023$] & 0.074 & $+0.009$ [$-0.002$, $+0.019$] & 0.246 & 0.008 & 0.007 \\
+HGT+AG & $+0.012$ [$-0.004$, $+0.028$] & 0.227 & $+0.007$ [$-0.005$, $+0.019$] & 0.283 & 0.009 & 0.015 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\section{Per-regime tuning}\label{sec:s_regime}
+All methods were tuned once, on development worlds at $\delta=0.5$, $s=0.5$. To test whether the regime-level
+conclusions depend on that choice, the tuning protocol (ten configurations per method, development seeds 901 and
+902, validation AP; hybrids inherit their base configuration) was repeated on development worlds of the two
+$\delta=0$ regimes in which the comparisons matter most, sparse ($s=0.1$) and dense ($s=0.9$) rings, and every
+method was evaluated on seeds 1--6 of that regime with the re-selected configurations, as fixed in the plan for the
+third round. Table~\ref{tab:regimetuned} shows the result.
+
+Re-tuning selected a different configuration for 8 of the 11 tuned methods at $s=0.1$ and 7 at $s=0.9$, but
+changed no method's ring AP significantly: the largest change was $-0.042$ (SAGE at $s=0.9$, Holm $p=0.51$), and
+methods that kept their configuration reproduced their results exactly. With every method re-tuned, no GNN or
+hybrid exceeded GB-CAG significantly in either regime (largest: SAGE+AG, $+0.043$ at $s=0.1$, Holm $p=0.092$). At
+$s=0.9$ the pure GNNs were 0.03--0.07 below GB-CAG (significantly for Simple-HGN, Holm $p=0.026$) and the hybrids
+matched it. The regime-level conclusions therefore do not depend on the regime used for tuning.
+
+\begin{table}[h]
+\caption{Per-regime tuning at $\delta=0$ (seeds 1--6): ring AP with the main configurations (tuned at $\delta=0.5$, $s=0.5$) and with every method re-tuned in the evaluation regime; $\Delta$: difference from GB-CAG when all methods are re-tuned (paired over worlds, Holm-adjusted $p$ over methods; confidence intervals in \texttt{results/tables/regimetuned\_comparisons.csv}). Hybrids inherit their base configuration.}\label{tab:regimetuned}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+ & \multicolumn{4}{c}{$s=0.1$} & \multicolumn{4}{c}{$s=0.9$} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+Method & Main & Re-tuned & $\Delta$ & $p$ & Main & Re-tuned & $\Delta$ & $p$ \\
+\midrule
+LR-CA & 0.923 & 0.923 & $-0.007$ & 1.000 & 0.868 & 0.868 & $-0.122$ & $<$0.001 \\
+RF-CA & 0.875 & 0.877 & $-0.053$ & 0.024 & 0.844 & 0.856 & $-0.134$ & $<$0.001 \\
+GB-C & 0.084 & 0.079 & $-0.851$ & $<$0.001 & 0.087 & 0.084 & $-0.906$ & $<$0.001 \\
+GB-CA & 0.925 & 0.924 & $-0.006$ & 1.000 & 0.889 & 0.884 & $-0.105$ & 0.003 \\
+GB-CAG & 0.930 & 0.930 & -- & -- & 0.990 & 0.989 & -- & -- \\
+MLP-C & 0.088 & 0.088 & $-0.842$ & $<$0.001 & 0.095 & 0.093 & $-0.897$ & $<$0.001 \\
+SAGE & 0.938 & 0.937 & $+0.007$ & 1.000 & 0.976 & 0.934 & $-0.056$ & 0.149 \\
+RGCN & 0.933 & 0.945 & $+0.016$ & 1.000 & 0.954 & 0.942 & $-0.047$ & 0.085 \\
+HAN & 0.908 & 0.906 & $-0.024$ & 1.000 & 0.921 & 0.921 & $-0.068$ & 0.085 \\
+Simple-HGN & 0.915 & 0.907 & $-0.023$ & 0.666 & 0.957 & 0.957 & $-0.033$ & 0.026 \\
+HGT & 0.910 & 0.910 & $-0.019$ & 1.000 & 0.949 & 0.949 & $-0.041$ & 0.385 \\
+SAGE+AG & 0.973 & 0.973 & $+0.043$ & 0.092 & 0.983 & 0.990 & $0.000$ & 1.000 \\
+HGT+AG & 0.964 & 0.964 & $+0.034$ & 0.666 & 0.990 & 0.990 & $0.000$ & 1.000 \\
+\botrule
+\end{tabular}
+\end{table}
+
 \section{Cost of training and scoring}\label{sec:s_cost}
 Median training time per world (Intel Core i7-1068NG7 laptop CPU, two
 threads per job with several jobs in parallel, so times are indicative) was
@@ -335,17 +483,18 @@ Both analyses were specified in the plan for the second round of experiments bef
 
 \textbf{Repeated cross-validation.} The provider-disjoint five-fold rotation of the article (fold $k$ test,
 fold $k+1$ validation, three training folds) was repeated with the stratified fold assignment reshuffled four more
-times (seeds 1--4), giving 25 rotations with the article's split as the first. To save compute, the repetitions
-covered the tabular models, the MLP and three GNNs (SAGE, HAN, HGT); RGCN, Simple-HGN and the hybrids were run on
-the article's split only. Hyperparameters are those of the shared selection. Each method is compared with GB-P by
+times (seeds 1--4), giving 25 rotations with the article's split as the first. The second round covered the
+tabular models, the MLP and three GNNs (SAGE, HAN, HGT); RGCN, Simple-HGN and the two hybrids were added in the
+third round with the same reshuffled folds (\texttt{paper/hiss\_review/analysis\_plan\_round3.md}). Hyperparameters are those of the shared selection. Each method is compared with GB-P by
 the corrected repeated cross-validation $t$-test (Nadeau and Bengio 2003; Bouckaert and Frank 2004; references
 \MainRefNadeau{} and \MainRefBouckaert{} of the article), which inflates the variance
-of the mean difference by $1/25 + 1/3$ instead of $1/25$, with 24 degrees of freedom, and the eight $p$-values are
-Holm-adjusted. Table~\ref{tab:kaggle_repeated} shows the result. GB-P has the highest mean AP; graph features change
-it by $-0.007$ and $-0.006$, with upper 95\% limits of $+0.006$ and $+0.007$; the GNNs are 0.025--0.034 lower.
-No difference is significant after adjustment (smallest Holm $p=0.29$, HAN; unadjusted $p=0.036$). Without the
-correction, every difference would be significant (all unadjusted $p<0.01$), which shows how strongly
-overlapping training sets inflate a plain paired test.
+of the mean difference by $1/25 + 1/3$ instead of $1/25$, with 24 degrees of freedom, and the twelve $p$-values
+are Holm-adjusted together (the second round adjusted its eight within that smaller family).
+Table~\ref{tab:kaggle_repeated} shows the result. GB-P has the highest mean AP; graph features change it by $-0.007$
+and $-0.006$, with upper 95\% limits of $+0.006$ and $+0.007$; the GNNs are 0.025--0.092 lower and the hybrids
+0.039--0.063 lower. After adjustment only RGCN differs significantly ($-0.092$, Holm $p=0.008$); the next smallest
+adjusted $p$ is 0.052 (SAGE+G). Without the correction, every difference would be significant (all unadjusted
+$p<0.01$), which shows how strongly overlapping training sets inflate a plain paired test.
 
 \begin{table}[h]
 \caption{Public data, five-fold rotation repeated five times (25 rotations; the first repeat is the split reported in the article): AP mean $\pm$ s.d., and the difference from GB-P with the corrected repeated cross-validation 95\% CI and Holm-adjusted $p$ (variance factor $1/25 + 1/3$, 24 degrees of freedom).}\label{tab:kaggle_repeated}
@@ -354,15 +503,19 @@ overlapping training sets inflate a plain paired test.
 \toprule
 Method & AP & $\Delta$ vs.\ GB-P [95\% CI] & $p$ \\
 \midrule
-LR-P & 0.674 $\pm$ 0.046 & $-0.019$ [$-0.044$, $+0.006$] & 0.704 \\
-RF-P & 0.674 $\pm$ 0.041 & $-0.019$ [$-0.042$, $+0.005$] & 0.704 \\
+LR-P & 0.674 $\pm$ 0.046 & $-0.019$ [$-0.044$, $+0.006$] & 0.804 \\
+RF-P & 0.674 $\pm$ 0.041 & $-0.019$ [$-0.042$, $+0.005$] & 0.804 \\
 GB-P & 0.693 $\pm$ 0.045 & -- & -- \\
-GB-PG & 0.686 $\pm$ 0.045 & $-0.007$ [$-0.019$, $+0.006$] & 0.704 \\
-GB-PGL & 0.687 $\pm$ 0.046 & $-0.006$ [$-0.019$, $+0.007$] & 0.704 \\
-MLP-P & 0.676 $\pm$ 0.042 & $-0.017$ [$-0.042$, $+0.009$] & 0.704 \\
-SAGE & 0.665 $\pm$ 0.058 & $-0.028$ [$-0.066$, $+0.010$] & 0.704 \\
-HAN & 0.659 $\pm$ 0.046 & $-0.034$ [$-0.066$, $-0.002$] & 0.289 \\
-HGT & 0.668 $\pm$ 0.050 & $-0.025$ [$-0.055$, $+0.005$] & 0.704 \\
+GB-PG & 0.686 $\pm$ 0.045 & $-0.007$ [$-0.019$, $+0.006$] & 0.804 \\
+GB-PGL & 0.687 $\pm$ 0.046 & $-0.006$ [$-0.019$, $+0.007$] & 0.804 \\
+MLP-P & 0.676 $\pm$ 0.042 & $-0.017$ [$-0.042$, $+0.009$] & 0.804 \\
+SAGE & 0.665 $\pm$ 0.058 & $-0.028$ [$-0.066$, $+0.010$] & 0.804 \\
+RGCN & 0.601 $\pm$ 0.051 & $-0.092$ [$-0.140$, $-0.043$] & 0.008 \\
+HAN & 0.659 $\pm$ 0.046 & $-0.034$ [$-0.066$, $-0.002$] & 0.326 \\
+Simple-HGN & 0.666 $\pm$ 0.048 & $-0.027$ [$-0.063$, $+0.008$] & 0.804 \\
+HGT & 0.668 $\pm$ 0.050 & $-0.025$ [$-0.055$, $+0.005$] & 0.804 \\
+SAGE+G & 0.630 $\pm$ 0.049 & $-0.063$ [$-0.105$, $-0.021$] & 0.052 \\
+HGT+G & 0.654 $\pm$ 0.041 & $-0.039$ [$-0.068$, $-0.009$] & 0.122 \\
 \botrule
 \end{tabular}
 \end{table}

@@ -18,7 +18,9 @@ from pathlib import Path
 TO_SUPPLEMENT = {
     "SSecHyper": "sec:s_hyper", "STabHyper": "tab:hyperparams", "SSecRouting": "sec:s_routing",
     "STabRouting": "tab:cascade", "SFigRouting": "fig:cascade", "SSecDose": "sec:s_dose", "STabDose": "tab:dose",
-    "SSecConfirm": "sec:s_confirm", "SSecCost": "sec:s_cost", "SSecHGT": "sec:hgtarch", "STabHGT": "tab:hgt_arch",
+    "SSecConfirm": "sec:s_confirm", "SSecShift": "sec:s_shift", "STabShift": "tab:lowvolume_shift",
+    "SSecSeeds": "sec:s_seeds", "STabSeeds": "tab:modelseeds", "SSecRegime": "sec:s_regime", "STabRegime": "tab:regimetuned",
+    "SSecCost": "sec:s_cost", "SSecHGT": "sec:hgtarch", "STabHGT": "tab:hgt_arch",
     "SSecReliance": "sec:reliance", "SFigAblation": "fig:ablation", "SFigProtocol": "fig:protocolres",
     "SSecKaggle": "sec:s_kaggle", "STabKaggleRepeated": "tab:kaggle_repeated", "STabKaggleNested": "tab:kaggle_nested",
     "SSecLegacy": "sec:legacy", "STabLegacy": "tab:legacy",

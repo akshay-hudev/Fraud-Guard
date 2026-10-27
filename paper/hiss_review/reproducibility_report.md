@@ -124,5 +124,36 @@ everything `synthetic.py` and `kaggle_exp.py` import, is identical in every stat
   without errors, undefined references or overfull boxes. The bundle was unzipped into an empty directory and
   compiled on its own.
 
-**Still not run:** training-seed replication (E-3), per-regime tuning (E-4), δ > 0 at reduced volume, and the
-repeated rotations for RGCN, Simple-HGN and the hybrids.
+**Still not run at the end of round 2:** training-seed replication (E-3), per-regime tuning (E-4), δ > 0 at reduced
+volume, and the repeated rotations for RGCN, Simple-HGN and the hybrids. All four were run in round 3 (Section 6).
+
+## 6. Third round (2026-10-27)
+
+**Plan.** `paper/hiss_review/analysis_plan_round3.md`, committed at `2eb368c` (13:05:21 IST) before any run.
+
+**Runner.** `PARALLEL=4 bash paper/hiss_review/run_round3.sh` (each job with `RESEARCH_THREADS=2 OMP_NUM_THREADS=2`).
+Started 13:05:28, finished 21:55:06 IST (8 h 50 min): 116 jobs, 116 `done`, 0 `FAILED`
+(`results/round3_logs/queue.log`, git-ignored). The E-4 evaluation jobs (`round3_regime_eval.sh`) waited for their
+regime's tuning to be merged.
+
+| Experiment | Jobs | Run files |
+|---|---|---|
+| E-4 tuning (two regimes × six method groups) | 12 | `results/tuning_regime_d0.0_s{0.1,0.9}/` (trials and merged configurations) |
+| E-7 repeated rotations | 20 | `results/kaggle_repeated/runs/r<1–4>_fold<0–4>_extra.json` |
+| E-2 δ = 1, 2 at volume 4 | 36 | 36 |
+| E-3 training seeds 1, 2 | 36 | 36 |
+| E-4 evaluation | 12 | 12 |
+
+**Provenance.** Every round-3 record (84 synthetic, 20 public-data, 14 tuning files) carries commit `2eb368c`,
+`dirty: false` and research-sources hash `3cb55752dad0700c`. No file under `research/` was edited during the runs;
+the analysis code was drafted in the scratchpad and moved into `analyze.py` after the last run.
+
+**Checks after integration.** `analyze` (only the repeated-rotation tables changed among existing tables, as
+expected), `sync_manuscript --check` (no differences), `verify.py` (all artifacts present),
+`check_manuscript_numbers.py` (458/458), `check_cross_references.py` (33/33) after compiling both documents with
+Tectonic (article 35 pages, Online Resource 14 pages, no overfull boxes), `pytest research/tests` (27/27).
+
+**Shared initial weights.** `paper/hiss_review/check_initial_weights.py` builds SAGE and HGT on a development world
+(seed 901) and a test world (seed 3) after seeding with 0: all 52,161 and 65,325 initial parameters are identical.
+Every reported GNN run therefore starts from the weights used when its configuration was selected; E-3 measures
+the consequence.

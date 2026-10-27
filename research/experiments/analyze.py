@@ -872,6 +872,231 @@ def summarise_confirmation(summary: dict) -> None:
     summary["hybrid_confirmation"] = out
 
 
+# Third round (paper/hiss_review/analysis_plan_round3.md): feature shift at reduced volume (E-2), training-seed
+# replication (E-3) and per-regime tuning (E-4).
+def _density_and_pooled(g: pd.DataFrame, metric: str, reference: str, methods: list[str], **keys) -> list[dict]:
+    """Per-density paired comparisons and the comparison pooled over densities (seed as unit)."""
+    piv = g.pivot_table(index=["ring_shift", "ring_density", "seed"], columns="method", values=metric)
+    rows = []
+    for m in [m for m in methods if m in piv and m != reference]:
+        for dens in sorted(g.ring_density.unique()):
+            cell = piv.xs(dens, level="ring_density")
+            rows.append({**keys, "metric": metric, "reference": reference, "method": m, "ring_density": dens,
+                         **paired_comparison(cell[m].to_numpy(), cell[reference].to_numpy())})
+        rows.append({**keys, "metric": metric, "reference": reference, "method": m, "ring_density": "pooled",
+                     **pooled_over_regimes(piv, m, reference)})
+    return rows
+
+
+def _holm_families(c: pd.DataFrame, keys: list[str]) -> pd.DataFrame:
+    # Families as in the low-volume test: one method-vs-reference comparison across the densities; pooled rows
+    # across methods.
+    cell = c.ring_density != "pooled"
+    c.loc[cell, "t_p_holm"] = c[cell].groupby(keys + ["method"])["t_p"].transform(lambda p: holm(p.tolist()))
+    c.loc[~cell, "t_p_holm"] = c[~cell].groupby(keys)["t_p"].transform(lambda p: holm(p.tolist()))
+    return c
+
+
+def _method_table(values: pd.Series, cols: list[tuple], heads: list[tuple[str, int]], sub: list[str], caption: str,
+                  label: str, corner: str = r"Method / $s$") -> str:
+    """Methods x columns table of ring AP, best per column in bold; ``values`` is indexed by (*col, method)."""
+    best = {c: values.loc[c].idxmax() for c in cols}
+    head = " & ".join(rf"\multicolumn{{{n}}}{{c}}{{{h}}}" for h, n in heads)
+    rules, start = "", 2
+    for _, n in heads:
+        rules += rf"\cmidrule(lr){{{start}-{start + n - 1}}}"
+        start += n
+    lines = [r"\begin{table}[h]", rf"\caption{{{caption}}}\label{{{label}}}", r"\scriptsize", r"\setlength{\tabcolsep}{3.5pt}",
+             r"\begin{tabular}{@{}l" + "c" * len(cols) + "@{}}", r"\toprule", r" & " + head + r" \\", rules,
+             corner + " & " + " & ".join(sub) + r" \\", r"\midrule"]
+    groups = [["GB-C", "MLP-C", "LR-CA", "RF-CA", "GB-CA", "GB-CAG"], GNN_PURE, ["SAGE+AG", "HGT+AG", "Overlap-score"]]
+    for gi, group in enumerate(groups):
+        for m in group:
+            row = [LABEL.get(m, m)]
+            for c in cols:
+                v = values.get((*c, m), np.nan)
+                s = "--" if not np.isfinite(v) else f"{v:.3f}"
+                row.append(rf"\textbf{{{s}}}" if best.get(c) == m else s)
+            lines.append(" & ".join(row) + r" \\")
+        if gi < len(groups) - 1:
+            lines.append(r"\midrule")
+    lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
+    return "\n".join(lines)
+
+
+def summarise_lowvolume_shift(summary: dict) -> None:
+    """E-2: delta = 1 and 2 at ring volume 4 (seeds 1-6, main hyperparameters)."""
+    low = load_rows("synthetic_lowvolume_shift")
+    if low.empty:
+        return
+    low = low[low.ring_shift.isin([1.0, 2.0])]
+    base = load_rows("synthetic")
+    base = base[base.seed.isin(ROUND1_SEEDS) & base.ring_shift.isin([1.0, 2.0])]
+    low = low.assign(ring_chance=low["n_ring"] / (low["n_test"] - low["n_isolated"]))
+    t = low.groupby(["ring_shift", "ring_density", "method"])[["ring_ap", "isolated_ap", "ap", "ring_chance"]].agg(["mean", "std", "count"])
+    t.columns = [f"{a}_{b}" for a, b in t.columns]
+    t = t.reset_index()
+    t.to_csv(TABLES / "lowvolume_shift_ring_ap.csv", index=False)
+    rows = []
+    for shift, g in low.groupby("ring_shift"):
+        for metric in ["ring_ap", "isolated_ap", "ap"]:
+            for ref in ["GB-CAG", "GB-CA"]:
+                rows += _density_and_pooled(g, metric, ref, SYN_ORDER, ring_shift=shift)
+        # Same delta at the default volume (same seeds and backgrounds), for the structure gain and the gaps.
+        b = base[base.ring_shift == shift]
+        for ref in ["GB-CAG", "GB-CA"]:
+            rows += [{**r, "volume": 16.0} for r in _density_and_pooled(b, "ring_ap", ref, SYN_ORDER, ring_shift=shift)]
+    c = pd.DataFrame(rows)
+    c["volume"] = c["volume"].fillna(4.0)
+    c = _holm_families(c, ["volume", "ring_shift", "metric", "reference"])
+    c.to_csv(TABLES / "lowvolume_shift_comparisons.csv", index=False)
+    vals = t.set_index(["ring_shift", "ring_density", "method"])["ring_ap_mean"]
+    dens = sorted(low.ring_density.unique())
+    chance = low["ring_chance"].mean()
+    caption = (r"Ring AP on unseen test rings at ring volume 4 claims per month when ring claims are also shifted "
+               r"($\delta=1$ and $2$; mean over six worlds, seeds 1--6, hyperparameters of the main experiment). "
+               rf"Chance level {chance:.3f}. The $\delta=0$ results are in Table~\MainTabLowVolume{{}} of the article. "
+               r"Bold: best per column.")
+    (TABLES / "lowvolume_shift.tex").write_text(_method_table(
+        vals, [(s, d) for s in [1.0, 2.0] for d in dens], [(r"$\delta=1$", len(dens)), (r"$\delta=2$", len(dens))],
+        [f"{d:g}" for _ in range(2) for d in dens], caption, "tab:lowvolume_shift"))
+    ring = c[c.metric == "ring_ap"]
+    pick = lambda df: {f"{v:g} | {s:g} | {d} | {m}": x for (v, s, d, m), x in df.set_index(
+        ["volume", "ring_shift", "ring_density", "method"])[["mean_diff", "ci_low", "ci_high", "t_p_holm"]].round(4)
+        .to_dict(orient="index").items()}
+    summary["lowvolume_shift"] = {
+        "worlds": int(low.groupby(["ring_shift", "ring_density", "seed"]).ngroups),
+        "ring_chance": float(chance),
+        "ring_ap_vs_gbcag": pick(ring[(ring.volume == 4.0) & (ring.reference == "GB-CAG")]),
+        "structure_gain": pick(ring[(ring.reference == "GB-CA") & (ring.method == "GB-CAG")])}
+
+
+MODELSEED_METHODS = ["GB-CAG", "SAGE", "HGT", "SAGE+AG", "HGT+AG"]
+
+
+def summarise_training_seeds(summary: dict) -> None:
+    """E-3: training seeds 0-2 for GB-CAG, SAGE, HGT and the hybrids (delta = 0, seeds 1-6)."""
+    rep = load_rows("synthetic_modelseeds")
+    if rep.empty:
+        return
+    base = load_rows("synthetic")
+    base = base[base.seed.isin(ROUND1_SEEDS) & (base.ring_shift == 0.0)]
+    df = pd.concat([base, rep], ignore_index=True)
+    df = df[df.method.isin(MODELSEED_METHODS)]
+    key = ["ring_shift", "ring_density", "seed", "method"]
+    n_ms = df.groupby(key)["model_seed"].nunique()
+    df = df.set_index(key).loc[n_ms[n_ms == 3].index].reset_index()     # worlds with all three training seeds
+    mean3 = df.groupby(key)[["ring_ap", "isolated_ap", "ap"]].mean().reset_index()
+    seed0 = df[df.model_seed == 0][key + ["ring_ap", "isolated_ap", "ap"]]
+    rows = []
+    for name, g in [("mean of 3", mean3), ("seed 0", seed0)]:
+        for metric in ["ring_ap", "isolated_ap", "ap"]:
+            rows += _density_and_pooled(g, metric, "GB-CAG", MODELSEED_METHODS, training_seeds=name)
+    c = _holm_families(pd.DataFrame(rows), ["training_seeds", "metric", "reference"])
+    c.to_csv(TABLES / "modelseeds_comparisons.csv", index=False)
+    # Variance: s.d. across training seeds within a world (averaged over worlds) against s.d. across worlds of the
+    # three-seed means, per density.
+    within = df.groupby(key)[["ring_ap", "isolated_ap"]].std(ddof=1).groupby(["ring_density", "method"]).mean()
+    between = mean3.groupby(["ring_density", "method"])[["ring_ap", "isolated_ap"]].std(ddof=1)
+    var = within.add_suffix("_sd_training").join(between.add_suffix("_sd_worlds")).reset_index()
+    var.to_csv(TABLES / "modelseeds_variance.csv", index=False)
+    means = df.groupby(["ring_density", "method", "model_seed"])[["ring_ap", "isolated_ap"]].mean()
+    means.to_csv(TABLES / "modelseeds_means.csv")
+    pool = c[(c.metric == "ring_ap") & (c.ring_density == "pooled")].set_index(["training_seeds", "method"])
+    vs = var.groupby("method")[["ring_ap_sd_training", "ring_ap_sd_worlds"]].mean()
+    lines = [r"\begin{table}[h]",
+             r"\caption{Training-seed replication at $\delta=0$ (seeds 1--6, three densities, training seeds 0--2). "
+             r"Ring AP difference from GB-CAG pooled over densities (seed as unit, Holm-adjusted $p$), with the "
+             r"reported training seed only and with each world's mean over three training seeds; and the standard "
+             r"deviation of ring AP across training seeds within a world and across worlds (means over "
+             r"densities).}\label{tab:modelseeds}",
+             r"\scriptsize", r"\setlength{\tabcolsep}{2pt}", r"\begin{tabular}{@{}lcccccc@{}}", r"\toprule",
+             r" & \multicolumn{2}{c}{Seed 0 only} & \multicolumn{2}{c}{Mean of 3 seeds} & \multicolumn{2}{c}{s.d. of ring AP} \\",
+             r"\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}",
+             r"Method & $\Delta$ [95\% CI] & $p$ & $\Delta$ [95\% CI] & $p$ & training & worlds \\", r"\midrule"]
+    for m in MODELSEED_METHODS:
+        cells = []
+        for name in ["seed 0", "mean of 3"]:
+            if (name, m) in pool.index:
+                r = pool.loc[(name, m)]
+                cells += [f"{_sgn(r.mean_diff)} {_ci(r.ci_low, r.ci_high)}",
+                          "$<$0.001" if r.t_p_holm < 0.001 else f"{r.t_p_holm:.3f}"]
+            else:
+                cells += ["--", "--"]
+        lines.append(" & ".join([LABEL.get(m, m)] + cells + [f"{vs.loc[m, 'ring_ap_sd_training']:.3f}",
+                                                             f"{vs.loc[m, 'ring_ap_sd_worlds']:.3f}"]) + r" \\")
+    lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
+    (TABLES / "modelseeds.tex").write_text("\n".join(lines))
+    per = c[c.metric == "ring_ap"].set_index(["training_seeds", "ring_density", "method"])
+    summary["modelseeds"] = {
+        "worlds": int(mean3.groupby(["ring_density", "seed"]).ngroups),
+        "ring_ap_vs_gbcag": {f"{a} | {b} | {m}": v for (a, b, m), v in per[["mean_diff", "ci_low", "ci_high", "t_p_holm"]]
+                             .round(4).to_dict(orient="index").items()},
+        "isolated_ap_pooled_vs_gbcag": {f"{a} | {m}": v for (a, m), v in c[(c.metric == "isolated_ap") & (c.ring_density == "pooled")]
+                                        .set_index(["training_seeds", "method"])[["mean_diff", "t_p_holm"]].round(4)
+                                        .to_dict(orient="index").items()},
+        "sd": var.round(4).to_dict(orient="records")}
+
+
+def summarise_regime_tuning(summary: dict) -> None:
+    """E-4: every method re-tuned at delta = 0, s = 0.1 and 0.9 (seeds 1-6), against the main tuning."""
+    rt = load_rows("synthetic_regimetuned")
+    if rt.empty:
+        return
+    base = load_rows("synthetic")
+    base = base[base.seed.isin(ROUND1_SEEDS)]
+    rows = []
+    for (shift, dens), g in rt.groupby(["ring_shift", "ring_density"]):
+        b = base[(base.ring_shift == shift) & (base.ring_density == dens)]
+        for metric in ["ring_ap", "isolated_ap", "ap"]:
+            pr = g.pivot_table(index="seed", columns="method", values=metric)
+            pb = b.pivot_table(index="seed", columns="method", values=metric)
+            common = pr.index.intersection(pb.index)
+            for m in [m for m in SYN_ORDER if m in pr and m in pb]:
+                rows.append({"ring_shift": shift, "ring_density": dens, "metric": metric, "comparison": "re-tuned - main",
+                             "method": m, **paired_comparison(pr.loc[common, m].to_numpy(), pb.loc[common, m].to_numpy())})
+            for m in [m for m in SYN_ORDER if m in pr and m != "GB-CAG"]:
+                rows.append({"ring_shift": shift, "ring_density": dens, "metric": metric, "comparison": "vs GB-CAG (re-tuned)",
+                             "method": m, **paired_comparison(pr[m].to_numpy(), pr["GB-CAG"].to_numpy())})
+    c = pd.DataFrame(rows)
+    # Family: all methods for one regime, metric and comparison. A method that kept its configuration reproduces
+    # its results exactly (difference 0, no p-value).
+    c["t_p_holm"] = c.groupby(["ring_shift", "ring_density", "metric", "comparison"])["t_p"].transform(lambda p: holm(p.tolist()))
+    c.to_csv(TABLES / "regimetuned_comparisons.csv", index=False)
+    dens = sorted(rt.ring_density.unique())
+    main = base[base.ring_shift == 0.0].groupby(["ring_density", "method"]).ring_ap.mean()
+    ret = rt.groupby(["ring_density", "method"]).ring_ap.mean()
+    vs = c[(c.metric == "ring_ap") & (c.comparison == "vs GB-CAG (re-tuned)")].set_index(["ring_density", "method"])
+    lines = [r"\begin{table}[h]",
+             r"\caption{Per-regime tuning at $\delta=0$ (seeds 1--6): ring AP with the main configurations (tuned at "
+             r"$\delta=0.5$, $s=0.5$) and with every method re-tuned in the evaluation regime; $\Delta$: difference from "
+             r"GB-CAG when all methods are re-tuned (paired over worlds, Holm-adjusted $p$ over methods; confidence "
+             r"intervals in \texttt{results/tables/regimetuned\_comparisons.csv}). Hybrids inherit their base "
+             r"configuration.}\label{tab:regimetuned}",
+             r"\scriptsize", r"\setlength{\tabcolsep}{4pt}", r"\begin{tabular}{@{}l" + "cccc" * len(dens) + "@{}}", r"\toprule",
+             r" & " + " & ".join(rf"\multicolumn{{4}}{{c}}{{$s={d:g}$}}" for d in dens) + r" \\",
+             "".join(rf"\cmidrule(lr){{{2 + 4 * i}-{5 + 4 * i}}}" for i in range(len(dens))),
+             r"Method & " + " & ".join([r"Main & Re-tuned & $\Delta$ & $p$"] * len(dens)) + r" \\",
+             r"\midrule"]
+    for m in [m for m in SYN_ORDER if m != "Overlap-score"]:
+        row = [LABEL.get(m, m)]
+        for d in dens:
+            row += [f"{main.get((d, m), np.nan):.3f}", f"{ret.get((d, m), np.nan):.3f}"]
+            if (d, m) in vs.index:
+                r = vs.loc[(d, m)]
+                row += [_sgn(r.mean_diff), "$<$0.001" if r.t_p_holm < 0.001 else f"{r.t_p_holm:.3f}"]
+            else:
+                row += ["--", "--"]
+        lines.append(" & ".join(row) + r" \\")
+    lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
+    (TABLES / "regimetuned.tex").write_text("\n".join(lines))
+    pick = lambda comp: {f"{d:g} | {m}": v for (d, m), v in c[(c.metric == "ring_ap") & (c.comparison == comp)]
+                         .set_index(["ring_density", "method"])[["mean_diff", "ci_low", "ci_high", "t_p_holm"]].round(4)
+                         .to_dict(orient="index").items()}
+    summary["regimetuned"] = {"worlds": int(rt.groupby(["ring_density", "seed"]).ngroups),
+                              "retuned_minus_main": pick("re-tuned - main"), "vs_gbcag": pick("vs GB-CAG (re-tuned)")}
+
+
 def summarise_latency(summary: dict) -> None:
     path = RESULTS_DIR / "latency" / "latency.json"
     if not path.exists():
@@ -968,6 +1193,9 @@ def main():
     summarise_kaggle_repeated(summary)
     summarise_dose_response(summary)
     summarise_confirmation(summary)
+    summarise_lowvolume_shift(summary)
+    summarise_training_seeds(summary)
+    summarise_regime_tuning(summary)
     summarise_latency(summary)
     write_json(RESULTS_DIR / "summary.json", {"provenance": provenance({"analysis": "analyze.py"}), **summary})
     print(json.dumps(summary, indent=1, default=str))

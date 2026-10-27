@@ -57,13 +57,12 @@ into an article and an Online Resource. The assessment below reflects that round
 
 ### Requires author confirmation
 
-U-1 to U-4 and U-7 in `unresolved_issues.md`:
+U-1 to U-4 in `unresolved_issues.md` (U-7, the earlier version, was resolved on 2026-10-27):
 
 * public code version (blocker);
 * approval of all authors and of the CRediT roles;
 * funding, competing-interest and ethics statements;
-* AI-use wording (now covering the second round);
-* disclosure of any earlier version of the manuscript.
+* AI-use wording (now covering the second round).
 
 ### Requires additional experiments (optional for submission)
 
@@ -76,8 +75,8 @@ In `unresolved_issues.md`: training-seed replication (E-3), per-regime tuning (E
 Plausibly, but not centrally. HISS covers data mining and knowledge discovery on health information resources
 for decision making, and applications for health information systems. Fraud screening of payer claims data fits
 that description. Insurance and fraud are not named in the scope, however, and no HISS article on claims fraud
-was found. The manuscript makes the health-information-systems relevance explicit. A pre-submission enquiry is
-advisable.
+was found. The manuscript makes the health-information-systems relevance explicit. The authors decided (2026-10-27) to
+submit directly, without a pre-submission enquiry or a cover letter.
 
 **2. What is the precise, defensible contribution?**
 A map, from a controlled and leakage-tested benchmark, of when relational structure helps detect collusive
@@ -152,8 +151,8 @@ the manuscript says so.
 **9. What remains unresolved?**
 
 * Public code version (U-1).
-* Author confirmations (U-2 to U-4, U-7).
-* Scope enquiry (U-8).
+* Author confirmations (U-3, U-4; U-2 and U-7 resolved).
+* Scope fit (U-8): the authors submit directly, without an enquiry.
 * Optional: two-column format, ORCID iDs, figure lettering.
 * Optional experiments: E-2 (δ > 0 at reduced volume), E-3 to E-7.
 
@@ -164,7 +163,7 @@ wait until:
 * the code version the manuscript describes is public and tagged (U-1; otherwise the Code availability statement
   is untrue);
 * all five authors have approved the substantially changed results, the restructuring and the declarations
-  (U-2 to U-4, U-7).
+  (U-2 to U-4; U-2 and U-7 are resolved).
 
-A pre-submission enquiry about scope is advisable. Improved writing alone is not a reason to call the manuscript
-ready; the remaining conditions are listed above.
+The authors will submit directly, without a pre-submission enquiry or a cover letter. Improved writing alone is not
+a reason to call the manuscript ready; the remaining conditions are listed above.

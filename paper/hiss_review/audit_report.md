@@ -65,7 +65,7 @@ were read but not assumed correct.
 | A18 | Minor | Figure files not named Fig\<N\> (HISS: mandatory). | — | `paper/make_hiss_bundle.py` renames them in the upload bundle | Done |
 | A20 | Minor | "Supplementary information" said the repository contains "the test predictions underlying every table and figure"; `results/**/predictions/` is git-ignored, so the public repository does not contain them. | `.gitignore` | **Corrected** (statement now accurate); archiving them proposed as U-11 | Done |
 | A21 | Minor | Budgeted recall (top 5% of claims) is at its ceiling of 0.476 for every method with aggregate or graph inputs (0.43–0.48), because fraud prevalence (10.5%) exceeds the budget. It cannot separate the methods, which the text did not say. | `synthetic_recall_at_5pct.csv` | **Stated** in the Results introduction; AP remains the comparison metric | Done |
-| A19 | Integrity | Section 9.3 re-analyses the authors' own earlier 2,100-claim dataset. If an earlier version of the manuscript (headline "HGT +14.2 pp ring recall") was submitted, posted or presented, the cover letter may need to disclose it. | `paper/revision_2026-10-23.md` | Wording now says "an earlier, simpler generator of ours"; **author confirmation** | Open |
+| A19 | Integrity | Section 9.3 re-analyses the authors' own earlier 2,100-claim dataset. If an earlier version of the manuscript (headline "HGT +14.2 pp ring recall") was submitted, posted or presented, it may need to be disclosed in the submission form (no cover letter will be sent). | `paper/revision_2026-10-23.md` | Wording now says "an earlier, simpler generator of ours"; the corresponding author confirmed on 2026-10-27 that the earlier version was not submitted anywhere and that the manuscript is not under consideration elsewhere | Done |
 
 ## 3. Classification
 
@@ -101,3 +101,13 @@ regime tables in the article, a deleted table, a pooled-over-densities range quo
 rounding errors and a mis-stated p-value bound. **An older error found in this round:** the legacy comparison
 table (now in the Online Resource) counted the 54 worlds as "independent datasets", which contradicts A1; it now
 reports 54 worlds from 6 independent seeds. All are listed in `change_log.md`.
+
+## 5. Third-round update (2026-10-27)
+
+| Item | Change |
+|---|---|
+| A9 (training once per world) | Training seeds 1 and 2 added for five methods (E-3). Pure-GNN and isolated-fraud deficits unchanged; the hybrid gain shrinks (+0.013 → +0.009 pooled; sparse rings +0.043 → +0.030, no longer significant with six seeds). The text now calls the gain "of the order of the variation between training runs" |
+| A22 (new, found in this round) | **Correctness.** The Methods said that variation between worlds includes initialisation variance. With a fixed training seed every world, and the tuning worlds, start from identical GNN weights (`check_initial_weights.py`). Corrected; E-3 quantifies the effect. **Done** |
+| Single tuning regime | Re-tuning at δ = 0, s = 0.1 and 0.9 (E-4) changed no result significantly. **Done** |
+| Low volume only at δ = 0 | δ = 1 and 2 at volume 4 (E-2). New condition in which pure GNNs beat GB-CAG (sparse rings, shifted claims), shared with logistic regression; reported in the abstract-level findings, Section 6.6, Table 8 and the recommendations. **Done** |
+| A5 (public data, three GNNs only in the repeated rotations) | All methods over 25 rotations (E-7); RGCN significantly below GB-P. **Done** |

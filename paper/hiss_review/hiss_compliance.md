@@ -71,7 +71,7 @@ Both pages were read in full. The "editorial policies" URL returned 404, and the
 | Author contributions (CRediT recommended) | R | Present, provisional. **All authors must confirm** |
 | Use of LLMs documented in Methods | M | Section "Use of AI tools". **Authors confirm wording**, including this revision |
 | Authorship criteria (ICMJE); no author changes after acceptance | M | Author list unchanged; **all authors must approve** |
-| Single-journal submission; no salami slicing; raw data on request | M | **Author confirmation.** See unresolved issue U-7: earlier manuscript version |
+| Single-journal submission; no salami slicing; raw data on request | M | **Confirmed 2026-10-27** by the corresponding author: not under consideration elsewhere; the earlier version was not submitted anywhere (U-7) |
 
 ## 6. Research data and reproducibility
 

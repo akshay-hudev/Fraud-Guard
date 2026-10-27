@@ -80,3 +80,7 @@ results/**/cache/
 # HISS upload bundle (generated from the manuscript, class file and results/figures)
 paper/hiss_submission/
 paper/hiss_submission.zip
+
+# Cover letter for the journal submission (not part of the public repository)
+paper/cover_letter_hiss.md
+paper/presubmission_enquiry_hiss.md

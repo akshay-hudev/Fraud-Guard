@@ -35,11 +35,13 @@ STYLE = {"GB-CA": (BLUE, "o", "-"), "GB-CAG": (BLUE, "s", "--"), "HGT": (ORANGE,
          "MLP-C": (GRAY, "P", "-")}
 
 plt.rcParams.update({
-    "font.size": 8, "axes.titlesize": 8.5, "axes.labelsize": 8, "xtick.labelsize": 7, "ytick.labelsize": 7,
+    # HISS recommends Helvetica/Arial lettering of about 8-12 pt; figures are 7 in wide, the journal's full width.
+    "font.size": 9, "axes.titlesize": 9, "axes.labelsize": 9, "xtick.labelsize": 8, "ytick.labelsize": 8,
+    "legend.fontsize": 8,
     "axes.edgecolor": INK2, "axes.labelcolor": INK, "xtick.color": INK2, "ytick.color": INK2,
     "axes.spines.top": False, "axes.spines.right": False, "axes.grid": True, "grid.color": GRID,
     "grid.linewidth": 0.6, "axes.axisbelow": True, "lines.linewidth": 1.6, "savefig.dpi": 300,
-    "pdf.fonttype": 42, "font.family": "DejaVu Sans",
+    "pdf.fonttype": 42, "font.family": ["Arial", "Helvetica", "DejaVu Sans"],
 })
 
 
@@ -95,7 +97,7 @@ def delta_heatmaps(df: pd.DataFrame, comp: pd.DataFrame) -> None:
             for j in range(M.shape[1]):
                 if np.isfinite(M[i, j]):
                     star = "*" if P[i, j] < 0.05 else ""
-                    ax.text(j, i, f"{M[i, j]:+.2f}{star}", ha="center", va="center", fontsize=6.5,
+                    ax.text(j, i, f"{M[i, j]:+.2f}{star}", ha="center", va="center", fontsize=8,
                             color="white" if abs(M[i, j]) > 0.6 * lim else INK)
         ax.set_xticks(range(len(dens)), [f"{d:g}" for d in dens])
         ax.set_yticks(range(len(shifts)), [f"{s:g}" for s in shifts])
@@ -151,7 +153,7 @@ def kaggle_dots(kag: pd.DataFrame) -> None:
     for i, (m, r) in enumerate(stats.iterrows()):
         color = AQUA if "+" in m else (BLUE if m.split("-")[0] in ("LR", "RF", "GB") else (GRAY if m.startswith("MLP") else ORANGE))
         ax.errorbar(r["mean"], i, xerr=r["half"], color=color, marker="o", ms=4, capsize=2, elinewidth=0.8, ls="none")
-        ax.text(r["mean"] + r["half"] + 0.005, i, f"{r['mean']:.3f}", va="center", fontsize=6.5, color=INK2)
+        ax.text(r["mean"] + r["half"] + 0.005, i, f"{r['mean']:.3f}", va="center", fontsize=8, color=INK2)
     ax.set_yticks(range(len(stats)), stats.index)
     ax.set_xlabel("provider-level AP (mean, corrected 95% CI)")
     ax.grid(axis="y", visible=False)
@@ -185,7 +187,7 @@ def dose_response(df: pd.DataFrame) -> None:
     np.atleast_1d(axes)[0].set_ylabel("ring AP (unseen rings)")
     handles, labels = np.atleast_1d(axes)[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center", ncol=len(labels), frameon=False, bbox_to_anchor=(0.5, -0.08),
-               fontsize=6.8)
+               fontsize=8)
     fig.tight_layout(rect=(0, 0.08, 1, 1))
     fig.savefig(FIG / "fig_dose_response.pdf", bbox_inches="tight")
     plt.close(fig)
@@ -300,7 +302,7 @@ def _draw_panel(ax, pos, edges: pd.DataFrame, members: set, highlight=None) -> N
                    facecolors=INK if member else "white", edgecolors=INK if member else GRAY, linewidths=0.9)
     if highlight is not None:
         ax.annotate("isolated\nfraud claim", xy=highlight, xytext=(highlight[0], highlight[1] + 0.55), ha="center",
-                    fontsize=6.5, color=INK2, arrowprops={"arrowstyle": "-", "color": INK2, "lw": 0.6})
+                    fontsize=8, color=INK2, arrowprops={"arrowstyle": "-", "color": INK2, "lw": 0.6})
     ax.set_aspect("equal")
     ax.axis("off")
 
@@ -349,8 +351,8 @@ def ring_graph(seed: int = 1) -> None:
                 note = f"this ring's claims flagged: {flagged[in_ring].sum()}/{in_ring.sum()}\n" \
                        f"legitimate claims flagged (drawn): {edges.legit_flag.sum()}/{edges.legit.sum()}"
             if row == 0:
-                ax.set_title(titles[col], fontsize=7.5, color=INK)
-            ax.text(0.5, -0.02, note, transform=ax.transAxes, ha="center", va="top", fontsize=6.5, color=INK2)
+                ax.set_title(titles[col], fontsize=8, color=INK)
+            ax.text(0.5, -0.02, note, transform=ax.transAxes, ha="center", va="top", fontsize=8, color=INK2)
         axes[0, 0].text(-0.08, 0.5, "GB-CAG", transform=axes[0, 0].transAxes, rotation=90, va="center", ha="right",
                         fontsize=8, color=INK)
         axes[1, 0].text(-0.08, 0.5, "HGT", transform=axes[1, 0].transAxes, rotation=90, va="center", ha="right",
@@ -363,7 +365,7 @@ def ring_graph(seed: int = 1) -> None:
                Line2D([], [], marker="o", ls="none", mfc=INK, mec=INK, label="ring patient"),
                Line2D([], [], marker="s", ls="none", mfc="white", mec=GRAY, label="other doctor"),
                Line2D([], [], marker="o", ls="none", mfc="white", mec=GRAY, label="other patient")]
-    fig.legend(handles=handles, loc="lower center", ncol=4, frameon=False, fontsize=6.8, bbox_to_anchor=(0.5, -0.04))
+    fig.legend(handles=handles, loc="upper center", ncol=4, frameon=False, fontsize=8, bbox_to_anchor=(0.5, 0.0))
     fig.subplots_adjust(left=0.04, right=0.99, top=0.95, bottom=0.08, wspace=0.05)
     fig.savefig(FIG / "fig_ring_graph.pdf", bbox_inches="tight")
     plt.close(fig)
@@ -402,7 +404,7 @@ def cascade_figure(gnn: str = "HGT") -> None:
     ax.set_ylabel("precision")
     ax.set_ylim(0, 1.02)
     ax.set_title("(a) precision-recall, $\\delta$ = 0, $s$ = 0.9 (6 worlds)", color=INK)
-    ax.legend(frameon=False, loc="lower left", fontsize=6.8)
+    ax.legend(frameon=False, loc="lower left", fontsize=8)
     # (b-d) paired difference from GB-CAG against the escalation fraction, all 54 worlds
     keys = ["ring_shift", "ring_density", "seed"]
     for ax, metric, title in zip([axes[0, 1], axes[1, 0], axes[1, 1]], ["ap", "ring_ap", "isolated_ap"],
@@ -416,8 +418,8 @@ def cascade_figure(gnn: str = "HGT") -> None:
         ax.axhspan(lo, hi, color=ORANGE, alpha=0.15, lw=0)
         ax.axhline(alone.mean(), color=ORANGE, lw=1.2)
         box = {"facecolor": "white", "edgecolor": "none", "pad": 0.6}
-        ax.text(len(ESCALATION) - 0.55, 0.0, "GB-CAG", color=INK2, fontsize=6.5, va="center", ha="left", bbox=box)
-        ax.text(len(ESCALATION) - 0.55, alone.mean(), f"{gnn} alone", color=INK2, fontsize=6.5, va="center",
+        ax.text(len(ESCALATION) - 0.55, 0.0, "GB-CAG", color=INK2, fontsize=8, va="center", ha="left", bbox=box)
+        ax.text(len(ESCALATION) - 0.55, alone.mean(), f"{gnn} alone", color=INK2, fontsize=8, va="center",
                 ha="left", bbox=box)
         for mode in ["rerank", "fuse"]:
             c = curves[(curves.method == f"GB-CAG>{gnn}") & (curves["mode"] == mode)].set_index(keys)
@@ -432,7 +434,7 @@ def cascade_figure(gnn: str = "HGT") -> None:
         ax.set_xlabel(f"share of claims escalated to {gnn}")
         ax.set_ylabel("$\\Delta$ AP vs. GB-CAG")
         ax.set_title(title + ": paired $\\Delta$ AP (95% CI over 6 seeds)", color=INK)
-    axes[0, 1].legend(frameon=False, loc="lower left", fontsize=6.8)
+    axes[0, 1].legend(frameon=False, loc="lower left", fontsize=8)
     fig.tight_layout()
     fig.savefig(FIG / "fig_cascade.pdf", bbox_inches="tight")
     plt.close(fig)

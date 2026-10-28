@@ -178,8 +178,8 @@ structure carries most of the evidence, until rings that file about one claim
 per member are found by no method. Structure adds most when the ring's
 doctor--patient block is moderately or highly dense. Where it does, gradient boosting with a few
 engineered shared-patient features was as good as or better than every pure
-GNN we tested, including two designed for fraud detection, for every ring
-shape we tried, and far better when ring volume was low; GNNs that also receive
+GNN we tested, including two designed for fraud detection and across five ring
+shapes and sizes, and far better when ring volume was low; GNNs that also receive
 those features gained a small amount in average precision (AP; $+0.01$
 averaged over regimes, of the order of the variation between training runs),
 most for sparse rings, where a pre-declared test on fresh seeds confirmed it
@@ -528,9 +528,9 @@ A non-significant difference is not evidence that two methods are
 equivalent; the CIs show which differences remain compatible with the data.
 
 \subsection{Use of AI tools}\label{sec:aitools}
-An AI coding assistant (Claude, Anthropic) was used to help write and review
-the analysis code, run and document the experiments, and draft and edit parts
-of the text. All reported numbers are produced by the released code
+An AI coding assistant (Claude, Anthropic) was used to help design the
+experiments, write and review the analysis code, run and document the
+experiments, and draft and edit parts of the text. All reported numbers are produced by the released code
 (Section~\ref{sec:repro}). The authors reviewed all code, analyses and text
 and take full responsibility for the content.
 
@@ -577,7 +577,7 @@ working for a single provider carry no cross-provider information and are
 summarised in P rather than kept as nodes, leaving 7{,}685 shared physicians
 (16{,}287 edges). Provider nodes carry P (or P+G for the hybrids),
 beneficiary nodes 22 demographic and clinical attributes, and physician nodes
-their claim and provider counts. HAN uses the provider-only meta-paths
+their claim and provider counts. HAN, BWGNN and CARE-GNN use the provider-only meta-paths
 provider--beneficiary--provider and provider--physician--provider.
 
 \subsection{Protocol}
@@ -613,8 +613,8 @@ re-selected every method's configuration inside each rotation of the first
 repetition, with the same budget and using only that rotation's validation
 fold (nested selection; the hybrids inherit their base GNN's choice). Both
 analyses were pre-specified in the second round of experiments, which
-covered three of the GNNs in the repeated rotations; the third round added
-the others and the hybrids (Section~\ref{sec:stats}).
+covered three of the GNNs in the repeated rotations; the third and fourth
+rounds added the other GNNs and the hybrids (Section~\ref{sec:stats}).
 
 \section{Results on the Controlled Benchmark}\label{sec:results}
 
@@ -990,7 +990,7 @@ claims. At the ring level all methods reached the ceiling: every test ring
 had at least one claim among the top 5\% of claims (Online Resource~1,
 Section~\SSecRouting, Table~\STabRouting{} and Fig.~\SFigRouting).
 
-\subsection{Cost}
+\subsection{Cost}\label{sec:cost}
 Median training time per world was 3~s for GB-CAG and 39--144~s for the
 general-purpose GNNs, 13--50 times longer (laptop CPU with several jobs in
 parallel, so the times are indicative; the fraud-specialised GNNs ran later
@@ -1387,11 +1387,13 @@ methods perform on current Medicare claims.
 \begin{itemize}
 \item Start with gradient boosting on claim features, per-entity aggregates
   and a small set of shared-patient graph features. On our benchmark no pure
-  GNN was better on average, its one significant per-regime advantage
+  GNN, including two designed for fraud detection, was better on average or
+  for any ring shape we tried, its one significant per-regime advantage
   (0.005 AP) came where every method exceeded 0.98, and gradient boosting was
-  9--50 times cheaper to train than the GNNs and hybrids. Adding message
-  passing on top of the engineered features gained about 0.01 AP, most for
-  sparse rings; where rings may be sparse, a hybrid is worth testing,
+  9--50 times cheaper to train than the general-purpose GNNs and hybrids.
+  Adding message passing on top of the engineered features gained about
+  0.01 AP, most for sparse rings and sparsely linked ring shapes; where rings
+  may be sparse, a hybrid is worth testing,
   although every method detected sparse rings poorly when their members were
   not unusually active. Keep a linear model among the baselines as well:
   where such rings' claims were also mildly anomalous, logistic regression
@@ -1414,14 +1416,14 @@ methods perform on current Medicare claims.
   re-rank the claims that gradient boosting flags gained nothing here;
   averaging the two models' rankings gained at most 0.006 AP, and in an audit
   setting, where a whole period is scored at once, routing saves little
-  computation (Section~\ref{sec:results}).
+  computation (Section~\ref{sec:routingres}).
 \end{itemize}
 
 For a payer's health information system these results favour a modest
 design. The aggregates and shared-patient statistics used here are counts
 and overlaps over one audit period of claims, which a claims database can
 compute in batch, and the resulting model scored a whole period in a fraction
-of a second on a laptop CPU (Section~\ref{sec:results}). A GNN adds a
+of a second on a laptop CPU (Section~\ref{sec:cost}). A GNN adds a
 graph-learning stack and 13--50 times the training cost of gradient boosting
 in our runs; a pure GNN brought no gain on average in our benchmark or on
 the public data, and a hybrid about 0.01 AP, most for sparse rings. Because investigators examine
@@ -1487,20 +1489,24 @@ reaches any feature matrix and features are invariant to permuting the labels;
 are perturbed; (iii) emergent rings in different splits share no doctor or
 patient; (iv) at $\delta=0$ ring claims are distributed like legitimate
 claims; (v) features, graphs and labels stay aligned by claim identifier; and
-(vi) for every GNN, perturbing doctor features changes claim logits, so
-relational information actually reaches the classified nodes; (vii) a routed
+(vi) for every GNN, perturbing doctor features (or, for the fraud-specialised
+GNNs, a claim's relation neighbours) changes claim logits, so relational
+information actually reaches the classified nodes; (vii) a routed
 score depends only on the claim's own two scores and validation statistics;
 (viii) rewiring the test period leaves the features of other periods
 unchanged; (ix) scoring a claim on its $L$-hop computation subgraph
 reproduces its full-graph score; and (x) the regimes of a seed share their
 legitimate claims and ring members, the design that makes the seed the unit
-of pooled tests. A further check confirms that every table in this article
+of pooled tests; and (xi) the default ring shape reproduces the recorded
+worlds exactly, while the other shapes link ring members as specified. A further check confirms that every table in this article
 equals the file generated from the run records. The original runs were made from a working
 tree that had not yet been committed, so their records do not pin the code
 version; retraining GB-CAG, SAGE and HGT with the released code on all 54
 worlds reproduced their stored test predictions (Section~\ref{sec:routing}),
 which ties the reported numbers to the released code. Records now also store a
-hash of the research sources at process start. A checklist
+hash of the research sources at process start, and every run of the later
+rounds was made from a committed, unmodified version of the code under an
+analysis plan committed before its runs. A checklist
 mapping this study to the REFORMS recommendations~\cite{kapoor2024reforms}
 and a datasheet for the generator~\cite{gebru2021datasheets} are included in
 the repository.
@@ -1547,7 +1553,7 @@ Online Resource~1 (PDF) contains the selected hyperparameters, the
 two-stage routing evaluation, the full ring-volume dose-response, the
 confirmatory test of the hybrid result, three robustness checks (feature
 shift at reduced ring volume, training-seed replication and per-regime
-tuning), the cost measurements, the
+tuning), results for other ring shapes and sizes, the cost measurements, the
 single-factor ablations of HGT, the input-reliance analysis, figures of the
 mechanism ablations and of new versus recurring rings, repeated
 cross-validation and per-rotation tuning on the public data, and the
@@ -1573,7 +1579,7 @@ code regenerates them.
   contains no individual person's data in any form; it uses synthetic data
   and a public dataset with pseudonymous identifiers only.
 \item \textbf{Data availability.} The synthetic benchmark, at every ring
-  volume studied, is generated by the released code from fixed seeds. The
+  volume, shape and size studied, is generated by the released code from fixed seeds. The
   public provider-labelled data are available from Kaggle~\cite{kaggle2019}
   under CC0; file checksums are listed in the repository.
 \item \textbf{Code availability.} Code, configurations, tests and result
@@ -1607,8 +1613,8 @@ Legitimate claims per patient & Poisson(gamma rate; mean 3, shape 1.5) over 24 m
 Share of legitimate claims with a regular doctor & 0.85 (1--3 regular doctors per patient, same region) \\
 Claim amount & log-normal: specialty mean + $0.15\,(\text{procedures}-1)$ + $0.8\,\text{inpatient}$, s.d.\ 0.6 \\
 Isolated fraud & 3\% of legitimate volume; feature shift 2.0 \\
-Ring size & 4 doctors, 12 recruited patients (utilisation-weighted) \\
-Ring volume & 16 claims per month during activity; monthly burst days (ring-volume experiments: 8, 4 and 2) \\
+Ring size and shape & 4 doctors, 12 recruited patients (utilisation-weighted), linked as a block; shape and size experiments: hub (4 by 12), distributed (8 by 24, two ring doctors per patient), small (2 by 6) and large (8 by 24) blocks \\
+Ring volume & 16 claims per month during activity; monthly burst days (ring-volume experiments: 8, 4 and 2; shape experiments: the same or half the per-member volume) \\
 Rings per period & 4 (emergent: new members each period; persistent: same 4 rings) \\
 Feature shift $\delta$ & 0, 1, 2 (development worlds: 0.5) \\
 Structural density $s$ & 0.1, 0.5, 0.9 (development worlds: 0.5) \\

@@ -77,6 +77,12 @@ $PY -m research.experiments.sync_manuscript && $PY verify.py
 #     cross-validation and nested GNN tuning on the real data. The script lists every command (136 jobs):
 PARALLEL=4 bash paper/hiss_review/run_round2.sh
 #     kaggle_exp.py overwrites an existing rotation file, so rerun its commands only with the same method list.
+# 13. Third round: delta = 1, 2 at volume 4; training seeds 1, 2; per-regime tuning; repeated rotations for the
+#     remaining GNNs (116 jobs)
+PARALLEL=4 bash paper/hiss_review/run_round3.sh
+# 14. Fourth round: BWGNN and CARE-GNN (tuning, main grid, low volume, volumes 8 and 2, public data) and four
+#     further ring shapes and sizes with every method (--ring-shape, --ring-doctors, --ring-patients; 107 jobs)
+PARALLEL=4 bash paper/hiss_review/run_round4.sh
 ```
 
 **Second experimental round.** `paper/hiss_review/analysis_plan_round2.md` pre-declares, and
@@ -88,7 +94,9 @@ PARALLEL=4 bash paper/hiss_review/run_round2.sh
 * repeated cross-validation (`kaggle_exp.py --stage eval --repeat 1..4`) on the public data;
 * nested GNN tuning (`--stage nested --nested-gnns`) on the public data.
 
-The round runs about 9 hours with four workers (`PARALLEL=4`).
+The round runs about 9 hours with four workers (`PARALLEL=4`). The third and fourth rounds
+(`analysis_plan_round3.md`, `analysis_plan_round4.md`) are run the same way by `run_round3.sh` and `run_round4.sh`
+(about 9 and 7 hours with four workers).
 
 **Statistical units.** The nine regimes of one generator seed share their legitimate claims, isolated fraud and
 ring members (the generator draws them before applying δ and s), so comparisons pooled over regimes test the twelve
@@ -105,10 +113,10 @@ grid, 1 h ablations, 2 h Kaggle, 3 h routing and HGT ablations (run in parallel)
 
 | Path | Content |
 |---|---|
-| `synth/generator.py` | regime-controllable generator (feature shift δ, structural density s, emergent/persistent rings) |
+| `synth/generator.py` | regime-controllable generator (feature shift δ, structural density s, ring volume, ring shape and size, emergent/persistent rings) |
 | `synth/features.py` | leakage-safe claim (C), aggregate (A) and graph (G) features per audit period |
 | `synth/graph.py` | per-period heterogeneous graphs with reverse relations and degree encodings; HAN meta-path graphs |
-| `models/gnn.py` | SAGE, RGCN, HAN, Simple-HGN, HGT and MLP with a shared input projection and head |
+| `models/gnn.py` | SAGE, RGCN, HAN, Simple-HGN, HGT, BWGNN, CARE-GNN and MLP with a shared input projection and head |
 | `models/train.py` | full-batch training with early stopping on validation AP; tabular model factory |
 | `realdata/kaggle.py` | provider-level features, label-neighbourhood features (training labels only), provider graph |
 | `metrics.py` | AP, ROC-AUC, validation-selected thresholds, recall at budget, paired tests, Holm |

@@ -1,0 +1,32 @@
+\begin{table}[h]
+\caption{Ring AP on unseen test rings for other ring shapes and sizes ($\delta=0$, six worlds per column, seeds 1--6, hyperparameters of the main experiment). Hub: one hub doctor and three spoke doctors, twelve patients, each linked to the hub and one spoke; distributed: eight doctors and 24 patients, each patient linked to two ring doctors; small and large block: 2 doctors and 6 patients or 8 and 24, $s=0.5$. Full: per-member claim volume of the default ring; half: half of it. Chance level 0.021--0.148. Bold: best per column.}\label{tab:shapes}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{Hub} & \multicolumn{2}{c}{Distributed} & \multicolumn{2}{c}{Small block} & \multicolumn{2}{c}{Large block} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+Method / volume & full & half & full & half & full & half & full & half \\
+\midrule
+GB-C & 0.089 & 0.044 & 0.150 & 0.076 & 0.050 & 0.028 & 0.146 & 0.078 \\
+MLP-C & 0.089 & 0.045 & 0.158 & 0.086 & 0.048 & 0.028 & 0.157 & 0.083 \\
+LR-CA & 0.881 & 0.503 & 0.927 & 0.604 & 0.832 & 0.353 & 0.893 & 0.583 \\
+RF-CA & 0.845 & 0.288 & 0.936 & 0.489 & 0.694 & 0.148 & 0.918 & 0.599 \\
+GB-CA & 0.912 & 0.348 & 0.957 & 0.566 & 0.849 & 0.221 & 0.931 & 0.566 \\
+GB-CAG & 0.978 & \textbf{0.838} & 0.960 & 0.697 & 0.869 & 0.598 & \textbf{0.993} & \textbf{0.941} \\
+\midrule
+SAGE & 0.929 & 0.574 & 0.962 & 0.704 & \textbf{0.930} & 0.376 & 0.975 & 0.847 \\
+RGCN & 0.923 & 0.565 & 0.956 & 0.700 & 0.900 & 0.263 & 0.973 & 0.816 \\
+HAN & 0.860 & 0.402 & 0.946 & 0.664 & 0.750 & 0.178 & 0.964 & 0.776 \\
+Simple-HGN & 0.926 & 0.584 & 0.963 & 0.717 & 0.852 & 0.350 & 0.980 & 0.864 \\
+HGT & 0.905 & 0.420 & 0.955 & 0.661 & 0.753 & 0.149 & 0.967 & 0.843 \\
+\midrule
+BWGNN & 0.887 & 0.456 & 0.948 & 0.679 & 0.706 & 0.213 & 0.962 & 0.766 \\
+CARE-GNN & 0.865 & 0.251 & 0.946 & 0.611 & 0.681 & 0.152 & 0.932 & 0.651 \\
+\midrule
+SAGE+AG & 0.980 & 0.816 & \textbf{0.974} & \textbf{0.790} & 0.925 & \textbf{0.662} & 0.993 & 0.939 \\
+HGT+AG & \textbf{0.982} & 0.799 & 0.966 & 0.735 & 0.892 & 0.579 & 0.990 & 0.926 \\
+Overlap score & 0.853 & 0.536 & 0.534 & 0.301 & 0.475 & 0.258 & 0.988 & 0.862 \\
+\botrule
+\end{tabular}
+\end{table}

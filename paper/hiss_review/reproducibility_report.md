@@ -157,3 +157,32 @@ Tectonic (article 35 pages, Online Resource 14 pages, no overfull boxes), `pytes
 (seed 901) and a test world (seed 3) after seeding with 0: all 52,161 and 65,325 initial parameters are identical.
 Every reported GNN run therefore starts from the weights used when its configuration was selected; E-3 measures
 the consequence.
+
+## 7. Fourth round (2026-10-27/28)
+
+**Plan.** `paper/hiss_review/analysis_plan_round4.md`, committed at `98638c4` on branch `round4-dev` before any run.
+
+**First launch (lost).** The round was first run from a git worktree of `round4-dev` in the session's temporary
+directory (`/private/tmp/...`):
+
+* The first launch on 27 October failed immediately because the worktree had no Python environment
+  (`.venv-research/bin/python: No such file`). Only that runner was stopped; the log was kept as
+  `queue_failed_launch_no_venv.log`.
+* The relaunch at 19:15:53 completed the tuning, the merges, the nested public-data runs and the main-grid and
+  low-volume runs of the two fraud-specialised GNNs (35 of 107 jobs by 22:23, none failed).
+* The computer then restarted overnight. macOS empties `/private/tmp` on restart, so the worktree and every
+  uncommitted fourth-round result were lost. None of them had been used in the manuscript. Six main-grid regimes had
+  been looked at informally; see "Observations made before the results were complete" below.
+
+**Second launch.** `PARALLEL=4 bash paper/hiss_review/run_round4.sh` from the repository's own working tree, which
+survives restarts, at commit `78072e8` of `hiss-submission-audit`. That branch contains `98638c4` merged; the
+experiment code (`research/models`, `research/synth`, `synthetic.py`, `kaggle_exp.py`, `tune.py`, `realdata`,
+`metrics.py`, `ledger.py`) is identical to `98638c4` (`git diff 98638c4 78072e8` on these paths is empty). The
+research-sources hash in the records differs from that of `98638c4` because `analyze.py`, `figures.py` and
+`sync_manuscript.py`, which no experiment imports, had changed. Started 11:19:22 IST on 28 October. No file under
+`research/` is edited while it runs.
+
+**Observations made before the results were complete.** From the first launch, the mean ring AP of BWGNN and
+CARE-GNN against GB-CAG in the six finished main-grid regimes (δ = 0 and 1) was looked at once, without tests,
+to report progress to the authors. The design was not changed afterwards; the plan already fixed every setting,
+seed and method.

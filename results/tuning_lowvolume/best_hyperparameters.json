@@ -1,12 +1,12 @@
 {
   "provenance": {
-    "created_utc": "2026-10-25T18:46:58+00:00",
+    "created_utc": "2026-10-28T06:00:04+00:00",
     "git": {
-      "commit": "8c9742656a774f904f989b6970354febc63ddb76",
-      "dirty": true,
-      "research_sources_sha256": "c601208ff2218c10"
+      "commit": "78072e866d8850111821649c3d9f234acdcb863c",
+      "dirty": false,
+      "research_sources_sha256": "cc29400c9c8b231d"
     },
-    "config_hash": "f51f99076d21ebff",
+    "config_hash": "2a916c636e332798",
     "config": {
       "budget": 10,
       "dev_seeds": [
@@ -285,6 +285,54 @@
             4
           ]
         },
+        "BWGNN": {
+          "hidden": [
+            32,
+            64
+          ],
+          "order": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ]
+        },
+        "CARE-GNN": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            1,
+            2
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ]
+        },
         "SAGE+AG": {
           "hidden": [
             32,
@@ -361,6 +409,20 @@
     }
   },
   "best": {
+    "BWGNN": {
+      "dropout": 0.3,
+      "hidden": 64,
+      "lr": 0.003,
+      "order": 3,
+      "weight_decay": 0.001
+    },
+    "CARE-GNN": {
+      "dropout": 0.3,
+      "hidden": 32,
+      "layers": 1,
+      "lr": 0.01,
+      "weight_decay": 1e-05
+    },
     "LR-CA": {
       "C": 0.01
     },
@@ -456,6 +518,8 @@
     }
   },
   "best_mean_val_ap": {
+    "BWGNN": 0.4933987234513356,
+    "CARE-GNN": 0.4550444534104804,
     "LR-CA": 0.4883371630411103,
     "RF-CA": 0.5316886399805193,
     "GB-C": 0.43598889247913014,

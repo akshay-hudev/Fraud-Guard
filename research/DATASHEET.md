@@ -17,7 +17,11 @@ Following the structure of *Datasheets for Datasets* (Gebru et al., 2021).
   `truth` table that feature code never reads (enforced by tests).
 * **Fraud typologies.** Isolated fraud: 3% of legitimate volume, upcoded claims through the patient's own regular
   doctor (feature shift 2 s.d.). Rings: 4 doctors × 12 recruited patients, 16 claims/month during activity,
-  claims between linked pairs; link probability `ring_density` (s); feature shift `ring_shift` (δ).
+  claims between linked pairs; link probability `ring_density` (s); feature shift `ring_shift` (δ). Ring size
+  (`ring_doctors`, `ring_patients`) and shape (`ring_shape`) can be changed: `block` (default; each patient linked
+  to each doctor with probability s), `hub` (one hub doctor linked to every ring patient, each patient also to one
+  spoke doctor) and `pairs` (each patient linked to two ring doctors drawn at random). The default reproduces the
+  earlier worlds exactly (tested).
 * **Splits.** Four 6-month audit periods; periods 1–2 train, 3 validation, 4 test. Emergent protocol: four new
   rings per period with disjoint members; persistent protocol: the same four rings in every period.
 * **Known properties.** Ring patients have higher utilisation than average (recruitment is utilisation-weighted
@@ -52,6 +56,7 @@ likewise (`research/synth/graph.py`). Standardisation statistics come from train
 ## Limitations
 Uniform/log-normal distributions without real coding semantics; no seasonality beyond a mild winter bump;
 static entity attributes; no label noise, delayed labels, partial ring membership or adversarial adaptation;
+three ring shapes only (block, hub, pairs), all static during a ring's active period;
 ring prevalence (~8% of test-period claims) far above realistic levels to give statistical power.
 
 ## Distribution and maintenance

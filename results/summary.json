@@ -1,10 +1,10 @@
 {
   "provenance": {
-    "created_utc": "2026-10-27T16:37:40+00:00",
+    "created_utc": "2026-10-28T15:36:38+00:00",
     "git": {
-      "commit": "2eb368c6bb4ca741b7fd61b2b7c00f89eeaee36f",
-      "dirty": true,
-      "research_sources_sha256": "2d07f84f61098f27"
+      "commit": "78072e866d8850111821649c3d9f234acdcb863c",
+      "dirty": false,
+      "research_sources_sha256": "cc29400c9c8b231d"
     },
     "config_hash": "40c70da62144a4f8",
     "config": {
@@ -144,6 +144,18 @@
           "ci_high": -0.2251,
           "t_p_holm": 0.0002
         },
+        "BWGNN": {
+          "mean_diff": -0.2748,
+          "ci_low": -0.3252,
+          "ci_high": -0.2243,
+          "t_p_holm": 0.0002
+        },
+        "CARE-GNN": {
+          "mean_diff": -0.2945,
+          "ci_low": -0.3283,
+          "ci_high": -0.2607,
+          "t_p_holm": 0.0
+        },
         "SAGE+AG": {
           "mean_diff": 0.001,
           "ci_low": -0.0589,
@@ -168,7 +180,7 @@
           "mean_diff": -0.2872,
           "ci_low": -0.3239,
           "ci_high": -0.2505,
-          "t_p_holm": 0.0
+          "t_p_holm": 0.0001
         },
         "RF-CA": {
           "mean_diff": -0.3069,
@@ -210,7 +222,7 @@
           "mean_diff": -0.3127,
           "ci_low": -0.3518,
           "ci_high": -0.2736,
-          "t_p_holm": 0.0
+          "t_p_holm": 0.0001
         },
         "SimpleHGN": {
           "mean_diff": -0.2553,
@@ -223,6 +235,18 @@
           "ci_low": -0.3422,
           "ci_high": -0.2471,
           "t_p_holm": 0.0001
+        },
+        "BWGNN": {
+          "mean_diff": -0.3044,
+          "ci_low": -0.3446,
+          "ci_high": -0.2641,
+          "t_p_holm": 0.0001
+        },
+        "CARE-GNN": {
+          "mean_diff": -0.323,
+          "ci_low": -0.3543,
+          "ci_high": -0.2916,
+          "t_p_holm": 0.0
         },
         "SAGE+AG": {
           "mean_diff": 0.0085,
@@ -252,6 +276,8 @@
   "kaggle": {
     "n_folds": 5,
     "mean_ap": {
+      "BWGNN": 0.673,
+      "CARE-GNN": 0.6685,
       "GB-P": 0.704,
       "GB-PG": 0.6947,
       "GB-PGL": 0.6967,
@@ -317,6 +343,16 @@
       "mean_diff": -0.0285,
       "boot_ci_low": -0.0477,
       "boot_ci_high": -0.0058
+    },
+    "BWGNN": {
+      "mean_diff": -0.0311,
+      "boot_ci_low": -0.0498,
+      "boot_ci_high": -0.0092
+    },
+    "CARE-GNN": {
+      "mean_diff": -0.0355,
+      "boot_ci_low": -0.0548,
+      "boot_ci_high": -0.014
     },
     "SAGE+G": {
       "mean_diff": -0.0513,
@@ -527,6 +563,14 @@
         "nested_ap_mean": 0.6881,
         "shared_ap_mean": 0.6849
       },
+      "BWGNN": {
+        "nested_ap_mean": 0.6699,
+        "shared_ap_mean": 0.673
+      },
+      "CARE-GNN": {
+        "nested_ap_mean": 0.6734,
+        "shared_ap_mean": 0.6685
+      },
       "HAN": {
         "nested_ap_mean": 0.6697,
         "shared_ap_mean": 0.6662
@@ -563,78 +607,92 @@
         "mean_diff": -0.0237,
         "ci_low": -0.0548,
         "ci_high": 0.0073,
-        "t_p_holm": 0.6072
+        "t_p_holm": 0.7083
       },
       "RF-P": {
         "mean_diff": -0.0261,
         "ci_low": -0.0618,
         "ci_high": 0.0096,
-        "t_p_holm": 0.6072
+        "t_p_holm": 0.7083
       },
       "GB-PG": {
         "mean_diff": -0.0124,
         "ci_low": -0.045,
         "ci_high": 0.0201,
-        "t_p_holm": 0.6072
+        "t_p_holm": 0.7083
       },
       "GB-PGL": {
         "mean_diff": -0.0191,
         "ci_low": -0.0566,
         "ci_high": 0.0184,
-        "t_p_holm": 0.6072
+        "t_p_holm": 0.7083
       },
       "MLP-P": {
         "mean_diff": -0.0176,
         "ci_low": -0.0454,
         "ci_high": 0.0103,
-        "t_p_holm": 0.6072
+        "t_p_holm": 0.7083
       },
       "SAGE": {
         "mean_diff": -0.0418,
         "ci_low": -0.0616,
         "ci_high": -0.022,
-        "t_p_holm": 0.0507
+        "t_p_holm": 0.0592
       },
       "RGCN": {
         "mean_diff": -0.0489,
         "ci_low": -0.1026,
         "ci_high": 0.0048,
-        "t_p_holm": 0.5269
+        "t_p_holm": 0.5854
       },
       "HAN": {
         "mean_diff": -0.036,
         "ci_low": -0.0886,
         "ci_high": 0.0166,
-        "t_p_holm": 0.6072
+        "t_p_holm": 0.7083
       },
       "SimpleHGN": {
         "mean_diff": -0.0235,
         "ci_low": -0.0483,
         "ci_high": 0.0014,
-        "t_p_holm": 0.5269
+        "t_p_holm": 0.5854
       },
       "HGT": {
         "mean_diff": -0.0376,
         "ci_low": -0.0645,
         "ci_high": -0.0108,
-        "t_p_holm": 0.1771
+        "t_p_holm": 0.2125
+      },
+      "BWGNN": {
+        "mean_diff": -0.0357,
+        "ci_low": -0.1002,
+        "ci_high": 0.0287,
+        "t_p_holm": 0.7083
+      },
+      "CARE-GNN": {
+        "mean_diff": -0.0323,
+        "ci_low": -0.06,
+        "ci_high": -0.0045,
+        "t_p_holm": 0.352
       },
       "SAGE+G": {
         "mean_diff": -0.0529,
         "ci_low": -0.0784,
         "ci_high": -0.0274,
-        "t_p_holm": 0.0507
+        "t_p_holm": 0.0592
       },
       "HGT+G": {
         "mean_diff": -0.045,
         "ci_low": -0.0961,
         "ci_high": 0.0061,
-        "t_p_holm": 0.5269
+        "t_p_holm": 0.5854
       }
     }
   },
   "kaggle_repeated": {
     "rotations_per_method": {
+      "BWGNN": 25,
+      "CARE-GNN": 25,
       "GB-P": 25,
       "GB-PG": 25,
       "GB-PGL": 25,
@@ -654,73 +712,85 @@
         "mean_diff": -0.0189,
         "ci_low": -0.0439,
         "ci_high": 0.0061,
-        "t_p_holm": 0.804
+        "t_p_holm": 0.9045
       },
       "RF-P": {
         "mean_diff": -0.0186,
         "ci_low": -0.0417,
         "ci_high": 0.0045,
-        "t_p_holm": 0.804
+        "t_p_holm": 0.9045
       },
       "GB-PG": {
         "mean_diff": -0.0068,
         "ci_low": -0.0192,
         "ci_high": 0.0056,
-        "t_p_holm": 0.804
+        "t_p_holm": 0.9045
       },
       "GB-PGL": {
         "mean_diff": -0.006,
         "ci_low": -0.0189,
         "ci_high": 0.0069,
-        "t_p_holm": 0.804
+        "t_p_holm": 0.9045
       },
       "MLP-P": {
         "mean_diff": -0.0166,
         "ci_low": -0.0424,
         "ci_high": 0.0092,
-        "t_p_holm": 0.804
+        "t_p_holm": 0.9045
       },
       "SAGE": {
         "mean_diff": -0.0279,
         "ci_low": -0.0662,
         "ci_high": 0.0103,
-        "t_p_holm": 0.804
+        "t_p_holm": 0.9045
       },
       "RGCN": {
         "mean_diff": -0.0916,
         "ci_low": -0.1399,
         "ci_high": -0.0433,
-        "t_p_holm": 0.0079
+        "t_p_holm": 0.0092
       },
       "HAN": {
         "mean_diff": -0.0343,
         "ci_low": -0.0662,
         "ci_high": -0.0024,
-        "t_p_holm": 0.3257
+        "t_p_holm": 0.3981
       },
       "SimpleHGN": {
         "mean_diff": -0.0274,
         "ci_low": -0.0631,
         "ci_high": 0.0083,
-        "t_p_holm": 0.804
+        "t_p_holm": 0.9045
       },
       "HGT": {
         "mean_diff": -0.025,
         "ci_low": -0.0553,
         "ci_high": 0.0052,
-        "t_p_holm": 0.804
+        "t_p_holm": 0.9045
+      },
+      "BWGNN": {
+        "mean_diff": -0.0284,
+        "ci_low": -0.0652,
+        "ci_high": 0.0084,
+        "t_p_holm": 0.9045
+      },
+      "CARE-GNN": {
+        "mean_diff": -0.0324,
+        "ci_low": -0.0648,
+        "ci_high": -0.0,
+        "t_p_holm": 0.4997
       },
       "SAGE+G": {
         "mean_diff": -0.0632,
         "ci_low": -0.1051,
         "ci_high": -0.0212,
-        "t_p_holm": 0.0525
+        "t_p_holm": 0.062
       },
       "HGT+G": {
         "mean_diff": -0.0386,
         "ci_low": -0.068,
         "ci_high": -0.0092,
-        "t_p_holm": 0.1218
+        "t_p_holm": 0.1461
       }
     }
   },
@@ -749,28 +819,36 @@
         "RGCN": -0.0207,
         "HAN": -0.0555,
         "SimpleHGN": -0.0234,
-        "HGT": -0.0315
+        "HGT": -0.0315,
+        "BWGNN": -0.0518,
+        "CARE-GNN": -0.0963
       },
       "8.0": {
         "SAGE": -0.103,
         "RGCN": -0.1614,
         "HAN": -0.2855,
         "SimpleHGN": -0.1282,
-        "HGT": -0.1567
+        "HGT": -0.1567,
+        "BWGNN": -0.3033,
+        "CARE-GNN": -0.4258
       },
       "4.0": {
         "SAGE": -0.244,
         "RGCN": -0.2416,
         "HAN": -0.2864,
         "SimpleHGN": -0.229,
-        "HGT": -0.2738
+        "HGT": -0.2738,
+        "BWGNN": -0.2748,
+        "CARE-GNN": -0.2945
       },
       "2.0": {
         "SAGE": -0.0035,
         "RGCN": -0.0022,
         "HAN": -0.0051,
         "SimpleHGN": -0.0067,
-        "HGT": -0.0042
+        "HGT": -0.0042,
+        "BWGNN": -0.0034,
+        "CARE-GNN": -0.0055
       }
     }
   },
@@ -1478,7 +1556,7 @@
         "mean_diff": 0.0267,
         "ci_low": 0.0095,
         "ci_high": 0.0439,
-        "t_p_holm": 0.0516
+        "t_p_holm": 0.0619
       },
       "4 | 2 | 0.1 | GB-CAG": {
         "mean_diff": -0.005,
@@ -1526,7 +1604,7 @@
         "mean_diff": 0.0064,
         "ci_low": 0.0008,
         "ci_high": 0.012,
-        "t_p_holm": 0.1973
+        "t_p_holm": 0.2631
       }
     }
   },
@@ -2213,6 +2291,403 @@
         "t_p_holm": 0.7576
       }
     }
+  },
+  "shapes": {
+    "worlds": 48,
+    "chance": {
+      "Distributed | full": 0.1484,
+      "Distributed | half": 0.0802,
+      "Hub | full": 0.0802,
+      "Hub | half": 0.0418,
+      "Large block | full": 0.1484,
+      "Large block | half": 0.0802,
+      "Small block | full": 0.0418,
+      "Small block | half": 0.0213
+    },
+    "above_gbcag": [
+      {
+        "shape": "Distributed",
+        "volume": "full",
+        "method": "SAGE+AG",
+        "mean_diff": 0.0141,
+        "ci_low": 0.0079,
+        "ci_high": 0.0203,
+        "t_p_holm": 0.0188
+      },
+      {
+        "shape": "Distributed",
+        "volume": "half",
+        "method": "SAGE+AG",
+        "mean_diff": 0.0929,
+        "ci_low": 0.0501,
+        "ci_high": 0.1357,
+        "t_p_holm": 0.0229
+      }
+    ],
+    "below_gbcag": [
+      {
+        "shape": "Distributed",
+        "volume": "half",
+        "method": "CARE-GNN",
+        "mean_diff": -0.0857,
+        "ci_low": -0.1322,
+        "ci_high": -0.0393,
+        "t_p_holm": 0.0409
+      },
+      {
+        "shape": "Hub",
+        "volume": "full",
+        "method": "SAGE",
+        "mean_diff": -0.0492,
+        "ci_low": -0.0775,
+        "ci_high": -0.0209,
+        "t_p_holm": 0.0267
+      },
+      {
+        "shape": "Hub",
+        "volume": "full",
+        "method": "RGCN",
+        "mean_diff": -0.0556,
+        "ci_low": -0.0824,
+        "ci_high": -0.0287,
+        "t_p_holm": 0.025
+      },
+      {
+        "shape": "Hub",
+        "volume": "full",
+        "method": "HAN",
+        "mean_diff": -0.1182,
+        "ci_low": -0.1655,
+        "ci_high": -0.0708,
+        "t_p_holm": 0.0123
+      },
+      {
+        "shape": "Hub",
+        "volume": "full",
+        "method": "SimpleHGN",
+        "mean_diff": -0.0521,
+        "ci_low": -0.0791,
+        "ci_high": -0.0251,
+        "t_p_holm": 0.0267
+      },
+      {
+        "shape": "Hub",
+        "volume": "full",
+        "method": "HGT",
+        "mean_diff": -0.0728,
+        "ci_low": -0.1136,
+        "ci_high": -0.0321,
+        "t_p_holm": 0.0267
+      },
+      {
+        "shape": "Hub",
+        "volume": "full",
+        "method": "BWGNN",
+        "mean_diff": -0.0916,
+        "ci_low": -0.1393,
+        "ci_high": -0.044,
+        "t_p_holm": 0.0267
+      },
+      {
+        "shape": "Hub",
+        "volume": "full",
+        "method": "CARE-GNN",
+        "mean_diff": -0.1129,
+        "ci_low": -0.1699,
+        "ci_high": -0.0558,
+        "t_p_holm": 0.0267
+      },
+      {
+        "shape": "Hub",
+        "volume": "half",
+        "method": "SAGE",
+        "mean_diff": -0.264,
+        "ci_low": -0.3965,
+        "ci_high": -0.1316,
+        "t_p_holm": 0.0111
+      },
+      {
+        "shape": "Hub",
+        "volume": "half",
+        "method": "RGCN",
+        "mean_diff": -0.2734,
+        "ci_low": -0.3595,
+        "ci_high": -0.1873,
+        "t_p_holm": 0.0022
+      },
+      {
+        "shape": "Hub",
+        "volume": "half",
+        "method": "HAN",
+        "mean_diff": -0.4359,
+        "ci_low": -0.5757,
+        "ci_high": -0.2961,
+        "t_p_holm": 0.0022
+      },
+      {
+        "shape": "Hub",
+        "volume": "half",
+        "method": "SimpleHGN",
+        "mean_diff": -0.2542,
+        "ci_low": -0.3215,
+        "ci_high": -0.1868,
+        "t_p_holm": 0.0012
+      },
+      {
+        "shape": "Hub",
+        "volume": "half",
+        "method": "HGT",
+        "mean_diff": -0.4179,
+        "ci_low": -0.5075,
+        "ci_high": -0.3283,
+        "t_p_holm": 0.0006
+      },
+      {
+        "shape": "Hub",
+        "volume": "half",
+        "method": "BWGNN",
+        "mean_diff": -0.3818,
+        "ci_low": -0.4689,
+        "ci_high": -0.2946,
+        "t_p_holm": 0.0007
+      },
+      {
+        "shape": "Hub",
+        "volume": "half",
+        "method": "CARE-GNN",
+        "mean_diff": -0.5872,
+        "ci_low": -0.6712,
+        "ci_high": -0.5033,
+        "t_p_holm": 0.0001
+      },
+      {
+        "shape": "Large block",
+        "volume": "full",
+        "method": "SAGE",
+        "mean_diff": -0.0182,
+        "ci_low": -0.0251,
+        "ci_high": -0.0113,
+        "t_p_holm": 0.0063
+      },
+      {
+        "shape": "Large block",
+        "volume": "full",
+        "method": "RGCN",
+        "mean_diff": -0.0203,
+        "ci_low": -0.0295,
+        "ci_high": -0.0111,
+        "t_p_holm": 0.0118
+      },
+      {
+        "shape": "Large block",
+        "volume": "full",
+        "method": "HAN",
+        "mean_diff": -0.0299,
+        "ci_low": -0.0381,
+        "ci_high": -0.0216,
+        "t_p_holm": 0.0019
+      },
+      {
+        "shape": "Large block",
+        "volume": "full",
+        "method": "BWGNN",
+        "mean_diff": -0.0316,
+        "ci_low": -0.0404,
+        "ci_high": -0.0227,
+        "t_p_holm": 0.0019
+      },
+      {
+        "shape": "Large block",
+        "volume": "full",
+        "method": "CARE-GNN",
+        "mean_diff": -0.0611,
+        "ci_low": -0.0722,
+        "ci_high": -0.05,
+        "t_p_holm": 0.0003
+      },
+      {
+        "shape": "Large block",
+        "volume": "half",
+        "method": "SAGE",
+        "mean_diff": -0.0944,
+        "ci_low": -0.1253,
+        "ci_high": -0.0635,
+        "t_p_holm": 0.0021
+      },
+      {
+        "shape": "Large block",
+        "volume": "half",
+        "method": "RGCN",
+        "mean_diff": -0.1255,
+        "ci_low": -0.1528,
+        "ci_high": -0.0981,
+        "t_p_holm": 0.0005
+      },
+      {
+        "shape": "Large block",
+        "volume": "half",
+        "method": "HAN",
+        "mean_diff": -0.1648,
+        "ci_low": -0.2064,
+        "ci_high": -0.1231,
+        "t_p_holm": 0.0009
+      },
+      {
+        "shape": "Large block",
+        "volume": "half",
+        "method": "SimpleHGN",
+        "mean_diff": -0.0774,
+        "ci_low": -0.1134,
+        "ci_high": -0.0414,
+        "t_p_holm": 0.008
+      },
+      {
+        "shape": "Large block",
+        "volume": "half",
+        "method": "HGT",
+        "mean_diff": -0.0985,
+        "ci_low": -0.1264,
+        "ci_high": -0.0706,
+        "t_p_holm": 0.0014
+      },
+      {
+        "shape": "Large block",
+        "volume": "half",
+        "method": "BWGNN",
+        "mean_diff": -0.1747,
+        "ci_low": -0.2027,
+        "ci_high": -0.1468,
+        "t_p_holm": 0.0002
+      },
+      {
+        "shape": "Large block",
+        "volume": "half",
+        "method": "CARE-GNN",
+        "mean_diff": -0.29,
+        "ci_low": -0.3482,
+        "ci_high": -0.2318,
+        "t_p_holm": 0.0004
+      },
+      {
+        "shape": "Small block",
+        "volume": "half",
+        "method": "RGCN",
+        "mean_diff": -0.3357,
+        "ci_low": -0.5109,
+        "ci_high": -0.1604,
+        "t_p_holm": 0.0219
+      },
+      {
+        "shape": "Small block",
+        "volume": "half",
+        "method": "HAN",
+        "mean_diff": -0.4206,
+        "ci_low": -0.6033,
+        "ci_high": -0.2378,
+        "t_p_holm": 0.0118
+      },
+      {
+        "shape": "Small block",
+        "volume": "half",
+        "method": "HGT",
+        "mean_diff": -0.4497,
+        "ci_low": -0.5543,
+        "ci_high": -0.3452,
+        "t_p_holm": 0.0009
+      },
+      {
+        "shape": "Small block",
+        "volume": "half",
+        "method": "BWGNN",
+        "mean_diff": -0.3857,
+        "ci_low": -0.5422,
+        "ci_high": -0.2291,
+        "t_p_holm": 0.0101
+      },
+      {
+        "shape": "Small block",
+        "volume": "half",
+        "method": "CARE-GNN",
+        "mean_diff": -0.446,
+        "ci_low": -0.5658,
+        "ci_high": -0.3261,
+        "t_p_holm": 0.0017
+      }
+    ],
+    "structure_gain": [
+      {
+        "shape": "Distributed",
+        "volume": "full",
+        "method": "GB-CAG",
+        "mean_diff": 0.0025,
+        "ci_low": -0.0072,
+        "ci_high": 0.0121,
+        "t_p_holm": 0.9593
+      },
+      {
+        "shape": "Distributed",
+        "volume": "half",
+        "method": "GB-CAG",
+        "mean_diff": 0.1314,
+        "ci_low": 0.0583,
+        "ci_high": 0.2044,
+        "t_p_holm": 0.0172
+      },
+      {
+        "shape": "Hub",
+        "volume": "full",
+        "method": "GB-CAG",
+        "mean_diff": 0.0666,
+        "ci_low": 0.0468,
+        "ci_high": 0.0864,
+        "t_p_holm": 0.0017
+      },
+      {
+        "shape": "Hub",
+        "volume": "half",
+        "method": "GB-CAG",
+        "mean_diff": 0.4899,
+        "ci_low": 0.4137,
+        "ci_high": 0.5661,
+        "t_p_holm": 0.0001
+      },
+      {
+        "shape": "Large block",
+        "volume": "full",
+        "method": "GB-CAG",
+        "mean_diff": 0.0622,
+        "ci_low": 0.0461,
+        "ci_high": 0.0783,
+        "t_p_holm": 0.0011
+      },
+      {
+        "shape": "Large block",
+        "volume": "half",
+        "method": "GB-CAG",
+        "mean_diff": 0.3753,
+        "ci_low": 0.3157,
+        "ci_high": 0.4348,
+        "t_p_holm": 0.0001
+      },
+      {
+        "shape": "Small block",
+        "volume": "full",
+        "method": "GB-CAG",
+        "mean_diff": 0.0199,
+        "ci_low": -0.0472,
+        "ci_high": 0.0871,
+        "t_p_holm": 0.9593
+      },
+      {
+        "shape": "Small block",
+        "volume": "half",
+        "method": "GB-CAG",
+        "mean_diff": 0.3769,
+        "ci_low": 0.2363,
+        "ci_high": 0.5174,
+        "t_p_holm": 0.0039
+      }
+    ]
   },
   "latency": {
     "worlds": 4,

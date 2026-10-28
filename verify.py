@@ -18,7 +18,7 @@ REQUIRED_TABLES = ["synthetic_ring_ap.csv", "synthetic_ring_ap_comparisons.csv",
                    "kaggle_repeated.tex", "kaggle_repeated_comparisons.csv", "kaggle_nested.tex",
                    "lowvolume_shift.tex", "lowvolume_shift_comparisons.csv", "modelseeds.tex",
                    "modelseeds_comparisons.csv", "modelseeds_variance.csv", "regimetuned.tex",
-                   "regimetuned_comparisons.csv"]
+                   "regimetuned_comparisons.csv", "shapes.tex", "shapes_comparisons.csv", "shapes_ring_ap.csv"]
 REQUIRED_FIGURES = ["fig_regime_ring_ap.pdf", "fig_delta_heatmaps.pdf", "fig_ablation.pdf", "fig_kaggle_ap.pdf",
                     "fig_protocol.pdf", "fig_cascade.pdf", "fig_ring_graph.pdf"]
 
@@ -63,12 +63,26 @@ counts = {
                                             ["method", "ring_ap", "seed", "ring_claims_per_month"]),
     "synthetic_modelseeds": check_runs("synthetic_modelseeds", ["method", "ring_ap", "seed", "model_seed"]),
     "synthetic_regimetuned": check_runs("synthetic_regimetuned", ["method", "ring_ap", "seed"]),
+    # Fourth round (paper/hiss_review/analysis_plan_round4.md).
+    "synthetic_shapes": check_runs("synthetic_shapes", ["method", "ring_ap", "seed", "ring_doctors", "ring_patients"]),
 }
 # Second round (paper/hiss_review/analysis_plan_round2.md): the main grid is complete for seeds 1-12.
 main_worlds = {(r["ring_shift"], r["ring_density"], r["seed"]) for f in (RESULTS / "synthetic" / "runs").glob("*.json")
                for r in json.loads(f.read_text())["rows"] if r["ring_shift"] in (0.0, 1.0, 2.0) and 1 <= r["seed"] <= 12}
 if len(main_worlds) != 108:
     problems.append(f"main grid: {len(main_worlds)} of 108 worlds (9 regimes x seeds 1-12)")
+# Fourth round: the fraud-specialised GNNs in every main-grid world, and 48 ring-shape worlds with every method.
+fraud_worlds = {(r["ring_shift"], r["ring_density"], r["seed"]) for f in (RESULTS / "synthetic" / "runs").glob("*__fraudgnn.json")
+                for r in json.loads(f.read_text())["rows"] if r["method"] in ("BWGNN", "CARE-GNN")}
+if len(fraud_worlds) != 108:
+    problems.append(f"fraud-specialised GNNs: {len(fraud_worlds)} of 108 main-grid worlds")
+shape_files = sorted((RESULTS / "synthetic_shapes" / "runs").glob("*.json"))
+if len(shape_files) != 48 or any(len({r["method"] for r in json.loads(f.read_text())["rows"]}) != 16 for f in shape_files):
+    problems.append(f"ring shapes: {len(shape_files)} of 48 worlds, or a world without all 16 methods")
+for sub, pattern, n in [("kaggle", "fold*_fraud.json", 5), ("kaggle_repeated", "r*_fold*_fraud.json", 20),
+                        ("kaggle_nested", "fold*_gnn_fraud.json", 5)]:
+    if len(list((RESULTS / sub / "runs").glob(pattern))) != n:
+        problems.append(f"{sub}: expected {n} fourth-round rotation files")
 for sub in ["synthetic_lowvolume", "synthetic_lowvolume_retuned", "synthetic_lowvolume_shift"]:
     for f in sorted((RESULTS / sub / "runs").glob("*.json")):
         if any(row.get("ring_claims_per_month") != 4.0 for row in json.loads(f.read_text())["rows"]):

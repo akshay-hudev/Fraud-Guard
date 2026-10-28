@@ -71,14 +71,16 @@ sg = C[(C.reference == "GB-CA") & (C.method == "SAGE") & (C.ring_shift == 0.0) &
 check("SAGE - GB-CA d0 s0.9 +0.085", 0.085, sg.mean_diff, 0.0006, "$+0.085$ at $\\delta=0$, $s=0.9$ (Holm $p<0.001$)")
 check("SAGE - GB-CA d0 s0.9 Holm < 0.001", 0.001, max(0.001, sg.t_p_holm), 0.0)
 pure5 = ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]
-cg = C[(C.reference == "GB-CAG") & C.method.isin(pure5)]
+fraud2 = ["BWGNN", "CARE-GNN"]     # fourth round
+pure7 = pure5 + fraud2
+cg = C[(C.reference == "GB-CAG") & C.method.isin(pure7)]
 up = cg[(cg.mean_diff > 0) & (cg.t_p_holm < 0.05)]
 check("one significant pure-GNN advantage (RGCN, d2, s0.1)", 1,
       int(len(up) == 1 and up.iloc[0].method == "RGCN" and up.iloc[0].ring_shift == 2.0 and up.iloc[0].ring_density == 0.1), 0,
-      "RGCN at $\\delta=2$, $s=0.1$ ($+0.005$, Holm $p=0.007$)")
+      "RGCN\nat $\\delta=2$, $s=0.1$ ($+0.005$, Holm $p=0.007$)")
 check("RGCN d2 s0.1 +0.005", 0.005, up.iloc[0].mean_diff, 0.0006)
 check("RGCN d2 s0.1 Holm 0.007", 0.007, up.iloc[0].t_p_holm, 0.0006)
-check("pure GNNs significantly worse in 8 pairs", 8, len(cg[(cg.mean_diff < 0) & (cg.t_p_holm < 0.05)]), 0, "worse in eight\nmethod--regime pairs")
+check("pure GNNs significantly worse in 8 + 14 pairs", 22, len(cg[(cg.mean_diff < 0) & (cg.t_p_holm < 0.05)]), 0, "worse in eight\nmethod--regime pairs")
 d2 = syn[(syn.ring_shift == 2.0) & syn.method.isin(["LR-CA", "RF-CA", "GB-CA", "GB-CAG", "SAGE", "RGCN", "HAN",
                                                     "SimpleHGN", "HGT", "SAGE+AG", "HGT+AG"])]
 check("delta=2: all C+A methods exceed 0.98", 0.98, min(0.98, d2.groupby(["method", "ring_density"]).ring_ap.mean().min()), 0.0)
@@ -194,15 +196,15 @@ kag = rows("kaggle")
 km = kag.groupby("method")
 check("ROC-AUC min 0.927", 0.927, km.roc_auc.mean().min(), 0.0006, "between 0.927 and 0.942")
 check("ROC-AUC max 0.942", 0.942, km.roc_auc.mean().max(), 0.0006)
-check("recall@10% min 0.59", 0.59, km.recall_at_10pct.mean().min(), 0.005, "between 0.59 and 0.64")
-check("recall@10% max 0.64", 0.64, km.recall_at_10pct.mean().max(), 0.005)
+check("recall@10% min 0.59", 0.59, km.recall_at_10pct.mean().min(), 0.005, "between 0.59 and 0.65")
+check("recall@10% max 0.65", 0.65, km.recall_at_10pct.mean().max(), 0.005)
 check("test providers per rotation 1,082", 1082, kag.n_test.mean(), 0.5, "1{,}082 test providers")
 check("fraudulent per rotation about 101", 101, kag.n_pos.mean(), 0.5)
 gnn = kag[kag.method.isin(["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT", "SAGE+G", "HGT+G"])].groupby("method").train_seconds.median() / 60
 check("GNN median train min 2", 2, gnn.min(), 0.15, "2--15 minutes")
 check("GNN median train max 15", 15, gnn.max(), 0.6)
 allg = kag[kag.method.isin(["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT", "SAGE+G", "HGT+G"])].train_seconds / 60
-check("GNN train range min 1.4", 1.4, allg.min(), 0.05, "range 1.4--24")
+check("GNN train range min 1.4", 1.4, allg.min(), 0.05, "(range\n1.4--24 minutes)")
 check("GNN train range max 24", 24, allg.max(), 0.5)
 check("GB-P median train 7 s", 7, kag[kag.method == "GB-P"].train_seconds.median(), 0.6, "against 7~s")
 
@@ -221,7 +223,7 @@ check("RGCN/SimpleHGN/HGT text", 1, 1, 0, "($-0.003$, $-0.006$ and $-0.008$; Hol
 check("RGCN/SimpleHGN/HGT Holm >= 0.18", 0.18, min(0.18, min(pv("ring_ap", "GB-CAG", m, "t_p_holm") for m in ["RGCN", "SimpleHGN", "HGT"])), 0.0)
 check("HAN ring diff -0.023", -0.023, pv("ring_ap", "GB-CAG", "HAN"), 0.0006, "($-0.023$, Holm $p=0.002$")
 check("HAN Holm p 0.002", 0.002, pv("ring_ap", "GB-CAG", "HAN", "t_p_holm"), 0.0006)
-check("max upper CI of pure GNNs <= 0.006", 0.006, max(pv("ring_ap", "GB-CAG", m, "ci_high") for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]), 0.0005, "at most $+0.006$")
+check("max upper CI of pure GNNs <= 0.006", 0.006, max(pv("ring_ap", "GB-CAG", m, "ci_high") for m in pure7), 0.0005, "at most $+0.006$")
 check("SAGE+AG +0.010", 0.010, pv("ring_ap", "GB-CAG", "SAGE+AG"), 0.0006, "$+0.010$\n$[0.005, 0.015]$ for SAGE+AG (Holm $p=0.006$)")
 check("SAGE+AG CI low 0.005", 0.005, pv("ring_ap", "GB-CAG", "SAGE+AG", "ci_low"), 0.0006)
 check("SAGE+AG CI high 0.015", 0.015, pv("ring_ap", "GB-CAG", "SAGE+AG", "ci_high"), 0.0006)
@@ -232,22 +234,40 @@ check("HGT+AG CI high 0.015", 0.015, pv("ring_ap", "GB-CAG", "HGT+AG", "ci_high"
 check("HGT+AG Holm 0.016", 0.016, pv("ring_ap", "GB-CAG", "HGT+AG", "t_p_holm"), 0.0006)
 for m, q in [("GB-CAG", 0.033), ("SAGE", 0.034), ("RGCN", 0.030), ("SimpleHGN", 0.026), ("HGT", 0.024), ("SAGE+AG", 0.043), ("HGT+AG", 0.042), ("HAN", 0.010)]:
     check(f"vs GB-CA ring {m}", q, pv("ring_ap", "GB-CA", m), 0.0006)
-check("vs GB-CA text", 1, 1, 0, "(GB-CAG $+0.033$, SAGE\n$+0.034$, RGCN $+0.030$, Simple-HGN $+0.026$, HGT $+0.024$, HAN $+0.010$,\nhybrids $+0.043$ and $+0.042$; Holm $p\\le0.020$")
-check("vs GB-CA Holm <= 0.020", 0.020, max(0.020, max(pv("ring_ap", "GB-CA", m, "t_p_holm") for m in ["GB-CAG", "SAGE", "RGCN", "HAN", "SimpleHGN", "HGT", "SAGE+AG", "HGT+AG"])), 0.0)
-iso = [pv("isolated_ap", "GB-CAG", m) for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]]
-check("iso min deficit 0.093 (Simple-HGN)", -0.093, pv("isolated_ap", "GB-CAG", "SimpleHGN"), 0.0006, "by 0.093 (Simple-HGN) to 0.138\n(HAN)")
+check("vs GB-CA text", 1, 1, 0, "(GB-CAG $+0.033$, SAGE $+0.034$, RGCN $+0.030$, Simple-HGN\n$+0.026$, HGT $+0.024$, hybrids $+0.043$ and $+0.042$; Holm $p<0.001$ with\nthe seed as unit)")
+check("vs GB-CA Holm < 0.001 (significant set)", 1, int(max(pv("ring_ap", "GB-CA", m, "t_p_holm") for m in ["GB-CAG", "SAGE", "RGCN", "SimpleHGN", "HGT", "SAGE+AG", "HGT+AG"]) < 0.001), 0)
+for m, q in [("HAN", 0.010), ("BWGNN", 0.008), ("CARE-GNN", -0.004)]:
+    check(f"vs GB-CA {m} {q}", q, pv("ring_ap", "GB-CA", m), 0.0006)
+check("vs GB-CA text n.s.", 1, 1, 0, "whereas HAN ($+0.010$), BWGNN ($+0.008$) and CARE-GNN\n($-0.004$) do not significantly (Holm $p\\ge0.059$)")
+check("vs GB-CA HAN/BWGNN/CARE Holm >= 0.059", 1, int(min(pv("ring_ap", "GB-CA", m, "t_p_holm") for m in ["HAN", "BWGNN", "CARE-GNN"]) >= 0.059), 0)
+check("fraud GNNs vs GB-CAG pooled BWGNN -0.025", -0.025, pv("ring_ap", "GB-CAG", "BWGNN"), 0.0006, "BWGNN by $-0.025$\nand CARE-GNN by $-0.037$ (Holm $p<0.001$)")
+check("fraud GNNs vs GB-CAG pooled CARE -0.037", -0.037, pv("ring_ap", "GB-CAG", "CARE-GNN"), 0.0006)
+check("fraud GNNs pooled Holm < 0.001", 1, int(max(pv("ring_ap", "GB-CAG", m, "t_p_holm") for m in fraud2) < 0.001), 0)
+check("pure GNN upper limits <= 0.006 (incl. fraud GNNs)", 1, int(max(pv("ring_ap", "GB-CAG", m, "ci_high") for m in pure7) <= 0.0065), 0)
+gen_worse = C[(C.reference == "GB-CAG") & C.method.isin(pure5) & (C.mean_diff < 0) & (C.t_p_holm < 0.05)]
+check("general GNNs significantly worse in eight pairs", 8, len(gen_worse), 0, "The general-purpose GNNs were significantly worse in eight")
+for m in fraud2:
+    w = C[(C.reference == "GB-CAG") & (C.method == m) & (C.mean_diff < 0) & (C.t_p_holm < 0.05)]
+    check(f"{m} significantly worse in seven regimes", 7, len(w), 0, "CARE-GNN each in seven of the nine regimes, all but the sparse rings at\n$\\delta=1$ and $2$")
+    check(f"{m} not worse only at s=0.1, d=1,2", 1, int(set(zip(w.ring_shift, w.ring_density)) ==
+          {(a, b) for a in [0.0, 1.0, 2.0] for b in [0.1, 0.5, 0.9]} - {(1.0, 0.1), (2.0, 0.1)}), 0)
+    check(f"{m} never significantly better", 0, int(((C.reference == "GB-CAG") & (C.method == m) & (C.mean_diff > 0) & (C.t_p_holm < 0.05)).sum()), 0)
+iso = [pv("isolated_ap", "GB-CAG", m) for m in pure7]
+check("iso min deficit 0.093 (Simple-HGN)", -0.093, pv("isolated_ap", "GB-CAG", "SimpleHGN"), 0.0006, "by 0.093 (Simple-HGN) to 0.229\n(CARE-GNN)")
 check("iso: Simple-HGN smallest deficit", 1, int(max(iso) == pv("isolated_ap", "GB-CAG", "SimpleHGN")), 0)
-check("iso max deficit 0.138 (HAN)", -0.138, pv("isolated_ap", "GB-CAG", "HAN"), 0.0006)
-check("iso: HAN largest deficit", 1, int(min(iso) == pv("isolated_ap", "GB-CAG", "HAN")), 0)
-check("iso Holm < 0.001", 0.001, max(0.001, max(pv("isolated_ap", "GB-CAG", m, "t_p_holm") for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"])), 0.0)
+check("iso max deficit 0.229 (CARE-GNN)", -0.229, pv("isolated_ap", "GB-CAG", "CARE-GNN"), 0.0006)
+check("iso: CARE-GNN largest deficit", 1, int(min(iso) == pv("isolated_ap", "GB-CAG", "CARE-GNN")), 0)
+check("iso: CARE-GNN, HAN, HGT the three weakest", 1, int(set(sorted(pure7, key=lambda m: pv("isolated_ap", "GB-CAG", m))[:3]) == {"CARE-GNN", "HAN", "HGT"}), 0,
+      "with CARE-GNN, HAN and HGT the weakest")
+check("iso Holm < 0.001", 0.001, max(0.001, max(pv("isolated_ap", "GB-CAG", m, "t_p_holm") for m in pure7)), 0.0)
 check("MLP-C iso -0.025", -0.025, pv("isolated_ap", "GB-CAG", "MLP-C"), 0.0006, "within 0.025 of GB-CAG ($p=0.006$)")
 check("MLP-C iso p 0.006", 0.006, pv("isolated_ap", "GB-CAG", "MLP-C", "t_p_holm"), 0.0006)
 check("hybrids iso -0.087", -0.087, pv("isolated_ap", "GB-CAG", "SAGE+AG"), 0.0006, "($-0.087$ and\n$-0.113$)")
 check("hybrids iso -0.113", -0.113, pv("isolated_ap", "GB-CAG", "HGT+AG"), 0.0006)
-ov = [pv("ap", "GB-CAG", m) for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]]
-check("overall min 0.008", -0.008, max(ov), 0.0006, "by 0.008--0.030 (all Holm $p\\le0.004$)")
-check("overall max 0.030", -0.030, min(ov), 0.0006)
-check("overall pure GNN Holm <= 0.004", 0.004, max(0.004, max(pv("ap", "GB-CAG", m, "t_p_holm") for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"])), 0.0)
+ov = [pv("ap", "GB-CAG", m) for m in pure7]
+check("overall min 0.008", -0.008, max(ov), 0.0006, "by 0.008--0.059 (all Holm $p\\le0.004$)")
+check("overall max 0.059", -0.059, min(ov), 0.0006)
+check("overall pure GNN Holm <= 0.004", 1, int(max(pv("ap", "GB-CAG", m, "t_p_holm") for m in pure7) <= 0.004), 0)
 check("overall hybrids p >= 0.37", 0.37, min(0.37, min(pv("ap", "GB-CAG", m, "t_p_holm") for m in ["SAGE+AG", "HGT+AG"])), 0.0, "($p\\ge0.37$)")
 hs = C[(C.ring_shift == 0.0) & (C.ring_density == 0.1) & (C.reference == "GB-CAG")].set_index("method")
 check("SAGE+AG d0 s0.1 +0.038", 0.038, hs.loc["SAGE+AG", "mean_diff"], 0.0006, "$+0.038$ and $+0.035$, Holm $p=0.007$\nand $0.018$")
@@ -267,8 +287,9 @@ check("GB-PG corrected CI low", -0.042, K.loc[("GB-PG", "GB-P"), "ci_low"], 0.00
 check("GB-PG corrected CI high", 0.023, K.loc[("GB-PG", "GB-P"), "ci_high"], 0.0006)
 check("GB-PGL corrected CI low", -0.030, K.loc[("GB-PGL", "GB-P"), "ci_low"], 0.0006, "$[-0.030, 0.016]$")
 check("GB-PGL corrected CI high", 0.016, K.loc[("GB-PGL", "GB-P"), "ci_high"], 0.0006)
-check("smallest corrected Holm 0.13", 0.13, K.t_p_holm.min(), 0.005, "$p=0.13$")
-check("naive Holm SAGE+G 0.021", 0.021, K.loc[("SAGE+G", "GB-P"), "naive_t_p_holm"], 0.0006, "Holm $p=0.021$")
+check("smallest corrected Holm 0.15", 0.15, K.t_p_holm.min(), 0.005, "$p=0.15$, SAGE+G versus GB-P")
+check("28 comparisons on the five rotations", 28, len(K), 0, "none of the 28 differences")
+check("naive Holm SAGE+G 0.025", 0.025, K.loc[("SAGE+G", "GB-P"), "naive_t_p_holm"], 0.0006, "(Holm $p=0.025$)")
 B = pd.read_csv(R / "tables" / "kaggle_bootstrap.csv").set_index("method")
 check("boot RGCN low", -0.108, B.loc["RGCN", "boot_ci_low"], 0.0006, "$[-0.108, -0.055]$")
 check("boot RGCN high", -0.055, B.loc["RGCN", "boot_ci_high"], 0.0006)
@@ -290,7 +311,7 @@ check("nested GB-P 0.706 is the best nested method", 1, int(N.nested_ap_mean.idx
 check("nested GB-P AP 0.706", 0.706, N.loc["GB-P", "nested_ap_mean"], 0.0006)
 check("nested: GNN/hybrid gap min 0.023", -0.023, NV.loc[GNNH, "mean_diff"].max(), 0.0006, "0.023--0.053 below it")
 check("nested: GNN/hybrid gap max 0.053", -0.053, NV.loc[GNNH, "mean_diff"].min(), 0.0006)
-check("nested: smallest Holm p 0.051", 0.051, NV.t_p_holm.min(), 0.0006, "smallest Holm $p=0.051$")
+check("nested: smallest Holm p 0.059", 0.059, NV.t_p_holm.min(), 0.0006, "smallest Holm $p=0.059$")
 KR = pd.read_csv(R / "tables" / "kaggle_repeated_comparisons.csv").set_index("method")
 KM = pd.read_csv(R / "tables" / "kaggle_repeated_metrics.csv", header=[0, 1], index_col=0)
 check("repeated: 25 rotations per method", 25, KR.n.min(), 0)
@@ -304,15 +325,15 @@ check("repeated: GB-PGL CI low", -0.019, KR.loc["GB-PGL", "ci_low"], 0.0006)
 check("repeated: GB-PGL CI high", 0.007, KR.loc["GB-PGL", "ci_high"], 0.0006, "at most $+0.006$ to\n$+0.007$ (upper 95\\% limits)")
 # Third round (E-7): RGCN, Simple-HGN and the hybrids added; Holm over all eleven comparisons with GB-P.
 GNN5K = ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]
-check("repeated: twelve comparisons", 12, len(KR), 0, "all twelve differences significant")
-check("repeated: GNN gap min 0.025", -0.025, KR.loc[GNN5K, "mean_diff"].max(), 0.0006, "the five GNNs were 0.025--0.092 and the hybrids")
-check("repeated: GNN gap max 0.092", -0.092, KR.loc[GNN5K, "mean_diff"].min(), 0.0006, "the GNNs are 0.025--0.092 lower")
+check("repeated: fourteen comparisons", 14, len(KR), 0, "all fourteen differences significant")
+check("repeated: GNN gap min 0.025", -0.025, KR.loc[GNN5K + fraud2, "mean_diff"].max(), 0.0006, "the seven GNNs were 0.025--0.092 and the hybrids")
+check("repeated: GNN gap max 0.092", -0.092, KR.loc[GNN5K + fraud2, "mean_diff"].min(), 0.0006, "the GNNs are 0.025--0.092 lower")
 check("repeated: hybrid gap min 0.039", -0.039, KR.loc[["SAGE+G", "HGT+G"], "mean_diff"].max(), 0.0006, "0.039--0.063 below it")
 check("repeated: hybrid gap max 0.063", -0.063, KR.loc[["SAGE+G", "HGT+G"], "mean_diff"].min(), 0.0006, "hybrids\n0.039--0.063 lower")
 check("repeated: only RGCN significant", 1, int(list(KR.index[KR.t_p_holm < 0.05]) == ["RGCN"]), 0, "Only RGCN's deficit was significant")
-check("repeated: RGCN Holm p 0.008", 0.008, KR.loc["RGCN", "t_p_holm"], 0.0006, "(Holm $p=0.008$; next smallest $0.052$,")
-check("repeated: RGCN -0.092", -0.092, KR.loc["RGCN", "mean_diff"], 0.0006, "($-0.092$, Holm $p=0.008$)")
-check("repeated: next smallest Holm p 0.052 (SAGE+G)", 0.052, KR.drop("RGCN").t_p_holm.min(), 0.0006, "adjusted $p$ is 0.052 (SAGE+G)")
+check("repeated: RGCN Holm p 0.009", 0.009, KR.loc["RGCN", "t_p_holm"], 0.0006, "(Holm $p=0.009$; next smallest $0.062$,")
+check("repeated: RGCN -0.092", -0.092, KR.loc["RGCN", "mean_diff"], 0.0006, "($-0.092$, Holm $p=0.009$)")
+check("repeated: next smallest Holm p 0.062 (SAGE+G)", 0.062, KR.drop("RGCN").t_p_holm.min(), 0.0006, "adjusted $p$ is 0.062 (SAGE+G)")
 check("repeated: SAGE+G has it", 1, int(KR.drop("RGCN").t_p_holm.idxmin() == "SAGE+G"), 0)
 from research.metrics import holm
 check("repeated: naive test + Holm would call all twelve significant", 1, int(max(holm(KR.naive_t_p.tolist())) < 0.05), 0)
@@ -335,18 +356,18 @@ check("low GB-CA max 0.055", 0.055, max(fz[(d, "GB-CA")] for d in [0.1, 0.5, 0.9
 check("low GB-CAG s0.5 0.409", 0.409, fz[(0.5, "GB-CAG")], 0.0006, "0.409 and 0.570")
 check("low GB-CAG s0.9 0.570", 0.570, fz[(0.9, "GB-CAG")], 0.0006)
 check("low GB-CAG s0.1 0.066", 0.066, fz[(0.1, "GB-CAG")], 0.0006, "0.066")
-pure = [fz[(d, m)] for d in [0.5, 0.9] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]]
-check("low pure GNN min s>=0.5 0.058", 0.058, min(pure), 0.0006, "0.058--0.151")
+pure = [fz[(d, m)] for d in [0.5, 0.9] for m in pure7]
+check("low pure GNN min s>=0.5 0.051", 0.051, min(pure), 0.0006, "0.051--0.151")
 check("low pure GNN max s>=0.5 0.151", 0.151, max(pure), 0.0006)
 check("overlap low s0.5 0.194", 0.194, fz[(0.5, "Overlap-score")], 0.0006, "(0.194 and 0.281)")
 check("overlap low s0.9 0.281", 0.281, fz[(0.9, "Overlap-score")], 0.0006)
-check("overlap beats every pure GNN at s>=0.5", 1, int(all(fz[(d, "Overlap-score")] > max(fz[(d, m)] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]) for d in [0.5, 0.9])), 0)
+check("overlap beats every pure GNN at s>=0.5", 1, int(all(fz[(d, "Overlap-score")] > max(fz[(d, m)] for m in pure7) for d in [0.5, 0.9])), 0)
 LC = pd.read_csv(R / "tables" / "lowvolume_comparisons.csv")
 lf = LC[(LC.setting == "frozen") & (LC.metric == "ring_ap")]
 pool = lf[(lf.reference == "GB-CAG") & (lf.ring_density == "pooled")].set_index("method")
-check("low GNN vs GB-CAG min gap 0.23", -0.23, max(pool.loc[m, "mean_diff"] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]), 0.005, "0.23--0.29 below")
-check("low GNN vs GB-CAG max gap 0.29", -0.29, min(pool.loc[m, "mean_diff"] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]), 0.005)
-check("low GNN vs GB-CAG Holm <= 0.002", 0.002, max(0.002, max(float(pool.loc[m, "t_p_holm"]) for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"])), 0.0)
+check("low GNN vs GB-CAG min gap 0.23", -0.23, max(pool.loc[m, "mean_diff"] for m in pure7), 0.005, "0.23--0.29 below")
+check("low GNN vs GB-CAG max gap 0.29", -0.29, min(pool.loc[m, "mean_diff"] for m in pure7), 0.005)
+check("low GNN vs GB-CAG Holm <= 0.002", 0.002, max(0.002, max(float(pool.loc[m, "t_p_holm"]) for m in pure7)), 0.0)
 check("low SAGE+AG +0.001", 0.001, pool.loc["SAGE+AG", "mean_diff"], 0.0006, "$+0.001$, 95\\% CI $[-0.059, 0.061]$")
 check("low SAGE+AG CI low", -0.059, pool.loc["SAGE+AG", "ci_low"], 0.0006)
 check("low SAGE+AG CI high", 0.061, pool.loc["SAGE+AG", "ci_high"], 0.0006)
@@ -354,8 +375,8 @@ check("low HGT+AG -0.041", -0.041, pool.loc["HGT+AG", "mean_diff"], 0.0006, "$-0
 check("low HGT+AG CI low", -0.098, pool.loc["HGT+AG", "ci_low"], 0.0006, "$[-0.098, 0.015]$")
 check("low HGT+AG CI high", 0.015, pool.loc["HGT+AG", "ci_high"], 0.0006)
 pa = lf[(lf.reference == "GB-CA") & (lf.ring_density == "pooled")].set_index("method")
-gains = [pa.loc[m, "mean_diff"] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]]
-check("low GNN gain over GB-CA min 0.01", 0.01, min(gains), 0.005, "only 0.01--0.07 above GB-CA")
+gains = [pa.loc[m, "mean_diff"] for m in pure7]
+check("low GNN gain over GB-CA min >= 0", 1, int(min(gains) >= 0), 0, "at most 0.07 above GB-CA")
 check("low GNN gain over GB-CA max 0.07", 0.07, max(gains), 0.005)
 cells = lf[(lf.reference == "GB-CA") & (lf.method == "GB-CAG") & (lf.ring_density != "pooled")].set_index("ring_density")
 check("low GB-CAG - GB-CA s0.5 0.36", 0.36, cells.loc["0.5", "mean_diff"], 0.005, "0.36 and 0.51 above GB-CA")
@@ -364,10 +385,11 @@ check("low GB-CAG - GB-CA Holm <= 0.001", 0.001, max(0.001, max(float(cells.loc[
 better = lf[(lf.reference == "GB-CAG") & (lf.ring_density != "pooled") & (lf.mean_diff > 0) & (lf.t_p_holm < 0.05)]
 check("no method significantly above GB-CAG at any density (frozen)", 0, len(better), 0)
 li = LC[(LC.setting == "frozen") & (LC.metric == "isolated_ap") & (LC.reference == "GB-CAG") & (LC.ring_density == "pooled")].set_index("method")
-igap = [li.loc[m, "mean_diff"] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]]
-check("low iso gap min 0.03", -0.03, max(igap), 0.006, "by\n0.03--0.08")
-check("low iso gap max 0.08", -0.08, min(igap), 0.006)
-check("low iso not significant", 0.05, min(0.05, min(float(li.loc[m, "t_p_holm"]) for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"])), 0.0)
+igap = [li.loc[m, "mean_diff"] for m in pure7]
+check("low iso gap min 0.02", -0.02, max(igap), 0.006, "by\n0.02--0.17, significantly only for CARE-GNN with six seeds (Holm $p=0.013$)")
+check("low iso gap max 0.17", -0.17, min(igap), 0.006)
+check("low iso significant only CARE-GNN", 1, int([m for m in pure7 if float(li.loc[m, "t_p_holm"]) < 0.05] == ["CARE-GNN"]), 0)
+check("low iso CARE Holm 0.013", 0.013, float(li.loc["CARE-GNN", "t_p_holm"]), 0.0006)
 
 # Budgeted recall (Section 6 introduction)
 rec = pd.read_csv(R / "tables" / "synthetic_recall_at_5pct.csv")
@@ -381,17 +403,17 @@ check("budget recall max 0.48", 0.48, rec[rec.method.isin(graphish)]["mean"].max
 rt = L[L.setting == "retuned"].set_index(["ring_density", "method"]).ring_ap_mean
 check("retuned GB-CAG s0.5 0.445", 0.445, rt[(0.5, "GB-CAG")], 0.0006, "0.445 and 0.600")
 check("retuned GB-CAG s0.9 0.600", 0.600, rt[(0.9, "GB-CAG")], 0.0006)
-pr = [rt[(d, m)] for d in [0.5, 0.9] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]]
-check("retuned pure GNN min s>=0.5 0.058", 0.058, min(pr), 0.0006, "between 0.058 and 0.162")
+pr = [rt[(d, m)] for d in [0.5, 0.9] for m in pure7]
+check("retuned pure GNN min s>=0.5 0.050", 0.050, min(pr), 0.0006, "between 0.050 and 0.162")
 check("retuned pure GNN max s>=0.5 0.162", 0.162, max(pr), 0.0006)
 for m in ["HAN", "RGCN", "SimpleHGN"]:
     check(f"{m} unchanged configuration reproduces frozen results", 0, max(abs(rt[(d, m)] - fz[(d, m)]) for d in [0.1, 0.5, 0.9]), 1e-9)
 lr = LC[(LC.setting == "retuned") & (LC.metric == "ring_ap")]
 prt = lr[(lr.reference == "GB-CAG") & (lr.ring_density == "pooled")].set_index("method")
-gaps = [prt.loc[m, "mean_diff"] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]]
-check("retuned gap min 0.26", -0.26, max(gaps), 0.005, "0.26--0.31 below")
-check("retuned gap max 0.31", -0.31, min(gaps), 0.005)
-check("retuned gap Holm <= 0.001", 0.001, max(0.001, max(float(prt.loc[m, "t_p_holm"]) for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"])), 0.0)
+gaps = [prt.loc[m, "mean_diff"] for m in pure7]
+check("retuned gap min 0.26", -0.26, max(gaps), 0.005, "0.26--0.32 below")
+check("retuned gap max 0.32", -0.32, min(gaps), 0.005)
+check("retuned gap Holm <= 0.001", 0.001, max(0.001, max(float(prt.loc[m, "t_p_holm"]) for m in pure7)), 0.0)
 check("retuned SAGE+AG +0.009", 0.009, prt.loc["SAGE+AG", "mean_diff"], 0.0006, "$+0.009$")
 check("retuned SAGE+AG CI low", -0.048, prt.loc["SAGE+AG", "ci_low"], 0.0006, "$[-0.048, 0.065]$")
 check("retuned SAGE+AG CI high", 0.065, prt.loc["SAGE+AG", "ci_high"], 0.0006)
@@ -405,7 +427,7 @@ check("retuned SAGE+AG s0.1 Holm 0.035", 0.035, sig.iloc[0].t_p_holm, 0.0006, "H
 check("retuned SAGE+AG s0.1 AP 0.129", 0.129, rt[(0.1, "SAGE+AG")], 0.0006, "0.129 against 0.078")
 check("retuned GB-CAG s0.1 AP 0.078", 0.078, rt[(0.1, "GB-CAG")], 0.0006)
 check("discussion: overlap beats every pure GNN after re-tuning too", 1,
-      int(all(fz[(d, "Overlap-score")] > max(rt[(d, m)] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]) for d in [0.5, 0.9])), 0)
+      int(all(fz[(d, "Overlap-score")] > max(rt[(d, m)] for m in pure7) for d in [0.5, 0.9])), 0)
 
 # Ring-volume dose-response (Section 6.6, last paragraph; Online Resource S3; seeds 1-6, main hyperparameters)
 D = pd.read_csv(R / "tables" / "dose_response_ring_ap.csv").set_index(["volume", "ring_density", "method"]).ring_ap_mean
@@ -422,11 +444,11 @@ check("dose: no method far above chance at 2 (all < 0.05)", 0.05, max(0.05, max(
 check("dose: aggregates at 8 min 0.31", 0.31, min(D[(8.0, d, "GB-CA")] for d in dens), 0.005, "aggregates fall to 0.31--0.42")
 check("dose: aggregates at 8 max 0.42", 0.42, max(D[(8.0, d, "GB-CA")] for d in dens), 0.005)
 def pure_gaps(v):
-    return [np.mean([D[(v, d, "GB-CAG")] - D[(v, d, m)] for d in dens]) for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]]
-for v, lo, hi in [(16.0, 0.01, 0.06), (8.0, 0.10, 0.29), (4.0, 0.23, 0.29)]:
+    return [np.mean([D[(v, d, "GB-CAG")] - D[(v, d, m)] for d in dens]) for m in pure7]
+for v, lo, hi in [(16.0, 0.01, 0.10), (8.0, 0.10, 0.43), (4.0, 0.23, 0.29)]:
     check(f"dose: pure GNN gap min at {v:g}", lo, min(pure_gaps(v)), 0.005)
     check(f"dose: pure GNN gap max at {v:g}", hi, max(pure_gaps(v)), 0.005)
-check("dose: pure GNN gap text", 1, 1, 0, "by 0.01--0.06 AP at 16, 0.10--0.29 at 8 and 0.23--0.29 at 4 claims\nper month")
+check("dose: pure GNN gap text", 1, 1, 0, "by 0.01--0.10 AP at 16, 0.10--0.43 at 8 and 0.23--0.29 at 4 claims\nper month")
 hyb = [abs(np.mean([D[(v, d, m)] - D[(v, d, "GB-CAG")] for d in dens])) for v in [16.0, 8.0, 4.0, 2.0] for m in ["SAGE+AG", "HGT+AG"]]
 check("dose: hybrids within 0.05 of GB-CAG at every volume", 0.05, max(0.05, max(hyb)), 0.0, "hybrids stay within 0.05 of it at every volume")
 for v, q in [(8.0, 5.4), (4.0, 3.7), (2.0, 3.0)]:
@@ -448,11 +470,11 @@ dense_gain = [D[(8.0, d, "GB-CAG")] - D[(8.0, d, "GB-CA")] for d in [0.5, 0.9]] 
              [fz[(d, "GB-CAG")] - fz[(d, "GB-CA")] for d in [0.5, 0.9]] + [rt[(d, "GB-CAG")] - rt[(d, "GB-CA")] for d in [0.5, 0.9]]
 check("map/discussion: dense structure gain at volume 4-8 min 0.36", 0.36, min(dense_gain), 0.005, "$+0.36$ to $+0.61$")
 check("map/discussion: dense structure gain at volume 4-8 max 0.61", 0.61, max(dense_gain), 0.005, "0.36--0.61 at reduced volume")
-cells48 = [(D[(8.0, d, "GB-CAG")], D[(8.0, d, m)]) for d in [0.5, 0.9] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]] + \
-          [(s[(d, "GB-CAG")], s[(d, m)]) for s in (fz, rt) for d in [0.5, 0.9] for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]]
+cells48 = [(D[(8.0, d, "GB-CAG")], D[(8.0, d, m)]) for d in [0.5, 0.9] for m in pure7] + \
+          [(s[(d, "GB-CAG")], s[(d, m)]) for s in (fz, rt) for d in [0.5, 0.9] for m in pure7]
 gap48 = [a - b for a, b in cells48]
-check("abstract/map: pure GNNs trail by 0.17 (min, volume 4-8, s>=0.5)", 0.17, min(gap48), 0.005, "pure GNNs 0.17--0.54 lower")
-check("abstract/map: pure GNNs trail by 0.54 (max)", 0.54, max(gap48), 0.005, "pure GNNs trailed them by 0.17--0.54")
+check("abstract/map: pure GNNs trail by 0.17 (min, volume 4-8, s>=0.5)", 0.17, min(gap48), 0.005, "pure GNNs 0.17--0.57 lower")
+check("abstract/map: pure GNNs trail by 0.57 (max)", 0.57, max(gap48), 0.005, "pure GNNs trailed them by 0.17--0.57")
 low_sparse = [fz[(0.1, "GB-CAG")] - fz[(0.1, "GB-CA")], rt[(0.1, "GB-CAG")] - rt[(0.1, "GB-CA")]]
 check("map: volume 4 sparse gain at most +0.03", 0.03, max(low_sparse), 0.005, "At most $+0.03$")
 check("map: default sparse +0.005 / dense 0.07-0.10", 0.07, gg.loc[0.5, "mean_diff"], 0.005, "graph information added\n0.07--0.10 AP")
@@ -471,10 +493,10 @@ check("abstract: aggregates at volume 4-8 max 0.42", 0.42, max(agg48), 0.005)
 gf48 = [D[(8.0, d, "GB-CAG")] for d in [0.5, 0.9]] + [s[(d, "GB-CAG")] for s in (fz, rt) for d in [0.5, 0.9]]
 check("abstract: graph features at volume 4-8 min 0.41", 0.41, min(gf48), 0.005, "features reached 0.41--0.92")
 check("abstract: graph features at volume 4-8 max 0.92", 0.92, max(gf48), 0.005)
-check("abstract: upper limits <= 0.006", 0.006, max(pv("ring_ap", "GB-CAG", m, "ci_high") for m in ["SAGE", "RGCN", "HAN", "SimpleHGN", "HGT"]), 0.0005, "$\\le$0.006)")
+check("abstract: upper limits <= 0.006", 0.006, max(pv("ring_ap", "GB-CAG", m, "ci_high") for m in pure7), 0.0005, "$\\le$0.006)")
 check("abstract: hybrids gained 0.01", 0.01, np.mean([pv("ring_ap", "GB-CAG", m) for m in ["SAGE+AG", "HGT+AG"]]), 0.001, "hybrids of both gained 0.01")
-check("abstract: isolated 0.09-0.14 worse (min)", 0.09, -max(iso), 0.005, "GNNs were 0.09--0.14 worse")
-check("abstract: isolated 0.09-0.14 worse (max)", 0.14, -min(iso), 0.005)
+check("abstract: isolated 0.09-0.23 worse (min)", 0.09, -max(iso), 0.005, "GNNs were 0.09--0.23 worse")
+check("abstract: isolated 0.09-0.23 worse (max)", 0.23, -min(iso), 0.005)
 check("abstract: recurring members inflate by up to 0.60", 0.60, pg.loc[(0.1, "MLP-C"), "mean_diff"], 0.005, "inflated performance by up to 0.60")
 
 # Pre-declared confirmatory test (Section 6.6; Online Resource S4)
@@ -495,6 +517,8 @@ check("confirm: Wilcoxon p 0.009", 0.009, H["wilcoxon_p"], 0.0006, "Wilcoxon")
 # ---- Third round (paper/hiss_review/analysis_plan_round3.md): E-2, E-3, E-4 ----
 # E-2: delta = 1 and 2 at ring volume 4 (Online Resource S5; Section 6.6; map table)
 from research.experiments.analyze import SYN_ORDER as SYN
+# The fraud-specialised GNNs (fourth round) were not run at delta > 0 and volume 4.
+SYN = [m for m in SYN if m not in ("BWGNN", "CARE-GNN")]
 LS = pd.read_csv(R / "tables" / "lowvolume_shift_comparisons.csv")
 LS["ring_density"] = LS["ring_density"].astype(str)
 def ls(vol, shift, dens, method, ref="GB-CAG", metric="ring_ap", col="mean_diff"):
@@ -651,6 +675,63 @@ check("E-4: s0.9 only Simple-HGN significant", 1, int([m for m in pure5 if rtv(0
       "(significantly for Simple-HGN, Holm $p=0.026$)")
 check("E-4: Simple-HGN s0.9 Holm 0.026", 0.026, rtv(0.9, "SimpleHGN", "vs GB-CAG (re-tuned)", "t_p_holm"), 0.0006)
 check("E-4: hybrids match GB-CAG at s0.9", 0.0, max(abs(rtv(0.9, m, "vs GB-CAG (re-tuned)")) for m in ["SAGE+AG", "HGT+AG"]), 0.0006)
+
+# ---- Fourth round, part B: ring shapes and sizes (Online Resource S8; Section 6.7; Table 8; Discussion) ----
+SC = pd.read_csv(R / "tables" / "shapes_comparisons.csv")
+ST = pd.read_csv(R / "tables" / "shapes_ring_ap.csv").set_index(["shape", "volume", "method"])["ring_ap_mean"]
+def sc(shape, vol, method, ref="GB-CAG", col="mean_diff", metric="ring_ap"):
+    r = SC[(SC["shape"] == shape) & (SC.volume == vol) & (SC.method == method) & (SC.reference == ref) & (SC.metric == metric)]
+    assert len(r) == 1, (shape, vol, method, ref)
+    return r.iloc[0][col]
+check("shapes: 48 worlds", 48, len(rows("synthetic_shapes", range(1, 7)).groupby(["ring_shape", "ring_doctors", "ring_claims_per_month", "seed"], dropna=False)), 0)
+vs = SC[(SC.metric == "ring_ap") & (SC.reference == "GB-CAG")]
+pg = vs[vs.method.isin(pure7)]
+check("shapes: no pure GNN significantly above GB-CAG", 0, int(((pg.mean_diff > 0) & (pg.t_p_holm < 0.05)).sum()), 0,
+      "No pure GNN had\nsignificantly higher ring AP than GB-CAG for any shape or volume")
+check("shapes S8: no pure GNN significantly above", 0, int(((pg.mean_diff > 0) & (pg.t_p_holm < 0.05)).sum()), 0,
+      "No pure GNN, general-purpose or fraud-specialised, had significantly higher ring AP than GB-CAG in any column")
+below = pg[(pg.mean_diff < 0) & (pg.t_p_holm < 0.05)]
+check("shapes: 32 of 56 significantly below", 32, len(below), 0, "significantly below it in 32 of 56 comparisons")
+check("shapes: 56 pure-GNN comparisons", 56, len(pg), 0, "in 32 of the\n56 method--column pairs, 26 of them for the hub and the large block")
+check("shapes: 26 of them hub or large block", 26, int(below["shape"].isin(["Hub", "Large block"]).sum()), 0)
+top = pg.loc[pg.mean_diff.idxmax()]
+check("shapes: largest pure-GNN estimate is SAGE small block full", 1, int((top.method, top["shape"], top.volume) == ("SAGE", "Small block", "full")), 0)
+check("shapes: SAGE small block +0.060", 0.060, top.mean_diff, 0.0006, "($+0.060$, 95\\% CI $[-0.042, 0.163]$, Holm\n$p=0.96$)")
+check("shapes: SAGE small block CI low", -0.042, top.ci_low, 0.0006)
+check("shapes: SAGE small block CI high", 0.163, top.ci_high, 0.0006)
+check("shapes: SAGE small block Holm 0.96", 0.96, top.t_p_holm, 0.005)
+for shp, vol, q in [("Hub", "full", 0.067), ("Hub", "half", 0.490), ("Large block", "full", 0.062), ("Large block", "half", 0.375),
+                    ("Distributed", "half", 0.131), ("Small block", "half", 0.377), ("Distributed", "full", 0.003), ("Small block", "full", 0.020)]:
+    check(f"shapes: structure gain {shp} {vol}", q, sc(shp, vol, "GB-CAG", "GB-CA"), 0.0006, f"${q:+.3f}$")
+sg = SC[(SC.metric == "ring_ap") & (SC.reference == "GB-CA")]
+sig = sg[sg.t_p_holm < 0.05]
+check("shapes: six significant structure gains", 1, int(set(zip(sig["shape"], sig.volume)) == {("Hub", "full"), ("Hub", "half"), ("Large block", "full"),
+      ("Large block", "half"), ("Distributed", "half"), ("Small block", "half")}), 0, "Holm $p\\le0.02$ across the eight\ncolumns)")
+check("shapes: significant structure gains Holm <= 0.02", 1, int(sig.t_p_holm.max() <= 0.02), 0)
+check("shapes: half-volume gains min +0.13", 0.13, min(sc(s, "half", "GB-CAG", "GB-CA") for s in ["Hub", "Large block", "Distributed", "Small block"]), 0.005,
+      "($+0.13$ to $+0.49$) and for the hub and the large block also at full")
+check("shapes: half-volume gains max +0.49", 0.49, max(sc(s, "half", "GB-CAG", "GB-CA") for s in ["Hub", "Large block", "Distributed", "Small block"]), 0.005)
+check("map: significant shape gains min +0.06", 0.06, min(sig.mean_diff), 0.005, "$+0.06$ to $+0.49$ (n.s.\\ for small and distributed rings at full volume)")
+check("map: significant shape gains max +0.49", 0.49, max(sig.mean_diff), 0.005)
+check("map: n.s. exactly small and distributed at full volume", 1, int(set(zip(sg[sg.t_p_holm >= 0.05]["shape"], sg[sg.t_p_holm >= 0.05].volume)) == {("Small block", "full"), ("Distributed", "full")}), 0)
+for shp, q in [("Hub", 0.853), ("Large block", 0.988), ("Distributed", 0.534), ("Small block", 0.475)]:
+    check(f"shapes: overlap {shp} full {q}", q, ST[(shp, "full", "Overlap-score")], 0.0006)
+check("shapes: overlap text", 1, 1, 0, "full volume it reached 0.853 and 0.988 for the hub and the large block, but only 0.534 and 0.475 for the distributed\nring and the small block")
+hyb = vs[vs.method.isin(["SAGE+AG", "HGT+AG"]) & (vs.mean_diff > 0) & (vs.t_p_holm < 0.05)]
+check("shapes: only SAGE+AG on the distributed ring is significantly above", 1, int(set(zip(hyb.method, hyb["shape"], hyb.volume)) ==
+      {("SAGE+AG", "Distributed", "full"), ("SAGE+AG", "Distributed", "half")}), 0)
+check("shapes: SAGE+AG distributed full +0.014", 0.014, sc("Distributed", "full", "SAGE+AG"), 0.0006, "($+0.014$\n$[0.008, 0.020]$ at full and $+0.093$ $[0.050, 0.136]$ at half volume, Holm $p=0.019$ and $0.023$)")
+check("shapes: SAGE+AG distributed full CI", 0.008, sc("Distributed", "full", "SAGE+AG", col="ci_low"), 0.0006)
+check("shapes: SAGE+AG distributed full CI high", 0.020, sc("Distributed", "full", "SAGE+AG", col="ci_high"), 0.0006)
+check("shapes: SAGE+AG distributed full Holm", 0.019, sc("Distributed", "full", "SAGE+AG", col="t_p_holm"), 0.0006)
+check("shapes: SAGE+AG distributed half +0.093", 0.093, sc("Distributed", "half", "SAGE+AG"), 0.0006, "ring ($+0.014$ and $+0.093$ at full and half volume, Holm $p\\le0.023$)")
+check("shapes: SAGE+AG distributed half CI low", 0.050, sc("Distributed", "half", "SAGE+AG", col="ci_low"), 0.0006)
+check("shapes: SAGE+AG distributed half CI high", 0.136, sc("Distributed", "half", "SAGE+AG", col="ci_high"), 0.0006)
+check("shapes: SAGE+AG distributed half Holm", 0.023, sc("Distributed", "half", "SAGE+AG", col="t_p_holm"), 0.0006)
+iso_sh = SC[(SC.metric == "isolated_ap") & (SC.reference == "GB-CAG")]
+check("shapes: isolated all below GB-CAG", 1, int(iso_sh.mean_diff.max() < 0), 0, "by 0.04 to 0.37")
+check("shapes: isolated min 0.04", -0.04, iso_sh.mean_diff.max(), 0.005)
+check("shapes: isolated max 0.37", -0.37, iso_sh.mean_diff.min(), 0.005)
 
 bad = [c for c in checks if not c[0]]
 for ok, label, q, v, note in checks:

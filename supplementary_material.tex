@@ -41,7 +41,8 @@ Models'', \textit{Health Information Science and Systems}}
 \abstract{This Online Resource accompanies the article named in the title. It contains material summarised
 but not shown in full there: the selected hyperparameters, the two-stage routing evaluation, the ring-volume
 dose-response, the confirmatory test of the hybrid result, three robustness checks (feature shift at reduced
-ring volume, training-seed replication and per-regime tuning), the cost of training and scoring, single-factor
+ring volume, training-seed replication and per-regime tuning), results for other ring shapes and sizes, the cost of
+training and scoring, single-factor
 ablations of HGT, which inputs the trained models use, figures of the mechanism ablations and of new versus
 recurring rings, repeated cross-validation and per-rotation tuning on the public data, and a re-analysis of a
 small fixed benchmark. Every number is generated from the run records in the article's code repository.}
@@ -70,6 +71,8 @@ RGCN & aggr=sum; dropout=0.3; hidden=64; layers=2; lr=0.003; weight decay=0.001 
 HAN & dropout=0.3; heads=4; hidden=32; layers=3; lr=0.01; weight decay=1e-05 & dropout=0.1; heads=2; hidden=64; layers=2; lr=0.003; weight decay=0.0001 \\
 Simple-HGN & dropout=0.3; heads=4; hidden=64; layers=3; lr=0.003; weight decay=0.0001 & dropout=0.1; heads=4; hidden=64; layers=2; lr=0.01; weight decay=0.001 \\
 HGT & dropout=0.3; heads=4; hidden=32; layers=3; lr=0.01; weight decay=1e-05 & dropout=0.1; heads=4; hidden=64; layers=2; lr=0.01; weight decay=0.001 \\
+BWGNN & dropout=0.3; hidden=32; lr=0.001; order=2; weight decay=0.0001 & dropout=0.3; hidden=64; lr=0.003; order=3; weight decay=0.001 \\
+CARE-GNN & dropout=0.3; hidden=64; layers=2; lr=0.001; weight decay=0.0001 & dropout=0.1; hidden=64; layers=2; lr=0.001; weight decay=0.0001 \\
 \botrule
 \end{tabular}
 \end{table}
@@ -187,6 +190,9 @@ RGCN & 0.933 & 0.546 & 0.066 & 0.018 & 0.953 & 0.637 & 0.112 & 0.018 & 0.954 & 0
 HAN & 0.908 & 0.469 & 0.062 & 0.014 & 0.906 & 0.507 & 0.065 & 0.018 & 0.921 & 0.520 & 0.058 & 0.014 \\
 Simple-HGN & 0.915 & 0.561 & 0.074 & 0.014 & 0.960 & 0.692 & 0.133 & 0.015 & 0.957 & 0.716 & 0.151 & 0.013 \\
 HGT & 0.910 & 0.544 & 0.046 & 0.016 & 0.948 & 0.649 & 0.079 & 0.017 & 0.949 & 0.689 & 0.098 & 0.016 \\
+\midrule
+BWGNN & 0.904 & 0.487 & 0.065 & 0.017 & 0.918 & 0.487 & 0.076 & 0.018 & 0.924 & 0.469 & 0.079 & 0.016 \\
+CARE-GNN & 0.882 & 0.407 & 0.057 & 0.014 & 0.863 & 0.318 & 0.051 & 0.017 & 0.868 & 0.351 & 0.053 & 0.013 \\
 \midrule
 SAGE+AG & 0.973 & 0.659 & 0.103 & 0.020 & 0.985 & 0.883 & 0.379 & 0.032 & 0.983 & 0.914 & 0.566 & 0.025 \\
 HGT+AG & 0.964 & 0.546 & 0.074 & 0.019 & 0.984 & 0.872 & 0.324 & 0.024 & 0.990 & 0.916 & 0.523 & 0.023 \\
@@ -354,12 +360,76 @@ HGT+AG & 0.964 & 0.964 & $+0.034$ & 0.666 & 0.990 & 0.990 & $0.000$ & 1.000 \\
 \end{tabular}
 \end{table}
 
+\section{Other ring shapes and sizes}\label{sec:s_shapes}
+The engineered graph features were designed knowing the default ring: four doctors and twelve patients linked as a
+block. As fixed in the plan for the fourth round (\texttt{paper/hiss\_review/analysis\_plan\_round4.md}), every
+method was therefore also run on four other ring shapes and sizes at $\delta=0$ (seeds 1--6, hyperparameters of the
+main experiment): a hub (one hub doctor linked to all twelve patients, each patient also linked to one of three spoke
+doctors); a distributed ring (eight doctors and 24 patients, each patient linked to two ring doctors drawn at
+random); and a small (2 doctors, 6 patients) and a large (8 and 24) block at $s=0.5$. Each was run at the
+per-member claim volume of the default ring (full; 16 claims per month for twelve patients, scaled with ring size)
+and at half of it. Table~\ref{tab:shapes} gives ring AP. Each GNN and hybrid is compared with GB-CAG within its
+column (Holm over the nine methods), and the structure gain GB-CAG $-$ GB-CA across the eight columns; every
+comparison is in the repository (\texttt{results/tables/shapes\_comparisons.csv}).
+
+No pure GNN, general-purpose or fraud-specialised, had significantly higher ring AP than GB-CAG in any column. The
+largest point estimate, SAGE for the small block at full volume ($+0.060$, 95\% CI $[-0.042, 0.163]$, Holm
+$p=0.96$), comes with an interval that also allows a deficit. Pure GNNs were significantly below GB-CAG in 32 of the
+56 method--column pairs, 26 of them for the hub and the large block.
+
+The engineered features also captured structure they were not designed for. Graph features added significantly to
+GB-CA for the hub ($+0.067$ and $+0.490$ at full and half volume), the large block ($+0.062$ and $+0.375$) and, at
+half volume, the distributed ring ($+0.131$) and the small block ($+0.377$; Holm $p\le0.02$ across the eight
+columns). At full volume the distributed ring and the small block were detected by aggregates alone (structure gain
+$+0.003$ and $+0.020$, not significant). The unsupervised overlap score shows where the closure statistic works: at
+full volume it reached 0.853 and 0.988 for the hub and the large block, but only 0.534 and 0.475 for the distributed
+ring and the small block.
+
+The only significant advantage over GB-CAG was that of the hybrid SAGE+AG for the distributed ring ($+0.014$
+$[0.008, 0.020]$ at full and $+0.093$ $[0.050, 0.136]$ at half volume, Holm $p=0.019$ and $0.023$), whose
+doctor--patient links are sparser than those of any block in the main grid. As for the sparse blocks there, message
+passing on top of the engineered features helped where those features were least informative. On isolated fraud
+every GNN and hybrid was again below GB-CAG in every column, by 0.04 to 0.37.
+
+\begin{table}[h]
+\caption{Ring AP on unseen test rings for other ring shapes and sizes ($\delta=0$, six worlds per column, seeds 1--6, hyperparameters of the main experiment). Hub: one hub doctor and three spoke doctors, twelve patients, each linked to the hub and one spoke; distributed: eight doctors and 24 patients, each patient linked to two ring doctors; small and large block: 2 doctors and 6 patients or 8 and 24, $s=0.5$. Full: per-member claim volume of the default ring; half: half of it. Chance level 0.021--0.148. Bold: best per column.}\label{tab:shapes}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{Hub} & \multicolumn{2}{c}{Distributed} & \multicolumn{2}{c}{Small block} & \multicolumn{2}{c}{Large block} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+Method / volume & full & half & full & half & full & half & full & half \\
+\midrule
+GB-C & 0.089 & 0.044 & 0.150 & 0.076 & 0.050 & 0.028 & 0.146 & 0.078 \\
+MLP-C & 0.089 & 0.045 & 0.158 & 0.086 & 0.048 & 0.028 & 0.157 & 0.083 \\
+LR-CA & 0.881 & 0.503 & 0.927 & 0.604 & 0.832 & 0.353 & 0.893 & 0.583 \\
+RF-CA & 0.845 & 0.288 & 0.936 & 0.489 & 0.694 & 0.148 & 0.918 & 0.599 \\
+GB-CA & 0.912 & 0.348 & 0.957 & 0.566 & 0.849 & 0.221 & 0.931 & 0.566 \\
+GB-CAG & 0.978 & \textbf{0.838} & 0.960 & 0.697 & 0.869 & 0.598 & \textbf{0.993} & \textbf{0.941} \\
+\midrule
+SAGE & 0.929 & 0.574 & 0.962 & 0.704 & \textbf{0.930} & 0.376 & 0.975 & 0.847 \\
+RGCN & 0.923 & 0.565 & 0.956 & 0.700 & 0.900 & 0.263 & 0.973 & 0.816 \\
+HAN & 0.860 & 0.402 & 0.946 & 0.664 & 0.750 & 0.178 & 0.964 & 0.776 \\
+Simple-HGN & 0.926 & 0.584 & 0.963 & 0.717 & 0.852 & 0.350 & 0.980 & 0.864 \\
+HGT & 0.905 & 0.420 & 0.955 & 0.661 & 0.753 & 0.149 & 0.967 & 0.843 \\
+\midrule
+BWGNN & 0.887 & 0.456 & 0.948 & 0.679 & 0.706 & 0.213 & 0.962 & 0.766 \\
+CARE-GNN & 0.865 & 0.251 & 0.946 & 0.611 & 0.681 & 0.152 & 0.932 & 0.651 \\
+\midrule
+SAGE+AG & 0.980 & 0.816 & \textbf{0.974} & \textbf{0.790} & 0.925 & \textbf{0.662} & 0.993 & 0.939 \\
+HGT+AG & \textbf{0.982} & 0.799 & 0.966 & 0.735 & 0.892 & 0.579 & 0.990 & 0.926 \\
+Overlap score & 0.853 & 0.536 & 0.534 & 0.301 & 0.475 & 0.258 & 0.988 & 0.862 \\
+\botrule
+\end{tabular}
+\end{table}
+
 \section{Cost of training and scoring}\label{sec:s_cost}
 Median training time per world (Intel Core i7-1068NG7 laptop CPU, two
 threads per job with several jobs in parallel, so times are indicative) was
 3~s for GB-CAG, 39~s for SAGE, 56~s for RGCN, 86~s for HAN, 126~s for HGT and
-144~s for Simple-HGN; scoring a test period took at most 0.25~s for any
-method. A separate single-thread benchmark on an otherwise idle machine (four
+144~s for Simple-HGN (first-round runs; the fraud-specialised GNNs ran in the fourth round under a different
+load and are not included); scoring a test period took at most 0.25~s for any method. A separate single-thread benchmark on an otherwise idle machine (four
 worlds at $\delta=0$) measured scoring directly. For one audit period (about
 4{,}900 claims and 11{,}200 nodes), building the aggregate and graph features
 took 0.05~s and the heterogeneous graph 0.01~s, and scoring every claim took
@@ -485,15 +555,16 @@ Both analyses were specified in the plan for the second round of experiments bef
 fold $k+1$ validation, three training folds) was repeated with the stratified fold assignment reshuffled four more
 times (seeds 1--4), giving 25 rotations with the article's split as the first. The second round covered the
 tabular models, the MLP and three GNNs (SAGE, HAN, HGT); RGCN, Simple-HGN and the two hybrids were added in the
-third round with the same reshuffled folds (\texttt{paper/hiss\_review/analysis\_plan\_round3.md}). Hyperparameters are those of the shared selection. Each method is compared with GB-P by
+third round and the fraud-specialised BWGNN and CARE-GNN in the fourth, with the same reshuffled folds
+(\texttt{paper/hiss\_review/analysis\_plan\_round3.md} and \texttt{round4.md}). Hyperparameters are those of the shared selection. Each method is compared with GB-P by
 the corrected repeated cross-validation $t$-test (Nadeau and Bengio 2003; Bouckaert and Frank 2004; references
 \MainRefNadeau{} and \MainRefBouckaert{} of the article), which inflates the variance
-of the mean difference by $1/25 + 1/3$ instead of $1/25$, with 24 degrees of freedom, and the twelve $p$-values
-are Holm-adjusted together (the second round adjusted its eight within that smaller family).
+of the mean difference by $1/25 + 1/3$ instead of $1/25$, with 24 degrees of freedom, and the fourteen $p$-values
+are Holm-adjusted together (the earlier rounds adjusted eight and twelve within smaller families).
 Table~\ref{tab:kaggle_repeated} shows the result. GB-P has the highest mean AP; graph features change it by $-0.007$
 and $-0.006$, with upper 95\% limits of $+0.006$ and $+0.007$; the GNNs are 0.025--0.092 lower and the hybrids
-0.039--0.063 lower. After adjustment only RGCN differs significantly ($-0.092$, Holm $p=0.008$); the next smallest
-adjusted $p$ is 0.052 (SAGE+G). Without the correction, every difference would be significant (all unadjusted
+0.039--0.063 lower. After adjustment only RGCN differs significantly ($-0.092$, Holm $p=0.009$); the next smallest
+adjusted $p$ is 0.062 (SAGE+G). Without the correction, every difference would be significant (all unadjusted
 $p<0.01$), which shows how strongly overlapping training sets inflate a plain paired test.
 
 \begin{table}[h]
@@ -503,19 +574,21 @@ $p<0.01$), which shows how strongly overlapping training sets inflate a plain pa
 \toprule
 Method & AP & $\Delta$ vs.\ GB-P [95\% CI] & $p$ \\
 \midrule
-LR-P & 0.674 $\pm$ 0.046 & $-0.019$ [$-0.044$, $+0.006$] & 0.804 \\
-RF-P & 0.674 $\pm$ 0.041 & $-0.019$ [$-0.042$, $+0.005$] & 0.804 \\
+LR-P & 0.674 $\pm$ 0.046 & $-0.019$ [$-0.044$, $+0.006$] & 0.905 \\
+RF-P & 0.674 $\pm$ 0.041 & $-0.019$ [$-0.042$, $+0.005$] & 0.905 \\
 GB-P & 0.693 $\pm$ 0.045 & -- & -- \\
-GB-PG & 0.686 $\pm$ 0.045 & $-0.007$ [$-0.019$, $+0.006$] & 0.804 \\
-GB-PGL & 0.687 $\pm$ 0.046 & $-0.006$ [$-0.019$, $+0.007$] & 0.804 \\
-MLP-P & 0.676 $\pm$ 0.042 & $-0.017$ [$-0.042$, $+0.009$] & 0.804 \\
-SAGE & 0.665 $\pm$ 0.058 & $-0.028$ [$-0.066$, $+0.010$] & 0.804 \\
-RGCN & 0.601 $\pm$ 0.051 & $-0.092$ [$-0.140$, $-0.043$] & 0.008 \\
-HAN & 0.659 $\pm$ 0.046 & $-0.034$ [$-0.066$, $-0.002$] & 0.326 \\
-Simple-HGN & 0.666 $\pm$ 0.048 & $-0.027$ [$-0.063$, $+0.008$] & 0.804 \\
-HGT & 0.668 $\pm$ 0.050 & $-0.025$ [$-0.055$, $+0.005$] & 0.804 \\
-SAGE+G & 0.630 $\pm$ 0.049 & $-0.063$ [$-0.105$, $-0.021$] & 0.052 \\
-HGT+G & 0.654 $\pm$ 0.041 & $-0.039$ [$-0.068$, $-0.009$] & 0.122 \\
+GB-PG & 0.686 $\pm$ 0.045 & $-0.007$ [$-0.019$, $+0.006$] & 0.905 \\
+GB-PGL & 0.687 $\pm$ 0.046 & $-0.006$ [$-0.019$, $+0.007$] & 0.905 \\
+MLP-P & 0.676 $\pm$ 0.042 & $-0.017$ [$-0.042$, $+0.009$] & 0.905 \\
+SAGE & 0.665 $\pm$ 0.058 & $-0.028$ [$-0.066$, $+0.010$] & 0.905 \\
+RGCN & 0.601 $\pm$ 0.051 & $-0.092$ [$-0.140$, $-0.043$] & 0.009 \\
+HAN & 0.659 $\pm$ 0.046 & $-0.034$ [$-0.066$, $-0.002$] & 0.398 \\
+Simple-HGN & 0.666 $\pm$ 0.048 & $-0.027$ [$-0.063$, $+0.008$] & 0.905 \\
+HGT & 0.668 $\pm$ 0.050 & $-0.025$ [$-0.055$, $+0.005$] & 0.905 \\
+BWGNN & 0.665 $\pm$ 0.051 & $-0.028$ [$-0.065$, $+0.008$] & 0.905 \\
+CARE-GNN & 0.661 $\pm$ 0.043 & $-0.032$ [$-0.065$, $0.000$] & 0.500 \\
+SAGE+G & 0.630 $\pm$ 0.049 & $-0.063$ [$-0.105$, $-0.021$] & 0.062 \\
+HGT+G & 0.654 $\pm$ 0.041 & $-0.039$ [$-0.068$, $-0.009$] & 0.146 \\
 \botrule
 \end{tabular}
 \end{table}
@@ -528,7 +601,7 @@ selected inside each rotation. Re-selection changed AP by at most 0.010 for the 
 $-0.008$ (HGT) to $+0.036$ (RGCN) for the GNNs and hybrids, with no change significant; SAGE selected its shared
 configuration in all five rotations, and SAGE+G inherits it, so their results are identical. We had expected the
 shared selection to favour the GNNs; it did not do so systematically. With every method selected inside each
-rotation, GB-P remains the best method, and every GNN and hybrid is 0.023--0.053 below it (smallest Holm $p=0.051$
+rotation, GB-P remains the best method, and every GNN and hybrid is 0.023--0.053 below it (smallest Holm $p=0.059$
 for SAGE and SAGE+G).
 
 \begin{table}[h]
@@ -539,19 +612,21 @@ for SAGE and SAGE+G).
 \toprule
 Method & Nested AP & Nested $-$ shared [95\% CI] & vs.\ nested GB-P [95\% CI] & $p$ \\
 \midrule
-LR-P & 0.682 & $+0.003$ [$-0.008$, $+0.015$] & $-0.024$ [$-0.055$, $+0.007$] & 0.607 \\
-RF-P & 0.680 & $-0.001$ [$-0.021$, $+0.019$] & $-0.026$ [$-0.062$, $+0.010$] & 0.607 \\
+LR-P & 0.682 & $+0.003$ [$-0.008$, $+0.015$] & $-0.024$ [$-0.055$, $+0.007$] & 0.708 \\
+RF-P & 0.680 & $-0.001$ [$-0.021$, $+0.019$] & $-0.026$ [$-0.062$, $+0.010$] & 0.708 \\
 GB-P & 0.706 & $+0.002$ [$-0.016$, $+0.019$] & -- & -- \\
-GB-PG & 0.693 & $-0.001$ [$-0.033$, $+0.030$] & $-0.012$ [$-0.045$, $+0.020$] & 0.607 \\
-GB-PGL & 0.687 & $-0.010$ [$-0.040$, $+0.020$] & $-0.019$ [$-0.057$, $+0.018$] & 0.607 \\
-MLP-P & 0.688 & $+0.003$ [$-0.008$, $+0.014$] & $-0.018$ [$-0.045$, $+0.010$] & 0.607 \\
-SAGE & 0.664 & same choice & $-0.042$ [$-0.062$, $-0.022$] & 0.051 \\
-RGCN & 0.657 & $+0.036$ [$-0.014$, $+0.086$] & $-0.049$ [$-0.103$, $+0.005$] & 0.527 \\
-HAN & 0.670 & $+0.003$ [$-0.023$, $+0.030$] & $-0.036$ [$-0.089$, $+0.017$] & 0.607 \\
-Simple-HGN & 0.682 & $+0.012$ [$-0.032$, $+0.056$] & $-0.023$ [$-0.048$, $+0.001$] & 0.527 \\
-HGT & 0.668 & $-0.008$ [$-0.034$, $+0.019$] & $-0.038$ [$-0.065$, $-0.011$] & 0.177 \\
-SAGE+G & 0.653 & same choice & $-0.053$ [$-0.078$, $-0.027$] & 0.051 \\
-HGT+G & 0.661 & $+0.013$ [$-0.018$, $+0.043$] & $-0.045$ [$-0.096$, $+0.006$] & 0.527 \\
+GB-PG & 0.693 & $-0.001$ [$-0.033$, $+0.030$] & $-0.012$ [$-0.045$, $+0.020$] & 0.708 \\
+GB-PGL & 0.687 & $-0.010$ [$-0.040$, $+0.020$] & $-0.019$ [$-0.057$, $+0.018$] & 0.708 \\
+MLP-P & 0.688 & $+0.003$ [$-0.008$, $+0.014$] & $-0.018$ [$-0.045$, $+0.010$] & 0.708 \\
+SAGE & 0.664 & same choice & $-0.042$ [$-0.062$, $-0.022$] & 0.059 \\
+RGCN & 0.657 & $+0.036$ [$-0.014$, $+0.086$] & $-0.049$ [$-0.103$, $+0.005$] & 0.585 \\
+HAN & 0.670 & $+0.003$ [$-0.023$, $+0.030$] & $-0.036$ [$-0.089$, $+0.017$] & 0.708 \\
+Simple-HGN & 0.682 & $+0.012$ [$-0.032$, $+0.056$] & $-0.023$ [$-0.048$, $+0.001$] & 0.585 \\
+HGT & 0.668 & $-0.008$ [$-0.034$, $+0.019$] & $-0.038$ [$-0.065$, $-0.011$] & 0.213 \\
+BWGNN & 0.670 & $-0.003$ [$-0.018$, $+0.012$] & $-0.036$ [$-0.100$, $+0.029$] & 0.708 \\
+CARE-GNN & 0.673 & $+0.005$ [$-0.019$, $+0.028$] & $-0.032$ [$-0.060$, $-0.005$] & 0.352 \\
+SAGE+G & 0.653 & same choice & $-0.053$ [$-0.078$, $-0.027$] & 0.059 \\
+HGT+G & 0.661 & $+0.013$ [$-0.018$, $+0.043$] & $-0.045$ [$-0.096$, $+0.006$] & 0.585 \\
 \botrule
 \end{tabular}
 \end{table}

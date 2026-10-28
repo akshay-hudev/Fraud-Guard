@@ -1,0 +1,181 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-28T05:55:56+00:00",
+    "git": {
+      "commit": "78072e866d8850111821649c3d9f234acdcb863c",
+      "dirty": false,
+      "research_sources_sha256": "cc29400c9c8b231d"
+    },
+    "config_hash": "1f2bcf3c114aa23f",
+    "config": {
+      "budget": 10,
+      "dev_seeds": [
+        901,
+        902
+      ],
+      "dev_regime": {
+        "ring_shift": 0.5,
+        "ring_density": 0.5
+      },
+      "methods": [
+        "BWGNN"
+      ]
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    }
+  },
+  "trials": {
+    "BWGNN": [
+      {
+        "hp": {
+          "dropout": 0.1,
+          "hidden": 64,
+          "lr": 0.003,
+          "order": 2,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9251432219378989,
+          0.8601569831378859
+        ],
+        "mean_val_ap": 0.8926501025378923
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 64,
+          "lr": 0.003,
+          "order": 2,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.9287676979540062,
+          0.8662229675240849
+        ],
+        "mean_val_ap": 0.8974953327390456
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "hidden": 32,
+          "lr": 0.001,
+          "order": 2,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9202908770128674,
+          0.8687115861879351
+        ],
+        "mean_val_ap": 0.8945012316004013
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 64,
+          "lr": 0.003,
+          "order": 3,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9282862995316907,
+          0.8649292549177279
+        ],
+        "mean_val_ap": 0.8966077772247093
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "hidden": 64,
+          "lr": 0.01,
+          "order": 2,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.922701202074567,
+          0.8680437948179562
+        ],
+        "mean_val_ap": 0.8953724984462617
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 64,
+          "lr": 0.001,
+          "order": 3,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9216120255547177,
+          0.8620583856884924
+        ],
+        "mean_val_ap": 0.891835205621605
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 32,
+          "lr": 0.001,
+          "order": 3,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.9209145726173464,
+          0.8702330772385312
+        ],
+        "mean_val_ap": 0.8955738249279388
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 32,
+          "lr": 0.001,
+          "order": 2,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9199095142373954,
+          0.8793744236538699
+        ],
+        "mean_val_ap": 0.8996419689456326
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "hidden": 32,
+          "lr": 0.001,
+          "order": 2,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.9196027218970508,
+          0.8689956384749954
+        ],
+        "mean_val_ap": 0.8942991801860232
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 64,
+          "lr": 0.003,
+          "order": 2,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9288744774597437,
+          0.8663368834352638
+        ],
+        "mean_val_ap": 0.8976056804475038
+      }
+    ]
+  }
+}

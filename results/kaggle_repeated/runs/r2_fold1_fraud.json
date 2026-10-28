@@ -1,0 +1,91 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-28T09:33:30+00:00",
+    "git": {
+      "commit": "78072e866d8850111821649c3d9f234acdcb863c",
+      "dirty": false,
+      "research_sources_sha256": "cc29400c9c8b231d"
+    },
+    "config_hash": "e1ac4553b0e084e5",
+    "config": {
+      "fold": 1,
+      "repeat": 2,
+      "methods": [
+        "BWGNN",
+        "CARE-GNN"
+      ]
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "hyperparameters": {
+      "BWGNN": {
+        "dropout": 0.3,
+        "hidden": 64,
+        "lr": 0.003,
+        "order": 3,
+        "weight_decay": 0.001
+      },
+      "CARE-GNN": {
+        "dropout": 0.1,
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.001,
+        "weight_decay": 0.0001
+      }
+    },
+    "data": {
+      "n_providers": 5410,
+      "n_fraud": 506,
+      "P_hash": "11c2c5f183b47228",
+      "files": "data/external/kaggle_provider_fraud"
+    }
+  },
+  "rows": [
+    {
+      "method": "BWGNN",
+      "fold": 1,
+      "repeat": 2,
+      "ap": 0.6894721189022435,
+      "roc_auc": 0.9443687488014857,
+      "f1": 0.6,
+      "precision": 0.5348837209302325,
+      "recall": 0.6831683168316832,
+      "recall_at_10pct": 0.6138613861386139,
+      "threshold": 0.7967783212661743,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.6782864320022305,
+      "train_seconds": 13.580345869064331,
+      "infer_seconds": 0.08193111419677734,
+      "best_epoch": 33
+    },
+    {
+      "method": "CARE-GNN",
+      "fold": 1,
+      "repeat": 2,
+      "ap": 0.6503713648874082,
+      "roc_auc": 0.9407353579394637,
+      "f1": 0.6244343891402715,
+      "precision": 0.575,
+      "recall": 0.6831683168316832,
+      "recall_at_10pct": 0.6138613861386139,
+      "threshold": 0.8034202456474304,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.6386286893816534,
+      "train_seconds": 53.218194246292114,
+      "infer_seconds": 0.35834693908691406,
+      "best_epoch": 63
+    }
+  ]
+}

@@ -12,6 +12,14 @@ Two fraud typologies are injected into a background of legitimate claims:
     - ``ring_density`` (s): probability that a pool patient is linked to each
       ring doctor. Ring claim *volume* is fixed, so s changes only how the
       claims are spread over the doctor-patient block (structural signal).
+  ``ring_shape`` sets how ring patients are linked to ring doctors:
+    - ``block`` (default): each patient-doctor link exists with probability s;
+    - ``hub``: one hub doctor is linked to every ring patient and each patient
+      to one of the other (spoke) doctors, as in a kickback scheme centred on
+      one provider; s is not used;
+    - ``pairs``: each patient is linked to exactly two ring doctors drawn at
+      random, a distributed ring whose doctor pairs share few patients; s is
+      not used.
 
 Time is divided into equal audit periods of ``period_months`` (default four
 periods of six months). Periods 1-2 form the training split, period 3 the
@@ -58,6 +66,7 @@ class GeneratorConfig:
     ring_doctors: int = 4
     ring_patients: int = 12
     ring_claims_per_month: float = 16.0
+    ring_shape: str = "block"          # "block", "hub" or "pairs" (see module docstring)
     rings_per_period: int = 4
     persistent_rings: int = 0          # >0 switches to the persistent protocol with this many rings
     seed: int = 0
@@ -66,7 +75,10 @@ class GeneratorConfig:
         return replace(self, **kwargs)
 
     def as_dict(self) -> dict:
-        return asdict(self)
+        d = asdict(self)
+        if d["ring_shape"] == "block":         # the default is omitted, so earlier configurations keep their hashes
+            d.pop("ring_shape")
+        return d
 
     @property
     def protocol(self) -> str:
@@ -215,9 +227,23 @@ def generate(config: GeneratorConfig) -> SyntheticWorld:
     for ring_idx, active in enumerate(windows):
         r_docs = doc_pool[ring_idx * config.ring_doctors:(ring_idx + 1) * config.ring_doctors]
         r_pats = pat_pool[ring_idx * config.ring_patients:(ring_idx + 1) * config.ring_patients]
-        links = rng.random((len(r_pats), len(r_docs))) < config.ring_density
-        links[np.arange(len(r_pats)), rng.integers(0, len(r_docs), len(r_pats))] = True   # every patient linked
-        links[rng.integers(0, len(r_pats), len(r_docs)), np.arange(len(r_docs))] = True   # every doctor linked
+        if config.ring_shape == "block":
+            links = rng.random((len(r_pats), len(r_docs))) < config.ring_density
+            links[np.arange(len(r_pats)), rng.integers(0, len(r_docs), len(r_pats))] = True   # every patient linked
+            links[rng.integers(0, len(r_pats), len(r_docs)), np.arange(len(r_docs))] = True   # every doctor linked
+        elif config.ring_shape == "hub":
+            # Doctor 0 is the hub; spokes receive the patients in (near) equal shares.
+            links = np.zeros((len(r_pats), len(r_docs)), bool)
+            links[:, 0] = True
+            links[np.arange(len(r_pats)), 1 + rng.permutation(len(r_pats)) % (len(r_docs) - 1)] = True
+        elif config.ring_shape == "pairs":
+            links = np.zeros((len(r_pats), len(r_docs)), bool)
+            for i in range(len(r_pats)):
+                links[i, rng.choice(len(r_docs), 2, replace=False)] = True
+            for j in np.flatnonzero(~links.any(0)):                                          # every doctor linked
+                links[rng.integers(0, len(r_pats)), j] = True
+        else:
+            raise ValueError(f"unknown ring_shape {config.ring_shape!r}")
         li, lj = np.nonzero(links)
         for start, end in active:
             n_claims = int(round(config.ring_claims_per_month * (end - start) / DAYS_PER_MONTH))

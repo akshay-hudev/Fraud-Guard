@@ -17,18 +17,31 @@ Following the structure of *Datasheets for Datasets* (Gebru et al., 2021).
   `truth` table that feature code never reads (enforced by tests).
 * **Fraud typologies.** Isolated fraud: 3% of legitimate volume, upcoded claims through the patient's own regular
   doctor (feature shift 2 s.d.). Rings: 4 doctors × 12 recruited patients, 16 claims/month during activity,
-  claims between linked pairs; link probability `ring_density` (s); feature shift `ring_shift` (δ).
+  claims between linked pairs; link probability `ring_density` (s); feature shift `ring_shift` (δ). Ring size
+  (`ring_doctors`, `ring_patients`) and shape (`ring_shape`) can be changed: `block` (default; each patient linked
+  to each doctor with probability s), `hub` (one hub doctor linked to every ring patient, each patient also to one
+  spoke doctor) and `pairs` (each patient linked to two ring doctors drawn at random). The default reproduces the
+  earlier worlds exactly (tested).
 * **Splits.** Four 6-month audit periods; periods 1–2 train, 3 validation, 4 test. Emergent protocol: four new
   rings per period with disjoint members; persistent protocol: the same four rings in every period.
 * **Known properties.** Ring patients have higher utilisation than average (recruitment is utilisation-weighted
-  and rings add claims); this degree signal is identical in every regime. At δ = 0 ring claims follow the
-  legitimate claim distribution of the doctor's specialty (tested with a two-sample KS test).
+  and rings add claims); this degree signal is identical in every regime and large at the default ring volume
+  (16 claims per month): a ring patient files 9.3 claims per test period against 1.6 for other patients
+  (99th percentile ≈ 5), a ring doctor 38 against 16. With `ring_claims_per_month = 4` (low-volume stress
+  test) these become 3.7 (≈ the 95th percentile of other patients) and 20, and ring prevalence falls from 8.0% to
+  2.1% of non-isolated claims; at 8 claims per month 5.4 and 26 (4.2%), at 2 claims per month 3.0 and 18 (1.1%)
+  (`results/tables/volume_signal.csv`). At δ = 0 ring claims follow the legitimate
+  claim distribution of the doctor's specialty (tested with a two-sample KS test).
+* **Shared background across regimes.** The generator draws entities, legitimate claims, isolated fraud and
+  recruited ring members before it applies δ and s, so the nine regimes of one seed share all of them and differ
+  only in their ring claims (tested). Analyses pooled over regimes must treat the seed as the unit.
 * **Missing data / noise.** None injected. Labels are noise-free and immediate (a limitation; see below).
 * **Confidentiality.** Fully synthetic; contains no real persons.
 
 ## Collection process
-Not collected; simulated from fixed random seeds (evaluation worlds: seeds 1–6 per regime; development
-worlds for tuning: seeds 901, 902 at δ = 0.5, s = 0.5).
+Not collected; simulated from fixed random seeds (evaluation worlds: seeds 1–12 per regime, seeds 1–6 for the
+secondary analyses and ring-volume levels, seeds 7–18 for the confirmatory test at volume 4; development worlds for
+tuning: seeds 901, 902 at δ = 0.5, s = 0.5).
 
 ## Preprocessing
 Features are built per audit period from that period's claims only (`research/synth/features.py`); graphs
@@ -43,6 +56,7 @@ likewise (`research/synth/graph.py`). Standardisation statistics come from train
 ## Limitations
 Uniform/log-normal distributions without real coding semantics; no seasonality beyond a mild winter bump;
 static entity attributes; no label noise, delayed labels, partial ring membership or adversarial adaptation;
+three ring shapes only (block, hub, pairs), all static during a ring's active period;
 ring prevalence (~8% of test-period claims) far above realistic levels to give statistical power.
 
 ## Distribution and maintenance

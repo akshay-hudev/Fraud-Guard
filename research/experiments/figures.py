@@ -16,12 +16,13 @@ import numpy as np
 import pandas as pd
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 from matplotlib.lines import Line2D
+from scipy.stats import t as stats_t
 from sklearn.metrics import precision_recall_curve
 
 from ..ledger import RESULTS_DIR
 from ..metrics import t_ci, val_threshold
 from ..synth.generator import GeneratorConfig, generate
-from .analyze import load_cascade, load_rows
+from .analyze import DOSE_SETS, ROUND1_SEEDS, load_cascade, load_rows
 from .cascade import ESCALATION, route
 from .synthetic import run_tag
 
@@ -34,11 +35,16 @@ STYLE = {"GB-CA": (BLUE, "o", "-"), "GB-CAG": (BLUE, "s", "--"), "HGT": (ORANGE,
          "MLP-C": (GRAY, "P", "-")}
 
 plt.rcParams.update({
-    "font.size": 8, "axes.titlesize": 8.5, "axes.labelsize": 8, "xtick.labelsize": 7, "ytick.labelsize": 7,
+    # HISS recommends Helvetica/Arial lettering of about 8-12 pt; figures are 7 in wide, the journal's full width.
+    "font.size": 9, "axes.titlesize": 9, "axes.labelsize": 9, "xtick.labelsize": 8, "ytick.labelsize": 8,
+    "legend.fontsize": 8,
     "axes.edgecolor": INK2, "axes.labelcolor": INK, "xtick.color": INK2, "ytick.color": INK2,
     "axes.spines.top": False, "axes.spines.right": False, "axes.grid": True, "grid.color": GRID,
     "grid.linewidth": 0.6, "axes.axisbelow": True, "lines.linewidth": 1.6, "savefig.dpi": 300,
-    "pdf.fonttype": 42, "font.family": "DejaVu Sans",
+    "pdf.fonttype": 42, "font.family": ["Arial", "Helvetica", "DejaVu Sans"],
+    # Symbols such as delta in labels are set as math text, which otherwise falls back to DejaVu Sans.
+    "mathtext.fontset": "custom", "mathtext.rm": "Arial", "mathtext.it": "Arial:italic", "mathtext.bf": "Arial:bold",
+    "mathtext.sf": "Arial",
 })
 
 
@@ -94,7 +100,8 @@ def delta_heatmaps(df: pd.DataFrame, comp: pd.DataFrame) -> None:
             for j in range(M.shape[1]):
                 if np.isfinite(M[i, j]):
                     star = "*" if P[i, j] < 0.05 else ""
-                    ax.text(j, i, f"{M[i, j]:+.2f}{star}", ha="center", va="center", fontsize=6.5,
+                    label = f"{M[i, j]:+.2f}".replace("+0.00", "0.00").replace("-0.00", "0.00")
+                    ax.text(j, i, f"{label}{star}", ha="center", va="center", fontsize=8,
                             color="white" if abs(M[i, j]) > 0.6 * lim else INK)
         ax.set_xticks(range(len(dens)), [f"{d:g}" for d in dens])
         ax.set_yticks(range(len(shifts)), [f"{s:g}" for s in shifts])
@@ -136,19 +143,57 @@ def ablation_dots(abl: pd.DataFrame) -> None:
     plt.close(fig)
 
 
+def _corrected_half(x, test_train_ratio: float = 1 / 3) -> float:
+    """Half-width of the 95% interval over cross-validation rotations with overlapping training sets
+    (variance inflated by 1/J + n_test/n_train; Nadeau and Bengio, 2003)."""
+    x = np.asarray(x, float)
+    return float(stats_t.ppf(0.975, len(x) - 1) * np.sqrt(1 / len(x) + test_train_ratio) * x.std(ddof=1))
+
+
 def kaggle_dots(kag: pd.DataFrame) -> None:
     g = kag.groupby("method")["ap"]
-    stats = pd.DataFrame({"mean": g.mean(), "half": g.apply(_ci_half)}).sort_values("mean")
+    stats = pd.DataFrame({"mean": g.mean(), "half": g.apply(_corrected_half)}).sort_values("mean")
     fig, ax = plt.subplots(figsize=(3.4, 3.0))
     for i, (m, r) in enumerate(stats.iterrows()):
         color = AQUA if "+" in m else (BLUE if m.split("-")[0] in ("LR", "RF", "GB") else (GRAY if m.startswith("MLP") else ORANGE))
         ax.errorbar(r["mean"], i, xerr=r["half"], color=color, marker="o", ms=4, capsize=2, elinewidth=0.8, ls="none")
-        ax.text(r["mean"] + r["half"] + 0.005, i, f"{r['mean']:.3f}", va="center", fontsize=6.5, color=INK2)
+        ax.text(r["mean"] + r["half"] + 0.005, i, f"{r['mean']:.3f}", va="center", fontsize=8, color=INK2)
     ax.set_yticks(range(len(stats)), stats.index)
-    ax.set_xlabel("provider-level AP (mean, 95% CI over 5 folds)")
+    ax.set_xlabel("provider-level AP (mean, corrected 95% CI)")
     ax.grid(axis="y", visible=False)
     fig.tight_layout()
     fig.savefig(FIG / "fig_kaggle_ap.pdf", bbox_inches="tight")
+    plt.close(fig)
+
+
+def dose_response(df: pd.DataFrame) -> None:
+    """Ring AP against ring volume at delta = 0 (seeds 1-6), one panel per structural density."""
+    methods = ["GB-CA", "GB-CAG", "SAGE", "HGT", "SAGE+AG", "Overlap-score"]
+    style = {**STYLE, "SAGE+AG": (AQUA, "v", "--")}
+    dens_values = sorted(df.ring_density.unique())
+    fig, axes = plt.subplots(1, len(dens_values), figsize=(7.0, 2.5), sharey=True)
+    for ax, d in zip(np.atleast_1d(axes), dens_values):
+        sub = df[df.ring_density == d]
+        for m in methods:
+            g = sub[sub.method == m].groupby("volume")["ring_ap"]
+            mean, half = g.mean(), g.apply(_ci_half)
+            color, marker, ls = style[m]
+            ax.errorbar(mean.index, mean.values, yerr=half.values, color=color, marker=marker, ls=ls, ms=4,
+                        capsize=2, elinewidth=0.8, label=m.replace("Overlap-score", "Overlap score"), mec="white", mew=0.6)
+        chance = (sub.n_ring / (sub.n_test - sub.n_isolated)).groupby(sub.volume).mean()
+        ax.plot(chance.index, chance.values, color=GRAY, lw=0.9, ls=":", label="chance")
+        ax.set_xscale("log", base=2)
+        ax.set_xticks(sorted(df.volume.unique()), [f"{v:g}" for v in sorted(df.volume.unique())])
+        ax.minorticks_off()
+        ax.set_xlabel("ring claims per month")
+        ax.set_title(f"$\\delta$ = 0, $s$ = {d:g}", color=INK)
+        ax.set_ylim(0, 1.02)
+    np.atleast_1d(axes)[0].set_ylabel("ring AP (unseen rings)")
+    handles, labels = np.atleast_1d(axes)[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=len(labels), frameon=False, bbox_to_anchor=(0.5, -0.08),
+               fontsize=8)
+    fig.tight_layout(rect=(0, 0.08, 1, 1))
+    fig.savefig(FIG / "fig_dose_response.pdf", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -261,7 +306,7 @@ def _draw_panel(ax, pos, edges: pd.DataFrame, members: set, highlight=None) -> N
                    facecolors=INK if member else "white", edgecolors=INK if member else GRAY, linewidths=0.9)
     if highlight is not None:
         ax.annotate("isolated\nfraud claim", xy=highlight, xytext=(highlight[0], highlight[1] + 0.55), ha="center",
-                    fontsize=6.5, color=INK2, arrowprops={"arrowstyle": "-", "color": INK2, "lw": 0.6})
+                    fontsize=8, color=INK2, arrowprops={"arrowstyle": "-", "color": INK2, "lw": 0.6})
     ax.set_aspect("equal")
     ax.axis("off")
 
@@ -310,8 +355,8 @@ def ring_graph(seed: int = 1) -> None:
                 note = f"this ring's claims flagged: {flagged[in_ring].sum()}/{in_ring.sum()}\n" \
                        f"legitimate claims flagged (drawn): {edges.legit_flag.sum()}/{edges.legit.sum()}"
             if row == 0:
-                ax.set_title(titles[col], fontsize=7.5, color=INK)
-            ax.text(0.5, -0.02, note, transform=ax.transAxes, ha="center", va="top", fontsize=6.5, color=INK2)
+                ax.set_title(titles[col], fontsize=8, color=INK)
+            ax.text(0.5, -0.02, note, transform=ax.transAxes, ha="center", va="top", fontsize=8, color=INK2)
         axes[0, 0].text(-0.08, 0.5, "GB-CAG", transform=axes[0, 0].transAxes, rotation=90, va="center", ha="right",
                         fontsize=8, color=INK)
         axes[1, 0].text(-0.08, 0.5, "HGT", transform=axes[1, 0].transAxes, rotation=90, va="center", ha="right",
@@ -324,7 +369,7 @@ def ring_graph(seed: int = 1) -> None:
                Line2D([], [], marker="o", ls="none", mfc=INK, mec=INK, label="ring patient"),
                Line2D([], [], marker="s", ls="none", mfc="white", mec=GRAY, label="other doctor"),
                Line2D([], [], marker="o", ls="none", mfc="white", mec=GRAY, label="other patient")]
-    fig.legend(handles=handles, loc="lower center", ncol=4, frameon=False, fontsize=6.8, bbox_to_anchor=(0.5, -0.04))
+    fig.legend(handles=handles, loc="upper center", ncol=4, frameon=False, fontsize=8, bbox_to_anchor=(0.5, 0.0))
     fig.subplots_adjust(left=0.04, right=0.99, top=0.95, bottom=0.08, wspace=0.05)
     fig.savefig(FIG / "fig_ring_graph.pdf", bbox_inches="tight")
     plt.close(fig)
@@ -363,7 +408,7 @@ def cascade_figure(gnn: str = "HGT") -> None:
     ax.set_ylabel("precision")
     ax.set_ylim(0, 1.02)
     ax.set_title("(a) precision-recall, $\\delta$ = 0, $s$ = 0.9 (6 worlds)", color=INK)
-    ax.legend(frameon=False, loc="lower left", fontsize=6.8)
+    ax.legend(frameon=False, loc="lower left", fontsize=8)
     # (b-d) paired difference from GB-CAG against the escalation fraction, all 54 worlds
     keys = ["ring_shift", "ring_density", "seed"]
     for ax, metric, title in zip([axes[0, 1], axes[1, 0], axes[1, 1]], ["ap", "ring_ap", "isolated_ap"],
@@ -371,28 +416,29 @@ def cascade_figure(gnn: str = "HGT") -> None:
         x = np.arange(len(ESCALATION))
         base = rows[rows.method == "GB-CAG"].set_index(keys)[metric]
         alone = rows[rows.method == gnn].set_index(keys)[metric] - base
-        lo, hi = t_ci(alone.to_numpy())
+        # Intervals over the six seeds: a seed's nine regimes share its legitimate claims and ring members.
+        lo, hi = t_ci(alone.groupby(level="seed").mean().to_numpy())
         ax.axhline(0.0, color=BLUE, lw=1.2)
         ax.axhspan(lo, hi, color=ORANGE, alpha=0.15, lw=0)
         ax.axhline(alone.mean(), color=ORANGE, lw=1.2)
         box = {"facecolor": "white", "edgecolor": "none", "pad": 0.6}
-        ax.text(len(ESCALATION) - 0.55, 0.0, "GB-CAG", color=INK2, fontsize=6.5, va="center", ha="left", bbox=box)
-        ax.text(len(ESCALATION) - 0.55, alone.mean(), f"{gnn} alone", color=INK2, fontsize=6.5, va="center",
+        ax.text(len(ESCALATION) - 0.55, 0.0, "GB-CAG", color=INK2, fontsize=8, va="center", ha="left", bbox=box)
+        ax.text(len(ESCALATION) - 0.55, alone.mean(), f"{gnn} alone", color=INK2, fontsize=8, va="center",
                 ha="left", bbox=box)
         for mode in ["rerank", "fuse"]:
             c = curves[(curves.method == f"GB-CAG>{gnn}") & (curves["mode"] == mode)].set_index(keys)
             c = c.assign(diff=c[metric] - base.reindex(c.index).to_numpy())
-            g = c.groupby("escalation")["diff"]
+            g = c.groupby(["escalation", "seed"])["diff"].mean().groupby(level="escalation")
             mean, half = g.mean().reindex(ESCALATION), g.apply(_ci_half).reindex(ESCALATION)
             ls, marker, label = ROUTE_STYLE[mode]
             ax.errorbar(x, mean.values, yerr=half.values, color=AQUA, ls=ls, marker=marker, ms=4, capsize=2,
                         elinewidth=0.8, mec="white", mew=0.6, label=label)
         ax.set_xticks(x, [f"{e:.0%}" for e in ESCALATION])
-        ax.set_xlim(-0.4, len(ESCALATION) + 0.7)
+        ax.set_xlim(-0.4, len(ESCALATION) + 1.0)
         ax.set_xlabel(f"share of claims escalated to {gnn}")
         ax.set_ylabel("$\\Delta$ AP vs. GB-CAG")
-        ax.set_title(title + ": paired $\\Delta$ AP (54 worlds, 95% CI)", color=INK)
-    axes[0, 1].legend(frameon=False, loc="lower left", fontsize=6.8)
+        ax.set_title(title + ": paired $\\Delta$ AP (95% CI over 6 seeds)", color=INK)
+    axes[0, 1].legend(frameon=False, loc="lower left", fontsize=8)
     fig.tight_layout()
     fig.savefig(FIG / "fig_cascade.pdf", bbox_inches="tight")
     plt.close(fig)
@@ -417,6 +463,13 @@ def main():
     prot = RESULTS_DIR / "tables" / "protocol_ring_ap.csv"
     if prot.exists():
         protocol_pairs(pd.read_csv(prot))
+    dose = []
+    for vol, sub in DOSE_SETS.items():
+        d = load_rows(sub)
+        if not d.empty:
+            dose.append(d[(d.ring_shift == 0.0) & d.seed.isin(ROUND1_SEEDS)].assign(volume=vol))
+    if len(dose) > 1:
+        dose_response(pd.concat(dose, ignore_index=True))
     print("figures written to", FIG)
 
 

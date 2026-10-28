@@ -1,0 +1,26 @@
+\begin{table}[h]
+\caption{Per-regime tuning at $\delta=0$ (seeds 1--6): ring AP with the main configurations (tuned at $\delta=0.5$, $s=0.5$) and with every method re-tuned in the evaluation regime; $\Delta$: difference from GB-CAG when all methods are re-tuned (paired over worlds, Holm-adjusted $p$ over methods; confidence intervals in \texttt{results/tables/regimetuned\_comparisons.csv}). Hybrids inherit their base configuration.}\label{tab:regimetuned}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+ & \multicolumn{4}{c}{$s=0.1$} & \multicolumn{4}{c}{$s=0.9$} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+Method & Main & Re-tuned & $\Delta$ & $p$ & Main & Re-tuned & $\Delta$ & $p$ \\
+\midrule
+LR-CA & 0.923 & 0.923 & $-0.007$ & 1.000 & 0.868 & 0.868 & $-0.122$ & $<$0.001 \\
+RF-CA & 0.875 & 0.877 & $-0.053$ & 0.024 & 0.844 & 0.856 & $-0.134$ & $<$0.001 \\
+GB-C & 0.084 & 0.079 & $-0.851$ & $<$0.001 & 0.087 & 0.084 & $-0.906$ & $<$0.001 \\
+GB-CA & 0.925 & 0.924 & $-0.006$ & 1.000 & 0.889 & 0.884 & $-0.105$ & 0.003 \\
+GB-CAG & 0.930 & 0.930 & -- & -- & 0.990 & 0.989 & -- & -- \\
+MLP-C & 0.088 & 0.088 & $-0.842$ & $<$0.001 & 0.095 & 0.093 & $-0.897$ & $<$0.001 \\
+SAGE & 0.938 & 0.937 & $+0.007$ & 1.000 & 0.976 & 0.934 & $-0.056$ & 0.149 \\
+RGCN & 0.933 & 0.945 & $+0.016$ & 1.000 & 0.954 & 0.942 & $-0.047$ & 0.085 \\
+HAN & 0.908 & 0.906 & $-0.024$ & 1.000 & 0.921 & 0.921 & $-0.068$ & 0.085 \\
+Simple-HGN & 0.915 & 0.907 & $-0.023$ & 0.666 & 0.957 & 0.957 & $-0.033$ & 0.026 \\
+HGT & 0.910 & 0.910 & $-0.019$ & 1.000 & 0.949 & 0.949 & $-0.041$ & 0.385 \\
+SAGE+AG & 0.973 & 0.973 & $+0.043$ & 0.092 & 0.983 & 0.990 & $0.000$ & 1.000 \\
+HGT+AG & 0.964 & 0.964 & $+0.034$ & 0.666 & 0.990 & 0.990 & $0.000$ & 1.000 \\
+\botrule
+\end{tabular}
+\end{table}

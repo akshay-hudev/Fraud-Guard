@@ -1,0 +1,25 @@
+\begin{table}[h]
+\caption{Public data, five-fold rotation repeated five times (25 rotations; the first repeat is the split reported in the article): AP mean $\pm$ s.d., and the difference from GB-P with the corrected repeated cross-validation 95\% CI and Holm-adjusted $p$ (variance factor $1/25 + 1/3$, 24 degrees of freedom).}\label{tab:kaggle_repeated}
+\footnotesize
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Method & AP & $\Delta$ vs.\ GB-P [95\% CI] & $p$ \\
+\midrule
+LR-P & 0.674 $\pm$ 0.046 & $-0.019$ [$-0.044$, $+0.006$] & 0.905 \\
+RF-P & 0.674 $\pm$ 0.041 & $-0.019$ [$-0.042$, $+0.005$] & 0.905 \\
+GB-P & 0.693 $\pm$ 0.045 & -- & -- \\
+GB-PG & 0.686 $\pm$ 0.045 & $-0.007$ [$-0.019$, $+0.006$] & 0.905 \\
+GB-PGL & 0.687 $\pm$ 0.046 & $-0.006$ [$-0.019$, $+0.007$] & 0.905 \\
+MLP-P & 0.676 $\pm$ 0.042 & $-0.017$ [$-0.042$, $+0.009$] & 0.905 \\
+SAGE & 0.665 $\pm$ 0.058 & $-0.028$ [$-0.066$, $+0.010$] & 0.905 \\
+RGCN & 0.601 $\pm$ 0.051 & $-0.092$ [$-0.140$, $-0.043$] & 0.009 \\
+HAN & 0.659 $\pm$ 0.046 & $-0.034$ [$-0.066$, $-0.002$] & 0.398 \\
+Simple-HGN & 0.666 $\pm$ 0.048 & $-0.027$ [$-0.063$, $+0.008$] & 0.905 \\
+HGT & 0.668 $\pm$ 0.050 & $-0.025$ [$-0.055$, $+0.005$] & 0.905 \\
+BWGNN & 0.665 $\pm$ 0.051 & $-0.028$ [$-0.065$, $+0.008$] & 0.905 \\
+CARE-GNN & 0.661 $\pm$ 0.043 & $-0.032$ [$-0.065$, $0.000$] & 0.500 \\
+SAGE+G & 0.630 $\pm$ 0.049 & $-0.063$ [$-0.105$, $-0.021$] & 0.062 \\
+HGT+G & 0.654 $\pm$ 0.041 & $-0.039$ [$-0.068$, $-0.009$] & 0.146 \\
+\botrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,18 @@
+\begin{table}[h]
+\caption{Training-seed replication at $\delta=0$ (seeds 1--6, three densities, training seeds 0--2). Ring AP difference from GB-CAG pooled over densities (seed as unit, Holm-adjusted $p$), with the reported training seed only and with each world's mean over three training seeds; and the standard deviation of ring AP across training seeds within a world and across worlds (means over densities).}\label{tab:modelseeds}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{Seed 0 only} & \multicolumn{2}{c}{Mean of 3 seeds} & \multicolumn{2}{c}{s.d. of ring AP} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Method & $\Delta$ [95\% CI] & $p$ & $\Delta$ [95\% CI] & $p$ & training & worlds \\
+\midrule
+GB-CAG & -- & -- & -- & -- & 0.003 & 0.014 \\
+SAGE & $-0.008$ [$-0.022$, $+0.005$] & 0.227 & $-0.010$ [$-0.026$, $+0.005$] & 0.283 & 0.011 & 0.016 \\
+HGT & $-0.032$ [$-0.068$, $+0.005$] & 0.227 & $-0.040$ [$-0.068$, $-0.012$] & 0.060 & 0.027 & 0.028 \\
+SAGE+AG & $+0.013$ [$+0.003$, $+0.023$] & 0.074 & $+0.009$ [$-0.002$, $+0.019$] & 0.246 & 0.008 & 0.007 \\
+HGT+AG & $+0.012$ [$-0.004$, $+0.028$] & 0.227 & $+0.007$ [$-0.005$, $+0.019$] & 0.283 & 0.009 & 0.015 \\
+\botrule
+\end{tabular}
+\end{table}

@@ -42,6 +42,11 @@ SPACES = {
     "HAN": {**GNN_SPACE, "heads": [2, 4]},
     "SimpleHGN": {**GNN_SPACE, "heads": [2, 4]},
     "HGT": {**GNN_SPACE, "heads": [2, 4]},
+    # Fraud-specialised GNNs: BWGNN has one filter bank of order 2 or 3 (no stacked layers); CARE-GNN was
+    # published with one layer, so its depth is chosen from one or two.
+    "BWGNN": {"hidden": [32, 64], "order": [2, 3], "dropout": [0.1, 0.3], "lr": [1e-3, 3e-3, 1e-2],
+              "weight_decay": [1e-5, 1e-4, 1e-3]},
+    "CARE-GNN": {**GNN_SPACE, "layers": [1, 2]},
     "SAGE+AG": {**GNN_SPACE, "aggr": ["sum", "mean"]},
     "HGT+AG": {**GNN_SPACE, "heads": [2, 4]},
 }
@@ -78,7 +83,7 @@ def evaluate_config(method: str, hp: dict, prepared: dict) -> float:
         return fit_mlp(feature_matrix(tab, cols, "C"), y, hp, 0)["best_val_ap"]
     if method in GRAPH_METHODS:
         g = graphs
-        if GRAPH_METHODS[method] == "han":
+        if GRAPH_METHODS[method] in ("han", "bwgnn", "care"):
             prepared.setdefault("meta", build_metapath_graphs(world, graphs))
             g = prepared["meta"]
         return fit_graph(GRAPH_METHODS[method], g, hp, 0)["best_val_ap"]
@@ -93,8 +98,19 @@ def main():
     ap.add_argument("--methods", nargs="+", default=[m for m in ALL_METHODS if m in SPACES and m not in HYBRID_BASE])
     ap.add_argument("--tag", default="all")
     ap.add_argument("--merge", action="store_true", help="merge trial files into best_hyperparameters.json")
+    ap.add_argument("--ring-claims-per-month", type=float, default=GeneratorConfig.ring_claims_per_month,
+                    help="ring volume of the development worlds (the low-volume stress test re-tunes at 4)")
+    ap.add_argument("--ring-shift", type=float, default=DEV_REGIME["ring_shift"],
+                    help="feature shift of the development worlds (per-regime tuning re-tunes at an evaluation regime)")
+    ap.add_argument("--ring-density", type=float, default=DEV_REGIME["ring_density"],
+                    help="structural density of the development worlds")
+    ap.add_argument("--out", default=str(RESULTS_DIR / "tuning"))
     args = ap.parse_args()
-    out_dir = RESULTS_DIR / "tuning"
+    out_dir = Path(args.out)
+    # With the defaults the regime equals DEV_REGIME, so the provenance of the main tuning is unchanged.
+    dev_regime = {"ring_shift": args.ring_shift, "ring_density": args.ring_density}
+    if args.ring_claims_per_month != GeneratorConfig.ring_claims_per_month:
+        dev_regime["ring_claims_per_month"] = args.ring_claims_per_month
     if args.merge:
         trials = {}
         for f in sorted(out_dir.glob("trials_*.json")):
@@ -105,7 +121,7 @@ def main():
             if base in best:
                 best[hybrid] = dict(best[base])
         write_json(out_dir / "best_hyperparameters.json", {
-            "provenance": provenance({"budget": BUDGET, "dev_seeds": DEV_SEEDS, "dev_regime": DEV_REGIME, "spaces": SPACES,
+            "provenance": provenance({"budget": BUDGET, "dev_seeds": DEV_SEEDS, "dev_regime": dev_regime, "spaces": SPACES,
                                       "hybrids_inherit": HYBRID_BASE}),
             "best": best, "best_mean_val_ap": {m: max(r["mean_val_ap"] for r in t) for m, t in trials.items()
                                                if m not in HYBRID_BASE}})
@@ -113,7 +129,7 @@ def main():
         return
     prepared = []
     for seed in DEV_SEEDS:
-        world = generate(GeneratorConfig(seed=seed, **DEV_REGIME))
+        world = generate(GeneratorConfig(seed=seed, **dev_regime))
         tab, cols, graphs = prepare(world)
         prepared.append({"world": world, "tab": tab, "cols": cols, "graphs": graphs})
     trials = {}
@@ -124,7 +140,7 @@ def main():
             trials[method].append({"hp": hp, "val_ap": aps, "mean_val_ap": float(np.mean(aps))})
             print(f"{method:10s} {np.mean(aps):.4f} {hp}", flush=True)
         write_json(out_dir / f"trials_{args.tag}.json", {
-            "provenance": provenance({"budget": BUDGET, "dev_seeds": DEV_SEEDS, "dev_regime": DEV_REGIME, "methods": args.methods}),
+            "provenance": provenance({"budget": BUDGET, "dev_seeds": DEV_SEEDS, "dev_regime": dev_regime, "methods": args.methods}),
             "trials": trials})
 
 

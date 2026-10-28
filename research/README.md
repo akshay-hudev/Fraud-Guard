@@ -62,10 +62,48 @@ $PY -m research.experiments.legacy_reanalysis
 $PY -m research.experiments.kaggle_exp --stage nested
 # 9. Cost benchmark: run alone, single thread
 OMP_NUM_THREADS=1 RESEARCH_THREADS=1 $PY -m research.experiments.latency
-# 10. Tables, statistics, figures; paste tables into the manuscript; then check artifacts
+# 10. Low-volume stress test (4 instead of 16 ring claims per month, delta = 0): with the main tuning (frozen),
+#     then with the tuning protocol repeated on low-volume development worlds (re-tuned)
+$PY -m research.experiments.synthetic --shifts 0.0 --seeds 1 2 3 4 5 6 --ring-claims-per-month 4 \
+    --out results/synthetic_lowvolume
+$PY -m research.experiments.tune --ring-claims-per-month 4 --out results/tuning_lowvolume
+$PY -m research.experiments.tune --merge --ring-claims-per-month 4 --out results/tuning_lowvolume
+$PY -m research.experiments.synthetic --shifts 0.0 --seeds 1 2 3 4 5 6 --ring-claims-per-month 4 \
+    --hps results/tuning_lowvolume/best_hyperparameters.json --out results/synthetic_lowvolume_retuned
+# 11. Tables, statistics, figures; paste tables into the manuscript; then check artifacts
 $PY -m research.experiments.analyze && $PY -m research.experiments.figures
 $PY -m research.experiments.sync_manuscript && $PY verify.py
+# 12. Second round: seeds 7-12 of the main grid, ring volumes 8 and 2, the confirmatory hybrid test, repeated
+#     cross-validation and nested GNN tuning on the real data. The script lists every command (136 jobs):
+PARALLEL=4 bash paper/hiss_review/run_round2.sh
+#     kaggle_exp.py overwrites an existing rotation file, so rerun its commands only with the same method list.
+# 13. Third round: delta = 1, 2 at volume 4; training seeds 1, 2; per-regime tuning; repeated rotations for the
+#     remaining GNNs (116 jobs)
+PARALLEL=4 bash paper/hiss_review/run_round3.sh
+# 14. Fourth round: BWGNN and CARE-GNN (tuning, main grid, low volume, volumes 8 and 2, public data) and four
+#     further ring shapes and sizes with every method (--ring-shape, --ring-doctors, --ring-patients; 107 jobs)
+PARALLEL=4 bash paper/hiss_review/run_round4.sh
 ```
+
+**Second experimental round.** `paper/hiss_review/analysis_plan_round2.md` pre-declares, and
+`paper/hiss_review/run_round2.sh` runs, every job of the second round:
+
+* the main grid for seeds 7–12 (final N = 12);
+* ring volumes 8 and 2 at δ = 0;
+* the confirmatory hybrid test on fresh seeds 7–18;
+* repeated cross-validation (`kaggle_exp.py --stage eval --repeat 1..4`) on the public data;
+* nested GNN tuning (`--stage nested --nested-gnns`) on the public data.
+
+The round runs about 9 hours with four workers (`PARALLEL=4`). The third and fourth rounds
+(`analysis_plan_round3.md`, `analysis_plan_round4.md`) are run the same way by `run_round3.sh` and `run_round4.sh`
+(about 9 and 7 hours with four workers).
+
+**Statistical units.** The nine regimes of one generator seed share their legitimate claims, isolated fraud and
+ring members (the generator draws them before applying δ and s), so comparisons pooled over regimes test the twelve
+seed means (`metrics.clustered_comparison`; seeds 1–6 for the secondary analyses). The real-data rotations share
+training folds, so comparisons over them use the corrected resampled t-test of Nadeau and Bengio (2003)
+(`metrics.corrected_resampled_comparison`); over the 25 repeated rotations the variance factor is 1/25 + 1/3
+(Bouckaert and Frank 2004). The naive values are kept in the CSVs (`naive_*` columns) for comparison.
 
 Steps 1–8 accept `--methods` / `--seeds` / `--shifts` / `--folds` subsets so they can be split across processes;
 finished runs are skipped on restart. Wall-clock on a 4-core Intel laptop CPU: roughly 2 h tuning, 3 h synthetic
@@ -75,13 +113,14 @@ grid, 1 h ablations, 2 h Kaggle, 3 h routing and HGT ablations (run in parallel)
 
 | Path | Content |
 |---|---|
-| `synth/generator.py` | regime-controllable generator (feature shift δ, structural density s, emergent/persistent rings) |
+| `synth/generator.py` | regime-controllable generator (feature shift δ, structural density s, ring volume, ring shape and size, emergent/persistent rings) |
 | `synth/features.py` | leakage-safe claim (C), aggregate (A) and graph (G) features per audit period |
 | `synth/graph.py` | per-period heterogeneous graphs with reverse relations and degree encodings; HAN meta-path graphs |
-| `models/gnn.py` | SAGE, RGCN, HAN, Simple-HGN, HGT and MLP with a shared input projection and head |
+| `models/gnn.py` | SAGE, RGCN, HAN, Simple-HGN, HGT, BWGNN, CARE-GNN and MLP with a shared input projection and head |
 | `models/train.py` | full-batch training with early stopping on validation AP; tabular model factory |
 | `realdata/kaggle.py` | provider-level features, label-neighbourhood features (training labels only), provider graph |
 | `metrics.py` | AP, ROC-AUC, validation-selected thresholds, recall at budget, paired tests, Holm |
 | `experiments/` | tuning, synthetic grid, ablations, routing, cost, legacy re-analysis, Kaggle, analysis, figures, manuscript table sync |
 | `tests/test_validity.py` | leakage, label-invariance, period isolation, ring disjointness, alignment, information flow |
 | `tests/test_routing_and_ablations.py` | routing uses validation only and is per-claim; ablation transforms; test-period rewiring; exact computation subgraphs |
+| `tests/test_statistics.py` | regimes of a seed share their background (why the seed is the unit); seed-level and corrected resampled tests |

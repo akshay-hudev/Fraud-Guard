@@ -1,0 +1,191 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-27T11:36:27+00:00",
+    "git": {
+      "commit": "2eb368c6bb4ca741b7fd61b2b7c00f89eeaee36f",
+      "dirty": false,
+      "research_sources_sha256": "3cb55752dad0700c"
+    },
+    "config_hash": "bf3ec18f790c5587",
+    "config": {
+      "budget": 10,
+      "dev_seeds": [
+        901,
+        902
+      ],
+      "dev_regime": {
+        "ring_shift": 0.0,
+        "ring_density": 0.1
+      },
+      "methods": [
+        "RGCN"
+      ]
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    }
+  },
+  "trials": {
+    "RGCN": [
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9025751600048202,
+          0.8806651867456131
+        ],
+        "mean_val_ap": 0.8916201733752167
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.001,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.8619769329065078,
+          0.824308206111995
+        ],
+        "mean_val_ap": 0.8431425695092514
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9118455568811547,
+          0.9014751853654547
+        ],
+        "mean_val_ap": 0.9066603711233047
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.8486987011529407,
+          0.8314178409874365
+        ],
+        "mean_val_ap": 0.8400582710701886
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.3,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.01,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.8965095773569326,
+          0.8438575838591293
+        ],
+        "mean_val_ap": 0.8701835806080309
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.01,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9106535931788873,
+          0.8923876103648339
+        ],
+        "mean_val_ap": 0.9015206017718607
+      },
+      {
+        "hp": {
+          "aggr": "mean",
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.001,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.8482519373067645,
+          0.7923732688204328
+        ],
+        "mean_val_ap": 0.8203126030635987
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.9034611177054609,
+          0.8624957989078018
+        ],
+        "mean_val_ap": 0.8829784583066314
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 3,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.9108051732479947,
+          0.9022738082097534
+        ],
+        "mean_val_ap": 0.9065394907288741
+      },
+      {
+        "hp": {
+          "aggr": "sum",
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.9172335299765026,
+          0.8908731499150281
+        ],
+        "mean_val_ap": 0.9040533399457653
+      }
+    ]
+  }
+}

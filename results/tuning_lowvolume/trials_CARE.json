@@ -1,0 +1,182 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-28T05:59:48+00:00",
+    "git": {
+      "commit": "78072e866d8850111821649c3d9f234acdcb863c",
+      "dirty": false,
+      "research_sources_sha256": "cc29400c9c8b231d"
+    },
+    "config_hash": "b38e279b466025dc",
+    "config": {
+      "budget": 10,
+      "dev_seeds": [
+        901,
+        902
+      ],
+      "dev_regime": {
+        "ring_shift": 0.5,
+        "ring_density": 0.5,
+        "ring_claims_per_month": 4.0
+      },
+      "methods": [
+        "CARE-GNN"
+      ]
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    }
+  },
+  "trials": {
+    "CARE-GNN": [
+      {
+        "hp": {
+          "dropout": 0.1,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.45911110231729313,
+          0.4223105680972885
+        ],
+        "mean_val_ap": 0.4407108352072908
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.001,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.42952648865349363,
+          0.42098149412838043
+        ],
+        "mean_val_ap": 0.425253991390937
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 1,
+          "lr": 0.001,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.4510771830604409,
+          0.3855568232138948
+        ],
+        "mean_val_ap": 0.41831700313716785
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.003,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.4580817644114069,
+          0.44089648641860896
+        ],
+        "mean_val_ap": 0.44948912541500796
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.001,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.4288681586251701,
+          0.4236659773275759
+        ],
+        "mean_val_ap": 0.426267067976373
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 1,
+          "lr": 0.01,
+          "weight_decay": 0.001
+        },
+        "val_ap": [
+          0.4821248493299917,
+          0.41048587191022257
+        ],
+        "mean_val_ap": 0.44630536062010717
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 32,
+          "layers": 1,
+          "lr": 0.01,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.4810172509187596,
+          0.42907165590220125
+        ],
+        "mean_val_ap": 0.4550444534104804
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 32,
+          "layers": 1,
+          "lr": 0.003,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.47692287774099695,
+          0.4194446262806789
+        ],
+        "mean_val_ap": 0.44818375201083793
+      },
+      {
+        "hp": {
+          "dropout": 0.1,
+          "hidden": 32,
+          "layers": 1,
+          "lr": 0.001,
+          "weight_decay": 1e-05
+        },
+        "val_ap": [
+          0.4516667825530616,
+          0.3858834637180969
+        ],
+        "mean_val_ap": 0.41877512313557924
+      },
+      {
+        "hp": {
+          "dropout": 0.3,
+          "hidden": 64,
+          "layers": 2,
+          "lr": 0.001,
+          "weight_decay": 0.0001
+        },
+        "val_ap": [
+          0.42946477440419695,
+          0.42118355258921564
+        ],
+        "mean_val_ap": 0.4253241634967063
+      }
+    ]
+  }
+}

@@ -1,9 +1,10 @@
 {
   "provenance": {
-    "created_utc": "2026-10-22T06:02:51+00:00",
+    "created_utc": "2026-10-28T05:59:54+00:00",
     "git": {
-      "commit": "f16ccc7f4fa0779c2850d212f805027ca357db07",
-      "dirty": true
+      "commit": "78072e866d8850111821649c3d9f234acdcb863c",
+      "dirty": false,
+      "research_sources_sha256": "cc29400c9c8b231d"
     },
     "config_hash": "09ff710b2e97e220",
     "config": {
@@ -75,6 +76,20 @@
       "hidden": 64,
       "layers": 2,
       "lr": 0.003,
+      "weight_decay": 0.0001
+    },
+    "BWGNN": {
+      "dropout": 0.3,
+      "hidden": 64,
+      "lr": 0.003,
+      "order": 3,
+      "weight_decay": 0.001
+    },
+    "CARE-GNN": {
+      "dropout": 0.1,
+      "hidden": 64,
+      "layers": 2,
+      "lr": 0.001,
       "weight_decay": 0.0001
     },
     "HGT": {

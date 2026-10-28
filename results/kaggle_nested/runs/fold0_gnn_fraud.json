@@ -1,0 +1,81 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-28T06:03:33+00:00",
+    "git": {
+      "commit": "78072e866d8850111821649c3d9f234acdcb863c",
+      "dirty": false,
+      "research_sources_sha256": "cc29400c9c8b231d"
+    },
+    "config_hash": "54932080be729259",
+    "config": {
+      "fold": 0,
+      "methods": [
+        "BWGNN",
+        "CARE-GNN"
+      ],
+      "budget": 6
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "data": {
+      "n_providers": 5410,
+      "n_fraud": 506,
+      "P_hash": "11c2c5f183b47228",
+      "files": "data/external/kaggle_provider_fraud"
+    }
+  },
+  "rows": [
+    {
+      "method": "BWGNN",
+      "fold": 0,
+      "hp": {
+        "dropout": 0.1,
+        "hidden": 64,
+        "lr": 0.01,
+        "order": 2,
+        "weight_decay": 0.0001
+      },
+      "ap": 0.6659424208749138,
+      "roc_auc": 0.9294011970004339,
+      "f1": 0.61,
+      "precision": 0.6161616161616161,
+      "recall": 0.6039603960396039,
+      "recall_at_10pct": 0.6237623762376238,
+      "threshold": 0.8999090790748596,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.6329391289397667
+    },
+    {
+      "method": "CARE-GNN",
+      "fold": 0,
+      "hp": {
+        "dropout": 0.3,
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.003,
+        "weight_decay": 0.001
+      },
+      "ap": 0.6415530206700947,
+      "roc_auc": 0.9294920317719845,
+      "f1": 0.5925925925925926,
+      "precision": 0.5565217391304348,
+      "recall": 0.6336633663366337,
+      "recall_at_10pct": 0.6138613861386139,
+      "threshold": 0.8196985721588135,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.6132092828037403
+    }
+  ]
+}

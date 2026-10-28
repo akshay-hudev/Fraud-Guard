@@ -183,4 +183,4 @@ python tests/test_prediction_metrics.py
 - DEPLOYMENT_HF_SPACES.md
 
 ## License
-No license file is included yet.
+MIT (see `LICENSE`).

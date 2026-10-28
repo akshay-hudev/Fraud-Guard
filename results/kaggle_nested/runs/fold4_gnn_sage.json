@@ -1,0 +1,83 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-26T18:13:36+00:00",
+    "git": {
+      "commit": "5581e2e7f52362452378cfc7a32541f17d05853b",
+      "dirty": true,
+      "research_sources_sha256": "dfb870223106e371"
+    },
+    "config_hash": "f07463850621f2c9",
+    "config": {
+      "fold": 4,
+      "methods": [
+        "SAGE",
+        "SAGE+G"
+      ],
+      "budget": 6
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "data": {
+      "n_providers": 5410,
+      "n_fraud": 506,
+      "P_hash": "11c2c5f183b47228",
+      "files": "data/external/kaggle_provider_fraud"
+    }
+  },
+  "rows": [
+    {
+      "method": "SAGE",
+      "fold": 4,
+      "hp": {
+        "aggr": "mean",
+        "dropout": 0.3,
+        "hidden": 64,
+        "layers": 3,
+        "lr": 0.003,
+        "weight_decay": 0.0001
+      },
+      "ap": 0.6875615111352302,
+      "roc_auc": 0.9513005202080833,
+      "f1": 0.61003861003861,
+      "precision": 0.5031847133757962,
+      "recall": 0.7745098039215687,
+      "recall_at_10pct": 0.6470588235294118,
+      "threshold": 0.8705368638038635,
+      "n_test": 1082,
+      "n_pos": 102,
+      "best_val_ap": 0.656500589009439
+    },
+    {
+      "method": "SAGE+G",
+      "fold": 4,
+      "hp": {
+        "aggr": "mean",
+        "dropout": 0.3,
+        "hidden": 64,
+        "layers": 3,
+        "lr": 0.003,
+        "weight_decay": 0.0001
+      },
+      "ap": 0.6624590852925085,
+      "roc_auc": 0.947438975590236,
+      "f1": 0.6446280991735537,
+      "precision": 0.5571428571428572,
+      "recall": 0.7647058823529411,
+      "recall_at_10pct": 0.6274509803921569,
+      "threshold": 0.8900853991508484,
+      "n_test": 1082,
+      "n_pos": 102,
+      "best_val_ap": 0.608632444675215
+    }
+  ]
+}

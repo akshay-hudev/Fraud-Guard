@@ -1,0 +1,83 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-26T17:05:25+00:00",
+    "git": {
+      "commit": "5581e2e7f52362452378cfc7a32541f17d05853b",
+      "dirty": false,
+      "research_sources_sha256": "df47d889bd584376"
+    },
+    "config_hash": "3b34337957128ee8",
+    "config": {
+      "fold": 4,
+      "methods": [
+        "HGT",
+        "HGT+G"
+      ],
+      "budget": 6
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "data": {
+      "n_providers": 5410,
+      "n_fraud": 506,
+      "P_hash": "11c2c5f183b47228",
+      "files": "data/external/kaggle_provider_fraud"
+    }
+  },
+  "rows": [
+    {
+      "method": "HGT",
+      "fold": 4,
+      "hp": {
+        "dropout": 0.3,
+        "heads": 4,
+        "hidden": 32,
+        "layers": 3,
+        "lr": 0.01,
+        "weight_decay": 1e-05
+      },
+      "ap": 0.687109002616156,
+      "roc_auc": 0.9440776310524209,
+      "f1": 0.6036036036036037,
+      "precision": 0.5583333333333333,
+      "recall": 0.6568627450980392,
+      "recall_at_10pct": 0.6274509803921569,
+      "threshold": 0.8316654562950134,
+      "n_test": 1082,
+      "n_pos": 102,
+      "best_val_ap": 0.6657440673283926
+    },
+    {
+      "method": "HGT+G",
+      "fold": 4,
+      "hp": {
+        "dropout": 0.3,
+        "heads": 4,
+        "hidden": 32,
+        "layers": 3,
+        "lr": 0.01,
+        "weight_decay": 1e-05
+      },
+      "ap": 0.6562079154998038,
+      "roc_auc": 0.9417266906762706,
+      "f1": 0.5903083700440529,
+      "precision": 0.536,
+      "recall": 0.6568627450980392,
+      "recall_at_10pct": 0.6078431372549019,
+      "threshold": 0.8754003643989563,
+      "n_test": 1082,
+      "n_pos": 102,
+      "best_val_ap": 0.648753813333925
+    }
+  ]
+}

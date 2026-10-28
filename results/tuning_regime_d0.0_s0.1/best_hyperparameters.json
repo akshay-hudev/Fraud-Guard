@@ -1,0 +1,470 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-27T15:41:37+00:00",
+    "git": {
+      "commit": "2eb368c6bb4ca741b7fd61b2b7c00f89eeaee36f",
+      "dirty": false,
+      "research_sources_sha256": "3cb55752dad0700c"
+    },
+    "config_hash": "00480c5ae50898f6",
+    "config": {
+      "budget": 10,
+      "dev_seeds": [
+        901,
+        902
+      ],
+      "dev_regime": {
+        "ring_shift": 0.0,
+        "ring_density": 0.1
+      },
+      "spaces": {
+        "LR-CA": {
+          "C": [
+            1.0,
+            0.001,
+            0.01,
+            0.1,
+            10.0,
+            100.0
+          ]
+        },
+        "RF-CA": {
+          "n_estimators": [
+            300
+          ],
+          "max_depth": [
+            null,
+            8,
+            16
+          ],
+          "min_samples_leaf": [
+            3,
+            1,
+            10
+          ],
+          "max_features": [
+            "sqrt",
+            0.3
+          ]
+        },
+        "GB-C": {
+          "learning_rate": [
+            0.03,
+            0.1,
+            0.2
+          ],
+          "max_leaf_nodes": [
+            15,
+            31,
+            63
+          ],
+          "min_samples_leaf": [
+            10,
+            20,
+            50
+          ],
+          "l2": [
+            0.0,
+            1.0
+          ],
+          "max_iter": [
+            200,
+            400
+          ]
+        },
+        "GB-CA": {
+          "learning_rate": [
+            0.03,
+            0.1,
+            0.2
+          ],
+          "max_leaf_nodes": [
+            15,
+            31,
+            63
+          ],
+          "min_samples_leaf": [
+            10,
+            20,
+            50
+          ],
+          "l2": [
+            0.0,
+            1.0
+          ],
+          "max_iter": [
+            200,
+            400
+          ]
+        },
+        "GB-CAG": {
+          "learning_rate": [
+            0.03,
+            0.1,
+            0.2
+          ],
+          "max_leaf_nodes": [
+            15,
+            31,
+            63
+          ],
+          "min_samples_leaf": [
+            10,
+            20,
+            50
+          ],
+          "l2": [
+            0.0,
+            1.0
+          ],
+          "max_iter": [
+            200,
+            400
+          ]
+        },
+        "MLP-C": {
+          "hidden": [
+            64,
+            128
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.003,
+            0.001
+          ],
+          "weight_decay": [
+            0.0001,
+            1e-05
+          ]
+        },
+        "SAGE": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "aggr": [
+            "sum",
+            "mean"
+          ]
+        },
+        "RGCN": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "aggr": [
+            "sum",
+            "mean"
+          ]
+        },
+        "HAN": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "heads": [
+            2,
+            4
+          ]
+        },
+        "SimpleHGN": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "heads": [
+            2,
+            4
+          ]
+        },
+        "HGT": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "heads": [
+            2,
+            4
+          ]
+        },
+        "SAGE+AG": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "aggr": [
+            "sum",
+            "mean"
+          ]
+        },
+        "HGT+AG": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "heads": [
+            2,
+            4
+          ]
+        }
+      },
+      "hybrids_inherit": {
+        "SAGE+AG": "SAGE",
+        "HGT+AG": "HGT"
+      }
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    }
+  },
+  "best": {
+    "HAN": {
+      "dropout": 0.1,
+      "heads": 4,
+      "hidden": 64,
+      "layers": 2,
+      "lr": 0.01,
+      "weight_decay": 0.001
+    },
+    "HGT": {
+      "dropout": 0.3,
+      "heads": 4,
+      "hidden": 32,
+      "layers": 3,
+      "lr": 0.01,
+      "weight_decay": 1e-05
+    },
+    "RGCN": {
+      "aggr": "sum",
+      "dropout": 0.1,
+      "hidden": 32,
+      "layers": 3,
+      "lr": 0.003,
+      "weight_decay": 0.001
+    },
+    "SAGE": {
+      "aggr": "sum",
+      "dropout": 0.1,
+      "hidden": 32,
+      "layers": 3,
+      "lr": 0.003,
+      "weight_decay": 0.0001
+    },
+    "SimpleHGN": {
+      "dropout": 0.1,
+      "heads": 2,
+      "hidden": 32,
+      "layers": 3,
+      "lr": 0.003,
+      "weight_decay": 0.0001
+    },
+    "LR-CA": {
+      "C": 1.0
+    },
+    "RF-CA": {
+      "max_depth": 16,
+      "max_features": 0.3,
+      "min_samples_leaf": 10,
+      "n_estimators": 300
+    },
+    "GB-C": {
+      "l2": 1.0,
+      "learning_rate": 0.1,
+      "max_iter": 400,
+      "max_leaf_nodes": 31,
+      "min_samples_leaf": 50
+    },
+    "GB-CA": {
+      "l2": 0.0,
+      "learning_rate": 0.03,
+      "max_iter": 200,
+      "max_leaf_nodes": 15,
+      "min_samples_leaf": 50
+    },
+    "GB-CAG": {
+      "l2": 1.0,
+      "learning_rate": 0.1,
+      "max_iter": 400,
+      "max_leaf_nodes": 15,
+      "min_samples_leaf": 20
+    },
+    "MLP-C": {
+      "dropout": 0.3,
+      "hidden": 128,
+      "layers": 2,
+      "lr": 0.001,
+      "weight_decay": 1e-05
+    },
+    "SAGE+AG": {
+      "aggr": "sum",
+      "dropout": 0.1,
+      "hidden": 32,
+      "layers": 3,
+      "lr": 0.003,
+      "weight_decay": 0.0001
+    },
+    "HGT+AG": {
+      "dropout": 0.3,
+      "heads": 4,
+      "hidden": 32,
+      "layers": 3,
+      "lr": 0.01,
+      "weight_decay": 1e-05
+    }
+  },
+  "best_mean_val_ap": {
+    "HAN": 0.8654814936028894,
+    "HGT": 0.8959099234371798,
+    "RGCN": 0.9066603711233047,
+    "SAGE": 0.9056542646776966,
+    "SimpleHGN": 0.8984836425229694,
+    "LR-CA": 0.8501355322191497,
+    "RF-CA": 0.8762305788340089,
+    "GB-C": 0.23836933770655214,
+    "GB-CA": 0.9050478487937668,
+    "GB-CAG": 0.9209160736897974,
+    "MLP-C": 0.25687161328672803
+  }
+}

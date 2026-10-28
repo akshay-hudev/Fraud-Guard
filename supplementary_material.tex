@@ -1,0 +1,682 @@
+\documentclass[pdflatex,sn-vancouver-num]{sn-jnl}
+
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{xcolor}
+
+\graphicspath{{./}{results/figures/}}
+\raggedbottom
+
+% Numbers of the main article's sections and tables referred to below (checked against the compiled article).
+\newcommand{\MainSecLowVolume}{6.6}
+\newcommand{\MainSecMechanism}{7}
+\newcommand{\MainTabAblation}{5}
+\newcommand{\MainTabProtocol}{6}
+\newcommand{\MainTabKaggle}{7}
+\newcommand{\MainTabLowVolume}{4}
+\newcommand{\MainRefNadeau}{48}
+\newcommand{\MainRefBouckaert}{49}
+
+\renewcommand{\thetable}{S\arabic{table}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\thesection}{S\arabic{section}}
+
+\begin{document}
+
+\title[Online Resource 1]{Online Resource 1 for ``When Does Relational Structure Help Healthcare Fraud
+Detection? A Controlled Benchmark of Heterogeneous Graph Neural Networks and Graph-Augmented Tabular
+Models'', \textit{Health Information Science and Systems}}
+
+\author*[1]{\fnm{H M} \sur{Akshay}}\email{rvit23bcs106.rvitm@rvei.edu.in}
+\author[1]{\fnm{Gaurav} \sur{S B}}\email{rvit23bcs258.rvitm@rvei.edu.in}
+\author[1]{\fnm{Eshita} \sur{Narayana}}\email{rvit23bcs031.rvitm@rvei.edu.in}
+\author[1]{\fnm{Harshita} \sur{Srivastava}}\email{rvit23bcs323.rvitm@rvei.edu.in}
+\author[1]{\fnm{Malini M} \sur{Patil}}\email{malinimp.rvitm@rvei.edu.in}
+
+\affil[1]{\orgdiv{Department of Computer Science and Engineering},
+\orgname{RV Institute of Technology and Management},
+\orgaddress{\city{Bengaluru}, \postcode{560083}, \state{Karnataka}, \country{India}}}
+
+\abstract{This Online Resource accompanies the article named in the title. It contains material summarised
+but not shown in full there: the selected hyperparameters, the two-stage routing evaluation, the ring-volume
+dose-response, the confirmatory test of the hybrid result, three robustness checks (feature shift at reduced
+ring volume, training-seed replication and per-regime tuning), results for other ring shapes and sizes, the cost of
+training and scoring, single-factor
+ablations of HGT, which inputs the trained models use, figures of the mechanism ablations and of new versus
+recurring rings, repeated cross-validation and per-rotation tuning on the public data, and a re-analysis of a
+small fixed benchmark. Every number is generated from the run records in the article's code repository.}
+
+\maketitle
+
+\section{Selected hyperparameters}\label{sec:s_hyper}
+Table~\ref{tab:hyperparams} lists the configurations selected with the equal tuning budget.
+
+\begin{table}[h]
+\caption{Selected hyperparameters (equal budget per method; hybrids inherit their base configuration; methods sharing a search space were offered the same candidate configurations). Synthetic: tuned on development worlds; public data: tuned on a separate split. The configurations re-tuned for the low-volume stress test are in the repository (\texttt{results/tuning\_lowvolume}).}\label{tab:hyperparams}
+\scriptsize
+\begin{tabular}{@{}p{2.2cm}p{5.0cm}p{5.0cm}@{}}
+\toprule
+Method & Synthetic benchmark & Public data \\
+\midrule
+LR & C=100 & C=1 \\
+RF & max depth=16; max features=sqrt; min samples leaf=3; n estimators=300 & max depth=16; max features=0.3; min samples leaf=10; n estimators=300 \\
+GB (C) & l2=0; learning rate=0.03; max iter=200; max leaf nodes=15; min samples leaf=10 & -- \\
+GB (C+A / P) & l2=1; learning rate=0.1; max iter=200; max leaf nodes=63; min samples leaf=50 & l2=0; learning rate=0.03; max iter=200; max leaf nodes=15; min samples leaf=50 \\
+GB (C+A+G / P+G) & l2=1; learning rate=0.1; max iter=400; max leaf nodes=15; min samples leaf=20 & l2=0; learning rate=0.03; max iter=200; max leaf nodes=15; min samples leaf=50 \\
+GB (P+G+L) & -- & l2=0; learning rate=0.03; max iter=200; max leaf nodes=15; min samples leaf=50 \\
+MLP & dropout=0.3; hidden=128; layers=2; lr=0.001; weight decay=1e-05 & dropout=0.3; hidden=128; layers=2; lr=0.001; weight decay=1e-05 \\
+SAGE & aggr=sum; dropout=0.1; hidden=32; layers=3; lr=0.003; weight decay=0.001 & aggr=mean; dropout=0.3; hidden=64; layers=3; lr=0.003; weight decay=0.0001 \\
+RGCN & aggr=sum; dropout=0.3; hidden=64; layers=2; lr=0.003; weight decay=0.001 & aggr=sum; dropout=0.3; hidden=64; layers=2; lr=0.01; weight decay=0.001 \\
+HAN & dropout=0.3; heads=4; hidden=32; layers=3; lr=0.01; weight decay=1e-05 & dropout=0.1; heads=2; hidden=64; layers=2; lr=0.003; weight decay=0.0001 \\
+Simple-HGN & dropout=0.3; heads=4; hidden=64; layers=3; lr=0.003; weight decay=0.0001 & dropout=0.1; heads=4; hidden=64; layers=2; lr=0.01; weight decay=0.001 \\
+HGT & dropout=0.3; heads=4; hidden=32; layers=3; lr=0.01; weight decay=1e-05 & dropout=0.1; heads=4; hidden=64; layers=2; lr=0.01; weight decay=0.001 \\
+BWGNN & dropout=0.3; hidden=32; lr=0.001; order=2; weight decay=0.0001 & dropout=0.3; hidden=64; lr=0.003; order=3; weight decay=0.001 \\
+CARE-GNN & dropout=0.3; hidden=64; layers=2; lr=0.001; weight decay=0.0001 & dropout=0.1; hidden=64; layers=2; lr=0.001; weight decay=0.0001 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\section{Two-stage routing}\label{sec:s_routing}
+
+\subsection{Method}\label{sec:s_routing_method}
+A common deployment proposal is to score every claim with a cheap tabular
+model and pass only high-risk claims to a GNN. We evaluate this with GB-CAG
+as the first stage and HGT or SAGE as the second. A claim is escalated if its
+GB-CAG score is at least the $(1-e)$ quantile of the GB-CAG scores in the
+validation period. The escalation fraction $e\in\{0.05, 0.1, 0.2, 0.3, 0.5,
+1\}$ is chosen by validation AP, so test claims never influence it. Escalated
+claims rank above all other claims and are ordered either by the GNN score
+alone (\emph{re-rank}: GB-CAG acts as a filter) or by the mean of the two
+models' validation percentiles (\emph{fused}); non-escalated claims keep
+their GB-CAG order. With $e=1$, re-ranking reduces to the GNN alone and
+fusion to a rank-average ensemble of the two models, so both single models
+and the ensemble are among the candidates. A claim's routed score depends
+only on its own two scores and on validation statistics. The stages are the
+models of the main experiment, retrained with the same seeds; their test
+predictions reproduce the stored ones exactly for the GNNs and to within
+$3\times10^{-8}$ for GB-CAG (float32 storage).
+
+\subsection{Results}\label{sec:s_routing_results}
+Table~\ref{tab:cascade} and Fig.~\ref{fig:cascade} evaluate two-stage
+routing (Section~\ref{sec:s_routing_method}) on the same test claims as the single
+models. In the design usually proposed, GB-CAG filters and the GNN decides
+(re-rank). Validation mostly selected small escalation fractions (5\% in 30
+of 54 worlds for HGT), and the routed system matched GB-CAG (GB-CAG$\to$HGT
+$\Delta\text{AP}=-0.001$, 95\% CI $[-0.006, 0.003]$; GB-CAG$\to$SAGE
+$+0.001$). Escalating more claims to HGT lowered both ring AP (from 0.980 at
+5\% to 0.968 when every claim is escalated) and, more steeply, isolated AP
+(from 0.626 to 0.508; Fig.~\ref{fig:cascade}b--d), because HGT ranks both
+less well than GB-CAG. Ordering escalated claims by the mean of the two models' percentiles
+did better: GB-CAG$\to$HGT gained $+0.003$ (Holm $p=0.60$) and
+GB-CAG$\to$SAGE $+0.006$ $[0.003, 0.010]$ (Holm $p=0.042$, positive for all
+six seeds), on ring ($+0.006$) and isolated fraud ($+0.023$) alike. Validation, however, chose to fuse
+\emph{every} claim in 22 (HGT) and 30 (SAGE) of the 54 worlds, and on average
+55\% and 70\% of test claims were escalated: the gain comes from combining two
+different rankings, not from routing a subset of claims. The feature-level
+hybrids, which give the GNN the engineered features, had slightly higher
+ring AP ($+0.008$, not significant with the seed as unit) but lost
+0.08--0.11 isolated AP and so matched GB-CAG overall. At the ring level all
+methods reached the ceiling: in all 54 worlds each test ring had at least one
+claim among the top 5\% of claims, and precision in that budget was
+0.989--0.998 for every method.
+
+\begin{table}[h]
+\caption{Two-stage routing versus single models and feature-level hybrids, averaged over the 54 worlds (same test claims for every row). Routing escalates claims whose GB-CAG score exceeds a threshold set on validation data; the escalation fraction is chosen by validation AP. P@5\%: precision among the top 5\% of test claims. Esc.: mean share of test claims escalated. $\Delta$AP: paired difference in AP from GB-CAG ($\pm$ half-width of the 95\% $t$-interval over the six generator seeds), Holm-adjusted $p$ over the rows.}\label{tab:cascade}
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Method & AP & Ring AP & Isol.\ AP & P@5\% & Esc. & $\Delta$AP ($p$) \\
+\midrule
+GB-CAG & 0.947 & 0.979 & 0.626 & 0.996 & -- & -- \\
+HGT & 0.929 & 0.968 & 0.507 & 0.989 & -- & $-0.018$ $\pm$ 0.013 (0.104) \\
+SAGE & 0.940 & 0.979 & 0.541 & 0.995 & -- & $-0.007$ $\pm$ 0.009 (0.597) \\
+\midrule
+HGT+AG & 0.945 & 0.986 & 0.514 & 0.996 & -- & $-0.002$ $\pm$ 0.006 (1.000) \\
+SAGE+AG & 0.947 & 0.987 & 0.548 & 0.996 & -- & $0.000$ $\pm$ 0.005 (1.000) \\
+\midrule
+GB-CAG$\to$HGT, re-rank & 0.945 & 0.979 & 0.606 & 0.995 & 0.16 & $-0.001$ $\pm$ 0.005 (1.000) \\
+GB-CAG$\to$HGT, fused & 0.950 & 0.981 & 0.640 & 0.997 & 0.55 & $+0.003$ $\pm$ 0.004 (0.597) \\
+GB-CAG$\to$SAGE, re-rank & 0.948 & 0.983 & 0.595 & 0.997 & 0.24 & $+0.001$ $\pm$ 0.004 (1.000) \\
+GB-CAG$\to$SAGE, fused & 0.953 & 0.985 & 0.648 & 0.998 & 0.70 & $+0.006$ $\pm$ 0.004 (0.042) \\
+\botrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_cascade.pdf}
+\caption{Two-stage routing from GB-CAG to HGT. (a) Precision--recall curves
+for all fraud at $\delta=0$, $s=0.9$ (precision interpolated at fixed recall
+and averaged over six worlds; routed systems at the escalation fraction
+chosen on validation). (b)--(d) Paired difference in test AP from GB-CAG
+(zero line) against the share of claims escalated, averaged over the 54
+worlds, with 95\% CIs over the six seeds; orange line and band: HGT alone. The escalation fraction
+actually used is chosen on validation; the curves over all fractions are
+shown only to describe the trade-off.}
+\label{fig:cascade}
+\end{figure}
+
+\section{Ring-volume dose-response}\label{sec:s_dose}
+Table~\ref{tab:dose} gives ring AP for every method at four ring volumes (16, 8, 4 and 2 claims per ring
+per month) at $\delta=0$, over seeds 1--6, whose legitimate claims, isolated fraud and ring members are
+identical across volumes. The hyperparameters are those of the main experiment; the re-tuned results at
+volume 4 are in Table~\MainTabLowVolume{} of the article. In a test period a ring patient files on average 9.3, 5.4, 3.7 and
+3.0 claims at the four volumes, against 1.6 for other patients (95th and 99th percentiles about 3.8 and
+5.2), and a ring doctor 38, 26, 20 and 18 claims against 16. At 2 claims per month a ring files about one
+claim per member, rings make up 1.1\% of the non-isolated claims, and no method is far above chance. Paired
+comparisons for every cell are in the repository (\texttt{results/tables/dose\_response\_comparisons.csv}).
+
+\begin{table}[h]
+\caption{Ring AP at $\delta=0$ by ring volume (claims per ring per month; 16 is the default) and structural density $s$, mean over six worlds (seeds 1--6, which share their legitimate claims across volumes), hyperparameters of the main experiment. Chance level: 0.080 at 16, 0.042 at 8, 0.021 at 4, 0.011 at 2.}\label{tab:dose}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}lcccccccccccc@{}}
+\toprule
+ & \multicolumn{4}{c}{$s=0.1$} & \multicolumn{4}{c}{$s=0.5$} & \multicolumn{4}{c}{$s=0.9$} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}
+Method / volume & 16 & 8 & 4 & 2 & 16 & 8 & 4 & 2 & 16 & 8 & 4 & 2 \\
+\midrule
+GB-C & 0.084 & 0.046 & 0.024 & 0.014 & 0.086 & 0.044 & 0.023 & 0.012 & 0.087 & 0.044 & 0.022 & 0.015 \\
+MLP-C & 0.088 & 0.044 & 0.024 & 0.013 & 0.087 & 0.041 & 0.024 & 0.013 & 0.095 & 0.046 & 0.024 & 0.013 \\
+LR-CA & 0.923 & 0.524 & 0.106 & 0.025 & 0.888 & 0.428 & 0.087 & 0.039 & 0.868 & 0.364 & 0.088 & 0.020 \\
+RF-CA & 0.875 & 0.339 & 0.057 & 0.019 & 0.838 & 0.343 & 0.064 & 0.018 & 0.844 & 0.331 & 0.064 & 0.018 \\
+GB-CA & 0.925 & 0.422 & 0.049 & 0.020 & 0.905 & 0.372 & 0.052 & 0.019 & 0.889 & 0.311 & 0.055 & 0.018 \\
+GB-CAG & 0.930 & 0.550 & 0.066 & 0.018 & 0.983 & 0.879 & 0.409 & 0.024 & 0.990 & 0.923 & 0.570 & 0.019 \\
+\midrule
+SAGE & 0.938 & 0.606 & 0.074 & 0.016 & 0.963 & 0.683 & 0.108 & 0.017 & 0.976 & 0.755 & 0.131 & 0.018 \\
+RGCN & 0.933 & 0.546 & 0.066 & 0.018 & 0.953 & 0.637 & 0.112 & 0.018 & 0.954 & 0.686 & 0.142 & 0.018 \\
+HAN & 0.908 & 0.469 & 0.062 & 0.014 & 0.906 & 0.507 & 0.065 & 0.018 & 0.921 & 0.520 & 0.058 & 0.014 \\
+Simple-HGN & 0.915 & 0.561 & 0.074 & 0.014 & 0.960 & 0.692 & 0.133 & 0.015 & 0.957 & 0.716 & 0.151 & 0.013 \\
+HGT & 0.910 & 0.544 & 0.046 & 0.016 & 0.948 & 0.649 & 0.079 & 0.017 & 0.949 & 0.689 & 0.098 & 0.016 \\
+\midrule
+BWGNN & 0.904 & 0.487 & 0.065 & 0.017 & 0.918 & 0.487 & 0.076 & 0.018 & 0.924 & 0.469 & 0.079 & 0.016 \\
+CARE-GNN & 0.882 & 0.407 & 0.057 & 0.014 & 0.863 & 0.318 & 0.051 & 0.017 & 0.868 & 0.351 & 0.053 & 0.013 \\
+\midrule
+SAGE+AG & 0.973 & 0.659 & 0.103 & 0.020 & 0.985 & 0.883 & 0.379 & 0.032 & 0.983 & 0.914 & 0.566 & 0.025 \\
+HGT+AG & 0.964 & 0.546 & 0.074 & 0.019 & 0.984 & 0.872 & 0.324 & 0.024 & 0.990 & 0.916 & 0.523 & 0.023 \\
+Overlap score & 0.254 & 0.141 & 0.057 & 0.018 & 0.937 & 0.721 & 0.194 & 0.030 & 0.985 & 0.866 & 0.281 & 0.029 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\section{Confirmatory test of the hybrid result}\label{sec:s_confirm}
+In seeds 1--6, after re-tuning at volume 4, SAGE+AG had higher ring AP than GB-CAG for sparse rings
+($s=0.1$: 0.129 against 0.078, Holm $p=0.035$), the only significant advantage over GB-CAG in the
+low-volume experiments. Because this comparison was singled out after the results had been seen, we tested
+it once more as fixed in an analysis plan committed before the runs started
+(\texttt{paper/hiss\_review/analysis\_plan\_round2.md}): fresh generator seeds 7--18, $\delta=0$,
+$s=0.1$, volume 4, the re-tuned configurations, only GB-CAG and SAGE+AG, and one two-sided paired $t$-test
+at $\alpha=0.05$. SAGE+AG had a mean ring AP of 0.129 against 0.104 for GB-CAG: a difference of $+0.024$
+(95\% CI $[0.005, 0.043]$, $p=0.016$; Wilcoxon $p=0.009$), positive in nine of twelve seeds, with a
+chance level of 0.021. By the pre-declared rule the advantage is confirmed; its size is about half the
+exploratory estimate.
+
+\section{Feature shift at reduced ring volume}\label{sec:s_shift}
+In the article, ring volume was reduced to 4 claims per month only at $\delta=0$ (Section~\MainSecLowVolume{}).
+Here that test is repeated with ring claims also shifted, $\delta=1$ and $2$, as fixed in the plan for the third
+round of experiments before its runs (\texttt{paper/hiss\_review/analysis\_plan\_round3.md}): seeds 1--6, all 14
+methods, the hyperparameters of the main experiment, and legitimate claims, isolated fraud and ring members shared
+with the $\delta=0$ and default-volume worlds of the same seed. Table~\ref{tab:lowvolume_shift} gives ring AP.
+Per-density $p$-values are Holm-adjusted within each method's three densities, pooled ones over methods with the
+seed as unit; every comparison is in the repository (\texttt{results/tables/lowvolume\_shift\_comparisons.csv}).
+
+With a moderate shift ($\delta=1$), coordination structure was again the main evidence for moderately and densely
+linked rings: GB-CAG exceeded GB-CA by $+0.288$ and $+0.301$ at $s=0.5$ and $0.9$ (Holm $p<0.01$), against
+$+0.039$ and $+0.048$ at default volume, and by $+0.017$ at $s=0.1$ (not significant). With a strong shift
+($\delta=2$) the claims themselves carried most of the evidence and the structure gain was small ($+0.036$ pooled
+over densities, 95\% CI $[-0.002, 0.074]$, Holm $p=0.27$), as at default volume.
+
+For sparse rings ($s=0.1$), several methods outperformed GB-CAG, one of them without graph inputs. At $\delta=1$,
+HAN exceeded it by $+0.178$ (Holm $p=0.020$), SAGE by $+0.139$ ($p=0.030$), SAGE+AG by $+0.123$ ($p=0.042$) and
+logistic regression on claim and aggregate features (LR-CA) by $+0.109$ ($p=0.022$); at $\delta=2$, SAGE, HAN,
+RGCN, both hybrids and LR-CA exceeded it by $+0.053$ to $+0.087$ (Holm $p\le0.037$). Gradient boosting was
+comparatively weak in these cells (GB-CA 0.269 against 0.395 for LR-CA at $\delta=1$), and the best pure GNNs were
+0.03--0.07 above LR-CA (SAGE 0.425 and HAN 0.464 at $\delta=1$; this comparison was not tested). Because a linear
+model without graph inputs also outperformed gradient boosting here, these advantages are better explained by how
+well each model learns a weak claim-level shift from about 200 training ring claims than by message passing
+detecting coordination, which added little for sparse rings.
+
+For moderately and densely linked rings at $\delta=1$, the pure GNNs were 0.11--0.29 below GB-CAG (significantly
+only for HGT, Holm $p<0.01$, with six seeds) and SAGE+AG was 0.04--0.07 above it (Holm $p\ge0.079$). Pooled over
+densities, no method had significantly higher ring AP than GB-CAG at either shift (largest: SAGE+AG, $+0.079$
+$[0.013, 0.146]$ at $\delta=1$, Holm $p=0.20$, and $+0.037$ $[0.016, 0.057]$ at $\delta=2$, $p=0.055$), and HGT
+was significantly lower at $\delta=1$ ($-0.202$, $p=0.007$). On isolated fraud the GNNs and hybrids were again
+below GB-CAG, by 0.02--0.11 pooled over densities (significantly for SAGE, HAN and HGT+AG at $\delta=1$ and for
+HGT+AG at $\delta=2$).
+
+\begin{table}[h]
+\caption{Ring AP on unseen test rings at ring volume 4 claims per month when ring claims are also shifted ($\delta=1$ and $2$; mean over six worlds, seeds 1--6, hyperparameters of the main experiment). Chance level 0.021. The $\delta=0$ results are in Table~\MainTabLowVolume{} of the article. Bold: best per column.}\label{tab:lowvolume_shift}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & \multicolumn{3}{c}{$\delta=1$} & \multicolumn{3}{c}{$\delta=2$} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Method / $s$ & 0.1 & 0.5 & 0.9 & 0.1 & 0.5 & 0.9 \\
+\midrule
+GB-C & 0.152 & 0.139 & 0.160 & 0.648 & 0.664 & 0.642 \\
+MLP-C & 0.161 & 0.164 & 0.161 & 0.656 & 0.651 & 0.646 \\
+LR-CA & 0.395 & 0.412 & 0.412 & 0.837 & 0.835 & 0.823 \\
+RF-CA & 0.207 & 0.217 & 0.212 & 0.693 & 0.715 & 0.717 \\
+GB-CA & 0.269 & 0.293 & 0.275 & 0.785 & 0.814 & 0.807 \\
+GB-CAG & 0.286 & 0.582 & 0.576 & 0.780 & 0.859 & 0.874 \\
+\midrule
+SAGE & 0.425 & 0.466 & 0.463 & \textbf{0.866} & 0.861 & 0.848 \\
+RGCN & 0.391 & 0.397 & 0.440 & 0.850 & 0.836 & 0.815 \\
+HAN & \textbf{0.464} & 0.444 & 0.410 & 0.853 & 0.870 & 0.857 \\
+Simple-HGN & 0.338 & 0.419 & 0.403 & 0.805 & 0.818 & 0.791 \\
+HGT & 0.251 & 0.303 & 0.285 & 0.779 & 0.794 & 0.778 \\
+\midrule
+SAGE+AG & 0.409 & \textbf{0.654} & \textbf{0.620} & 0.855 & \textbf{0.882} & \textbf{0.884} \\
+HGT+AG & 0.353 & 0.566 & 0.564 & 0.832 & 0.848 & 0.849 \\
+Overlap score & 0.052 & 0.164 & 0.211 & 0.040 & 0.124 & 0.272 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\section{Training-seed replication}\label{sec:s_seeds}
+Every reported run trains each model once per world, with training seed 0, and the tuning used the same seed.
+Because a network's initial weights depend only on the seed and the layer sizes, which are the same in every
+world, each reported GNN run starts from the weights with which its configuration was selected (checked for SAGE
+and HGT on a development and a test world; \texttt{paper/hiss\_review/check\_initial\_weights.py}). To separate
+initialisation from world variance, GB-CAG, SAGE, HGT and the two hybrids were retrained with training seeds 1 and 2
+at $\delta=0$, all three densities and seeds 1--6, with the main hyperparameters, as fixed in the plan for the third
+round. Table~\ref{tab:modelseeds} compares each method with GB-CAG with training seed 0 only and with each world's
+mean over the three seeds; per-density results are in the repository
+(\texttt{results/tables/modelseeds\_comparisons.csv}).
+
+Averaging over training seeds left the pure GNNs below GB-CAG (SAGE $-0.011$, HGT $-0.040$ pooled over densities)
+and reduced the hybrids' advantage (SAGE+AG $+0.013$ with seed 0, $+0.009$ with the mean of three; HGT+AG $+0.012$
+and $+0.007$); with six seeds none of these pooled differences is significant after Holm adjustment. For sparse
+rings, where the hybrids gained most, SAGE+AG exceeded GB-CAG by $+0.043$ with seed 0 (Holm $p=0.032$) but by
+$+0.030$ with the mean of three ($p=0.18$): its mean ring AP was 0.973 with seed 0 against 0.965 and 0.956 with
+seeds 1 and 2, while GB-CAG's ranged from 0.930 to 0.938. On isolated fraud the GNNs' and hybrids' deficits were
+unchanged ($-0.086$ to $-0.219$ with the mean of three seeds, Holm $p\le0.003$). Training-seed variation was small
+for GB-CAG (standard deviation of ring AP within a world 0.001--0.005) but, for HGT, comparable to the variation
+between worlds (0.022--0.034 against 0.028--0.029). The hybrids' small advantage reported in the article is
+therefore of the order of the variation between training seeds, and part of it may be specific to the seed used
+for tuning.
+
+\begin{table}[h]
+\caption{Training-seed replication at $\delta=0$ (seeds 1--6, three densities, training seeds 0--2). Ring AP difference from GB-CAG pooled over densities (seed as unit, Holm-adjusted $p$), with the reported training seed only and with each world's mean over three training seeds; and the standard deviation of ring AP across training seeds within a world and across worlds (means over densities).}\label{tab:modelseeds}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{Seed 0 only} & \multicolumn{2}{c}{Mean of 3 seeds} & \multicolumn{2}{c}{s.d. of ring AP} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Method & $\Delta$ [95\% CI] & $p$ & $\Delta$ [95\% CI] & $p$ & training & worlds \\
+\midrule
+GB-CAG & -- & -- & -- & -- & 0.003 & 0.014 \\
+SAGE & $-0.008$ [$-0.022$, $+0.005$] & 0.227 & $-0.010$ [$-0.026$, $+0.005$] & 0.283 & 0.011 & 0.016 \\
+HGT & $-0.032$ [$-0.068$, $+0.005$] & 0.227 & $-0.040$ [$-0.068$, $-0.012$] & 0.060 & 0.027 & 0.028 \\
+SAGE+AG & $+0.013$ [$+0.003$, $+0.023$] & 0.074 & $+0.009$ [$-0.002$, $+0.019$] & 0.246 & 0.008 & 0.007 \\
+HGT+AG & $+0.012$ [$-0.004$, $+0.028$] & 0.227 & $+0.007$ [$-0.005$, $+0.019$] & 0.283 & 0.009 & 0.015 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\section{Per-regime tuning}\label{sec:s_regime}
+All methods were tuned once, on development worlds at $\delta=0.5$, $s=0.5$. To test whether the regime-level
+conclusions depend on that choice, the tuning protocol (ten configurations per method, development seeds 901 and
+902, validation AP; hybrids inherit their base configuration) was repeated on development worlds of the two
+$\delta=0$ regimes in which the comparisons matter most, sparse ($s=0.1$) and dense ($s=0.9$) rings, and every
+method was evaluated on seeds 1--6 of that regime with the re-selected configurations, as fixed in the plan for the
+third round. Table~\ref{tab:regimetuned} shows the result.
+
+Re-tuning selected a different configuration for 8 of the 11 tuned methods at $s=0.1$ and 7 at $s=0.9$, but
+changed no method's ring AP significantly: the largest change was $-0.042$ (SAGE at $s=0.9$, Holm $p=0.51$), and
+methods that kept their configuration reproduced their results exactly. With every method re-tuned, no GNN or
+hybrid exceeded GB-CAG significantly in either regime (largest: SAGE+AG, $+0.043$ at $s=0.1$, Holm $p=0.092$). At
+$s=0.9$ the pure GNNs were 0.03--0.07 below GB-CAG (significantly for Simple-HGN, Holm $p=0.026$) and the hybrids
+matched it. The regime-level conclusions therefore do not depend on the regime used for tuning.
+
+\begin{table}[h]
+\caption{Per-regime tuning at $\delta=0$ (seeds 1--6): ring AP with the main configurations (tuned at $\delta=0.5$, $s=0.5$) and with every method re-tuned in the evaluation regime; $\Delta$: difference from GB-CAG when all methods are re-tuned (paired over worlds, Holm-adjusted $p$ over methods; confidence intervals in \texttt{results/tables/regimetuned\_comparisons.csv}). Hybrids inherit their base configuration.}\label{tab:regimetuned}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+ & \multicolumn{4}{c}{$s=0.1$} & \multicolumn{4}{c}{$s=0.9$} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+Method & Main & Re-tuned & $\Delta$ & $p$ & Main & Re-tuned & $\Delta$ & $p$ \\
+\midrule
+LR-CA & 0.923 & 0.923 & $-0.007$ & 1.000 & 0.868 & 0.868 & $-0.122$ & $<$0.001 \\
+RF-CA & 0.875 & 0.877 & $-0.053$ & 0.024 & 0.844 & 0.856 & $-0.134$ & $<$0.001 \\
+GB-C & 0.084 & 0.079 & $-0.851$ & $<$0.001 & 0.087 & 0.084 & $-0.906$ & $<$0.001 \\
+GB-CA & 0.925 & 0.924 & $-0.006$ & 1.000 & 0.889 & 0.884 & $-0.105$ & 0.003 \\
+GB-CAG & 0.930 & 0.930 & -- & -- & 0.990 & 0.989 & -- & -- \\
+MLP-C & 0.088 & 0.088 & $-0.842$ & $<$0.001 & 0.095 & 0.093 & $-0.897$ & $<$0.001 \\
+SAGE & 0.938 & 0.937 & $+0.007$ & 1.000 & 0.976 & 0.934 & $-0.056$ & 0.149 \\
+RGCN & 0.933 & 0.945 & $+0.016$ & 1.000 & 0.954 & 0.942 & $-0.047$ & 0.085 \\
+HAN & 0.908 & 0.906 & $-0.024$ & 1.000 & 0.921 & 0.921 & $-0.068$ & 0.085 \\
+Simple-HGN & 0.915 & 0.907 & $-0.023$ & 0.666 & 0.957 & 0.957 & $-0.033$ & 0.026 \\
+HGT & 0.910 & 0.910 & $-0.019$ & 1.000 & 0.949 & 0.949 & $-0.041$ & 0.385 \\
+SAGE+AG & 0.973 & 0.973 & $+0.043$ & 0.092 & 0.983 & 0.990 & $0.000$ & 1.000 \\
+HGT+AG & 0.964 & 0.964 & $+0.034$ & 0.666 & 0.990 & 0.990 & $0.000$ & 1.000 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\section{Other ring shapes and sizes}\label{sec:s_shapes}
+The engineered graph features were designed knowing the default ring: four doctors and twelve patients linked as a
+block. As fixed in the plan for the fourth round (\texttt{paper/hiss\_review/analysis\_plan\_round4.md}), every
+method was therefore also run on four other ring shapes and sizes at $\delta=0$ (seeds 1--6, hyperparameters of the
+main experiment): a hub (one hub doctor linked to all twelve patients, each patient also linked to one of three spoke
+doctors); a distributed ring (eight doctors and 24 patients, each patient linked to two ring doctors drawn at
+random); and a small (2 doctors, 6 patients) and a large (8 and 24) block at $s=0.5$. Each was run at the
+per-member claim volume of the default ring (full; 16 claims per month for twelve patients, scaled with ring size)
+and at half of it. Table~\ref{tab:shapes} gives ring AP. Each GNN and hybrid is compared with GB-CAG within its
+column (Holm over the nine methods), and the structure gain GB-CAG $-$ GB-CA across the eight columns; every
+comparison is in the repository (\texttt{results/tables/shapes\_comparisons.csv}).
+
+No pure GNN, general-purpose or fraud-specialised, had significantly higher ring AP than GB-CAG in any column. The
+largest point estimate, SAGE for the small block at full volume ($+0.060$, 95\% CI $[-0.042, 0.163]$, Holm
+$p=0.96$), comes with an interval that also allows a deficit. Pure GNNs were significantly below GB-CAG in 32 of the
+56 method--column pairs, 26 of them for the hub and the large block.
+
+The engineered features also captured structure they were not designed for. Graph features added significantly to
+GB-CA for the hub ($+0.067$ and $+0.490$ at full and half volume), the large block ($+0.062$ and $+0.375$) and, at
+half volume, the distributed ring ($+0.131$) and the small block ($+0.377$; Holm $p\le0.02$ across the eight
+columns). At full volume the distributed ring and the small block were detected by aggregates alone (structure gain
+$+0.003$ and $+0.020$, not significant). The unsupervised overlap score shows where the closure statistic works: at
+full volume it reached 0.853 and 0.988 for the hub and the large block, but only 0.534 and 0.475 for the distributed
+ring and the small block.
+
+The only significant advantage over GB-CAG was that of the hybrid SAGE+AG for the distributed ring ($+0.014$
+$[0.008, 0.020]$ at full and $+0.093$ $[0.050, 0.136]$ at half volume, Holm $p=0.019$ and $0.023$), whose
+doctor--patient links are sparser than those of any block in the main grid. As for the sparse blocks there, message
+passing on top of the engineered features helped where those features were least informative. On isolated fraud
+every GNN and hybrid was again below GB-CAG in every column, by 0.04 to 0.37.
+
+\begin{table}[h]
+\caption{Ring AP on unseen test rings for other ring shapes and sizes ($\delta=0$, six worlds per column, seeds 1--6, hyperparameters of the main experiment). Hub: one hub doctor and three spoke doctors, twelve patients, each linked to the hub and one spoke; distributed: eight doctors and 24 patients, each patient linked to two ring doctors; small and large block: 2 doctors and 6 patients or 8 and 24, $s=0.5$. Full: per-member claim volume of the default ring; half: half of it. Chance level 0.021--0.148. Bold: best per column.}\label{tab:shapes}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{Hub} & \multicolumn{2}{c}{Distributed} & \multicolumn{2}{c}{Small block} & \multicolumn{2}{c}{Large block} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+Method / volume & full & half & full & half & full & half & full & half \\
+\midrule
+GB-C & 0.089 & 0.044 & 0.150 & 0.076 & 0.050 & 0.028 & 0.146 & 0.078 \\
+MLP-C & 0.089 & 0.045 & 0.158 & 0.086 & 0.048 & 0.028 & 0.157 & 0.083 \\
+LR-CA & 0.881 & 0.503 & 0.927 & 0.604 & 0.832 & 0.353 & 0.893 & 0.583 \\
+RF-CA & 0.845 & 0.288 & 0.936 & 0.489 & 0.694 & 0.148 & 0.918 & 0.599 \\
+GB-CA & 0.912 & 0.348 & 0.957 & 0.566 & 0.849 & 0.221 & 0.931 & 0.566 \\
+GB-CAG & 0.978 & \textbf{0.838} & 0.960 & 0.697 & 0.869 & 0.598 & \textbf{0.993} & \textbf{0.941} \\
+\midrule
+SAGE & 0.929 & 0.574 & 0.962 & 0.704 & \textbf{0.930} & 0.376 & 0.975 & 0.847 \\
+RGCN & 0.923 & 0.565 & 0.956 & 0.700 & 0.900 & 0.263 & 0.973 & 0.816 \\
+HAN & 0.860 & 0.402 & 0.946 & 0.664 & 0.750 & 0.178 & 0.964 & 0.776 \\
+Simple-HGN & 0.926 & 0.584 & 0.963 & 0.717 & 0.852 & 0.350 & 0.980 & 0.864 \\
+HGT & 0.905 & 0.420 & 0.955 & 0.661 & 0.753 & 0.149 & 0.967 & 0.843 \\
+\midrule
+BWGNN & 0.887 & 0.456 & 0.948 & 0.679 & 0.706 & 0.213 & 0.962 & 0.766 \\
+CARE-GNN & 0.865 & 0.251 & 0.946 & 0.611 & 0.681 & 0.152 & 0.932 & 0.651 \\
+\midrule
+SAGE+AG & 0.980 & 0.816 & \textbf{0.974} & \textbf{0.790} & 0.925 & \textbf{0.662} & 0.993 & 0.939 \\
+HGT+AG & \textbf{0.982} & 0.799 & 0.966 & 0.735 & 0.892 & 0.579 & 0.990 & 0.926 \\
+Overlap score & 0.853 & 0.536 & 0.534 & 0.301 & 0.475 & 0.258 & 0.988 & 0.862 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\section{Cost of training and scoring}\label{sec:s_cost}
+Median training time per world (Intel Core i7-1068NG7 laptop CPU, two
+threads per job with several jobs in parallel, so times are indicative) was
+3~s for GB-CAG, 39~s for SAGE, 56~s for RGCN, 86~s for HAN, 126~s for HGT and
+144~s for Simple-HGN (first-round runs; the fraud-specialised GNNs ran in the fourth round under a different
+load and are not included); scoring a test period took at most 0.25~s for any method. A separate single-thread benchmark on an otherwise idle machine (four
+worlds at $\delta=0$) measured scoring directly. For one audit period (about
+4{,}900 claims and 11{,}200 nodes), building the aggregate and graph features
+took 0.05~s and the heterogeneous graph 0.01~s, and scoring every claim took
+0.05~s with GB-CAG and 0.12~s with HGT. Scoring a single claim, as an online
+system would, took a median of 2.1~ms (99th percentile 3.1~ms, mostly
+library-call overhead) with GB-CAG on a precomputed feature row, and 10.7~ms
+(14.7~ms) with HGT on the claim's exact three-hop computation subgraph (about
+126 nodes, 1\% of the period graph; extraction 2.8~ms, forward pass 7.7~ms),
+which reproduces the full-graph score to within $1.2\times10^{-7}$. Routing
+would therefore cut the online GNN cost in proportion to the share of claims
+escalated. In batch scoring the escalated claims' subgraphs overlap:
+escalating 10\% of the claims already touched 55\% of the period graph, and
+scoring that union took 0.08~s against 0.12~s for the whole period. None of
+these figures includes keeping aggregates, graph features and degree counts
+up to date as claims arrive, which an online system would need and our code
+does not implement.
+
+\section{Single-factor ablations of HGT}\label{sec:hgtarch}
+Table~\ref{tab:hgt_arch} changes one factor of the tuned HGT at a time in
+the same regime. Depth beyond two layers and the number of attention heads
+made no significant difference (four layers $+0.002$; one, two and eight
+heads $-0.037$ to $+0.013$; all Holm $p>0.5$), so there is no sign of
+over-smoothing up to four layers on these graphs. Among the relations,
+removing the patient--claim edges cost most ($-0.219$, Holm $p=0.005$);
+removing the claim--doctor edges cost $0.113$ on rings (Holm $p=0.085$) and
+$0.147$ on isolated fraud ($p<0.001$), while hospital nodes and the direct
+patient--doctor relation contributed nothing measurable. The node inputs
+separate the two tasks cleanly. With claim attributes set to zero, ring AP
+was unchanged ($-0.012$) and isolated AP fell to chance (0.036); an HGT that
+saw only the degree encodings and the graph reached a ring AP of
+$0.982\pm0.018$, as high as the full model, and detected no isolated fraud.
+HGT's ring detection is therefore structural---counts of who bills whom,
+propagated along patient--claim--doctor paths---and its claim attributes
+serve isolated fraud only. This is the information that the engineered
+shared-patient features summarise directly. At default volume these counts
+also carry the ring members' excess claims; Section~\MainSecLowVolume{} of the article
+shows that when they do not, the GNNs fall far behind gradient boosting with
+the engineered features. HGT also varied between worlds
+(standard deviations up to 0.11), so with six worlds differences smaller than
+about 0.05 cannot be resolved.
+
+\begin{table}[h]
+\caption{HGT single-factor ablations at $\delta=0$, $s=0.9$ (six worlds; one factor changed at a time from the tuned configuration: 3 layers, 4 heads, hidden size 32). Ring AP (mean $\pm$ s.d.), isolated AP (mean) and paired change from the full model; Holm-adjusted $p$ over every ablation comparison in this table and Table~\MainTabAblation{} of the article.}\label{tab:hgt_arch}
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Variant & Ring AP & $\Delta$ ring AP & Isol.\ AP & $\Delta$ isol.\ AP \\
+\midrule
+Full model & 0.949 $\pm$ 0.052 & -- & 0.455 & -- \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Depth (full: 3)}} \\
+1 layer & 0.788 $\pm$ 0.052 & $-0.161$ ($p=0.020$) & 0.239 & $-0.216$ ($p=0.007$) \\
+2 layers & 0.947 $\pm$ 0.035 & $-0.001$ ($p=1.000$) & 0.423 & $-0.032$ ($p=1.000$) \\
+4 layers & 0.951 $\pm$ 0.043 & $+0.002$ ($p=1.000$) & 0.461 & $+0.005$ ($p=1.000$) \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Heads (full: 4)}} \\
+1 attention head & 0.920 $\pm$ 0.049 & $-0.028$ ($p=1.000$) & 0.384 & $-0.071$ ($p=0.228$) \\
+2 heads & 0.911 $\pm$ 0.081 & $-0.037$ ($p=0.506$) & 0.473 & $+0.018$ ($p=0.813$) \\
+8 heads & 0.961 $\pm$ 0.023 & $+0.013$ ($p=1.000$) & 0.524 & $+0.069$ ($p=0.282$) \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Relations}} \\
+No patient--claim relation & 0.730 $\pm$ 0.055 & $-0.219$ ($p=0.005$) & 0.311 & $-0.144$ ($p=0.333$) \\
+No claim--doctor relation & 0.836 $\pm$ 0.037 & $-0.113$ ($p=0.085$) & 0.308 & $-0.147$ ($p<0.001$) \\
+No patient--doctor relation & 0.902 $\pm$ 0.055 & $-0.047$ ($p=0.413$) & 0.423 & $-0.032$ ($p=1.000$) \\
+No hospital nodes & 0.946 $\pm$ 0.032 & $-0.002$ ($p=1.000$) & 0.427 & $-0.028$ ($p=1.000$) \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Node inputs}} \\
+No degree encodings & 0.569 $\pm$ 0.110 & $-0.379$ ($p=0.003$) & 0.375 & $-0.080$ ($p=0.813$) \\
+Claim attributes zeroed & 0.937 $\pm$ 0.064 & $-0.012$ ($p=1.000$) & 0.036 & $-0.419$ ($p<0.001$) \\
+Entity attributes zeroed & 0.969 $\pm$ 0.027 & $+0.020$ ($p=1.000$) & 0.444 & $-0.011$ ($p=1.000$) \\
+Degree encodings only & 0.982 $\pm$ 0.018 & $+0.033$ ($p=1.000$) & 0.040 & $-0.415$ ($p<0.001$) \\
+\botrule
+\end{tabular}
+\end{table}
+
+\section{Which inputs the trained models use}\label{sec:reliance}
+To see which inputs the trained models use, without retraining, we permuted
+one input group at a time across the test period, five times each, and
+recorded the drop in ring AP: for GB-CAG the C, A and G features and each G
+feature separately, and for the GNNs the claim attributes, static entity
+attributes and degree encodings across nodes of each type. At $\delta=0$,
+GB-CAG relied on aggregates when rings were sparse (A: $-0.80$ at $s=0.1$;
+G: $-0.13$) and switched to the graph features as the block became dense (G:
+$-0.81$ and $-0.88$ at $s=0.5$ and $0.9$; A: below $0.06$), above all the
+normalised triadic closure of the claim ($-0.47$ on its own at $s=0.9$).
+SAGE and HGT relied almost entirely on degree encodings ($-0.76$ to $-0.89$
+at every density) and hardly at all on claim or entity attributes (below
+$0.05$). The two kinds of score are not on a common scale: GB-CAG's measure
+reliance on engineered summaries of the graph, whereas a GNN's degree
+encodings are raw counts whose relational meaning is extracted by message
+passing, and permutation understates groups whose information is duplicated
+elsewhere. Read together with the ablations, they are consistent with both
+model families detecting dense rings from the same evidence: how many
+counterparties a claim's patient and doctor have, and how many of them they
+share. (Full results, including isolated fraud and test-time rewiring, are in
+the repository.)
+
+\section{Figures of the mechanism ablations and of new versus recurring rings}\label{sec:s_figs}
+Figs.~\ref{fig:ablation} and~\ref{fig:protocolres} show the results of Table~\MainTabAblation{} and
+Table~\MainTabProtocol{} of the article with 95\% intervals.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_ablation.pdf}
+\caption{Mechanism ablations at $\delta=0$, $s=0.9$ (mean and 95\%
+$t$-interval over six worlds). Rewiring preserves every node's degree but
+destroys the ring block.}
+\label{fig:ablation}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_protocol.pdf}
+\caption{Ring AP on new versus recurring rings ($\delta=0$, six worlds).}
+\label{fig:protocolres}
+\end{figure}
+
+\section{Repeated cross-validation and per-rotation tuning on the public data}\label{sec:s_kaggle}
+Both analyses were specified in the plan for the second round of experiments before they were run.
+
+\textbf{Repeated cross-validation.} The provider-disjoint five-fold rotation of the article (fold $k$ test,
+fold $k+1$ validation, three training folds) was repeated with the stratified fold assignment reshuffled four more
+times (seeds 1--4), giving 25 rotations with the article's split as the first. The second round covered the
+tabular models, the MLP and three GNNs (SAGE, HAN, HGT); RGCN, Simple-HGN and the two hybrids were added in the
+third round and the fraud-specialised BWGNN and CARE-GNN in the fourth, with the same reshuffled folds
+(\texttt{paper/hiss\_review/analysis\_plan\_round3.md} and \texttt{round4.md}). Hyperparameters are those of the shared selection. Each method is compared with GB-P by
+the corrected repeated cross-validation $t$-test (Nadeau and Bengio 2003; Bouckaert and Frank 2004; references
+\MainRefNadeau{} and \MainRefBouckaert{} of the article), which inflates the variance
+of the mean difference by $1/25 + 1/3$ instead of $1/25$, with 24 degrees of freedom, and the fourteen $p$-values
+are Holm-adjusted together (the earlier rounds adjusted eight and twelve within smaller families).
+Table~\ref{tab:kaggle_repeated} shows the result. GB-P has the highest mean AP; graph features change it by $-0.007$
+and $-0.006$, with upper 95\% limits of $+0.006$ and $+0.007$; the GNNs are 0.025--0.092 lower and the hybrids
+0.039--0.063 lower. After adjustment only RGCN differs significantly ($-0.092$, Holm $p=0.009$); the next smallest
+adjusted $p$ is 0.062 (SAGE+G). Without the correction, every difference would be significant (all unadjusted
+$p<0.01$), which shows how strongly overlapping training sets inflate a plain paired test.
+
+\begin{table}[h]
+\caption{Public data, five-fold rotation repeated five times (25 rotations; the first repeat is the split reported in the article): AP mean $\pm$ s.d., and the difference from GB-P with the corrected repeated cross-validation 95\% CI and Holm-adjusted $p$ (variance factor $1/25 + 1/3$, 24 degrees of freedom).}\label{tab:kaggle_repeated}
+\footnotesize
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Method & AP & $\Delta$ vs.\ GB-P [95\% CI] & $p$ \\
+\midrule
+LR-P & 0.674 $\pm$ 0.046 & $-0.019$ [$-0.044$, $+0.006$] & 0.905 \\
+RF-P & 0.674 $\pm$ 0.041 & $-0.019$ [$-0.042$, $+0.005$] & 0.905 \\
+GB-P & 0.693 $\pm$ 0.045 & -- & -- \\
+GB-PG & 0.686 $\pm$ 0.045 & $-0.007$ [$-0.019$, $+0.006$] & 0.905 \\
+GB-PGL & 0.687 $\pm$ 0.046 & $-0.006$ [$-0.019$, $+0.007$] & 0.905 \\
+MLP-P & 0.676 $\pm$ 0.042 & $-0.017$ [$-0.042$, $+0.009$] & 0.905 \\
+SAGE & 0.665 $\pm$ 0.058 & $-0.028$ [$-0.066$, $+0.010$] & 0.905 \\
+RGCN & 0.601 $\pm$ 0.051 & $-0.092$ [$-0.140$, $-0.043$] & 0.009 \\
+HAN & 0.659 $\pm$ 0.046 & $-0.034$ [$-0.066$, $-0.002$] & 0.398 \\
+Simple-HGN & 0.666 $\pm$ 0.048 & $-0.027$ [$-0.063$, $+0.008$] & 0.905 \\
+HGT & 0.668 $\pm$ 0.050 & $-0.025$ [$-0.055$, $+0.005$] & 0.905 \\
+BWGNN & 0.665 $\pm$ 0.051 & $-0.028$ [$-0.065$, $+0.008$] & 0.905 \\
+CARE-GNN & 0.661 $\pm$ 0.043 & $-0.032$ [$-0.065$, $0.000$] & 0.500 \\
+SAGE+G & 0.630 $\pm$ 0.049 & $-0.063$ [$-0.105$, $-0.021$] & 0.062 \\
+HGT+G & 0.654 $\pm$ 0.041 & $-0.039$ [$-0.068$, $-0.009$] & 0.146 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\textbf{Per-rotation (nested) selection.} The shared selection uses a separate 60/20/20 split whose validation
+providers also appear in the test folds of the rotations. Re-selecting each method's configuration inside every
+rotation, from the same six candidates and on that rotation's validation fold only, removes this overlap.
+Table~\ref{tab:kaggle_nested} compares nested with shared selection, and every method with GB-P when both are
+selected inside each rotation. Re-selection changed AP by at most 0.010 for the tabular models and the MLP and by
+$-0.008$ (HGT) to $+0.036$ (RGCN) for the GNNs and hybrids, with no change significant; SAGE selected its shared
+configuration in all five rotations, and SAGE+G inherits it, so their results are identical. We had expected the
+shared selection to favour the GNNs; it did not do so systematically. With every method selected inside each
+rotation, GB-P remains the best method, and every GNN and hybrid is 0.023--0.053 below it (smallest Holm $p=0.059$
+for SAGE and SAGE+G).
+
+\begin{table}[h]
+\caption{Public data: hyperparameters re-selected inside every rotation (nested) versus selected once on a separate split (shared; Table~\MainTabKaggle{} of the article). AP mean over the five rotations. Nested $-$ shared: change from re-selection; vs.\ nested GB-P: difference from GB-P when both are selected inside each rotation, with Holm-adjusted $p$. Intervals are corrected resampled 95\% CIs. Same choice: the shared configuration was selected in every rotation, so the results are identical. Hybrids inherit their base model's per-rotation choice.}\label{tab:kaggle_nested}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Method & Nested AP & Nested $-$ shared [95\% CI] & vs.\ nested GB-P [95\% CI] & $p$ \\
+\midrule
+LR-P & 0.682 & $+0.003$ [$-0.008$, $+0.015$] & $-0.024$ [$-0.055$, $+0.007$] & 0.708 \\
+RF-P & 0.680 & $-0.001$ [$-0.021$, $+0.019$] & $-0.026$ [$-0.062$, $+0.010$] & 0.708 \\
+GB-P & 0.706 & $+0.002$ [$-0.016$, $+0.019$] & -- & -- \\
+GB-PG & 0.693 & $-0.001$ [$-0.033$, $+0.030$] & $-0.012$ [$-0.045$, $+0.020$] & 0.708 \\
+GB-PGL & 0.687 & $-0.010$ [$-0.040$, $+0.020$] & $-0.019$ [$-0.057$, $+0.018$] & 0.708 \\
+MLP-P & 0.688 & $+0.003$ [$-0.008$, $+0.014$] & $-0.018$ [$-0.045$, $+0.010$] & 0.708 \\
+SAGE & 0.664 & same choice & $-0.042$ [$-0.062$, $-0.022$] & 0.059 \\
+RGCN & 0.657 & $+0.036$ [$-0.014$, $+0.086$] & $-0.049$ [$-0.103$, $+0.005$] & 0.585 \\
+HAN & 0.670 & $+0.003$ [$-0.023$, $+0.030$] & $-0.036$ [$-0.089$, $+0.017$] & 0.708 \\
+Simple-HGN & 0.682 & $+0.012$ [$-0.032$, $+0.056$] & $-0.023$ [$-0.048$, $+0.001$] & 0.585 \\
+HGT & 0.668 & $-0.008$ [$-0.034$, $+0.019$] & $-0.038$ [$-0.065$, $-0.011$] & 0.213 \\
+BWGNN & 0.670 & $-0.003$ [$-0.018$, $+0.012$] & $-0.036$ [$-0.100$, $+0.029$] & 0.708 \\
+CARE-GNN & 0.673 & $+0.005$ [$-0.019$, $+0.028$] & $-0.032$ [$-0.060$, $-0.005$] & 0.352 \\
+SAGE+G & 0.653 & same choice & $-0.053$ [$-0.078$, $-0.027$] & 0.059 \\
+HGT+G & 0.661 & $+0.013$ [$-0.018$, $+0.043$] & $-0.045$ [$-0.096$, $+0.006$] & 0.585 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\section{Re-analysis of a small fixed benchmark}\label{sec:legacy}
+To show how a small, fixed benchmark can mislead, we re-analysed one: a
+synthetic dataset of 2{,}100 claims with five injected rings, produced by an
+earlier, simpler generator of ours that is included in the repository,
+evaluated with its own
+date-sorted 60/20/20 split (Table~\ref{tab:legacy}). Such a dataset appears
+to test ring detection, but this one cannot tell whether relational
+structure helps, for three reasons. First, its ring claims were drawn from the
+same inflated distribution as its isolated fraud, so they were anomalous on
+their own: claim amount alone separates ring from legitimate claims with
+ROC-AUC 0.94, more than in our most anomalous regime ($\delta=2$, 0.90), and
+gradient boosting on three raw claim attributes ranks all 21 test ring claims
+above every legitimate claim (ring AP 1.000). Second, the same five rings
+were active for all 24 months, so every test ring claim was billed by a
+doctor with labelled ring claims in training, which is the memorisation
+setting of Section~\MainSecMechanism{} of the article. Third, the test split held 21 ring
+claims (3--6 per ring): one claim moves ring recall by 4.8 points, even a
+perfect recall has an exact 95\% interval of $[0.84, 1.00]$, so a recall gap
+of a few claims between two models is within noise, and a single dataset says
+nothing about variation between datasets. None of these properties is
+peculiar to that dataset. A small, fixed benchmark whose injected rings
+differ from legitimate claims in their features, recur across the split and
+contribute a few dozen test claims cannot separate relational learning from
+claim-level anomaly detection or from recognising known members. Controlling
+the feature-level signal, testing on new rings and replicating worlds
+removes all three confounds. Because the generator, features, evaluation unit
+and tuning differ, numbers from the two set-ups are not directly comparable.
+
+\begin{table}[h]
+\caption{A small fixed benchmark (2,100 claims, five rings; an earlier, simpler generator of ours, included in the repository), re-analysed with its own split (date-sorted, 60/20/20), compared with our benchmark. Benchmark ranges span $\delta=0$ to $\delta=2$ ($s=0.5$, six worlds each; ring AP and recall of GB-C pooled over $s$). Shift and ROC-AUC use raw claim amounts, not adjusted for specialty, for both. Interval: exact 95\% binomial.}\label{tab:legacy}
+\scriptsize
+\begin{tabular}{@{}p{5.0cm}p{3.1cm}p{3.6cm}@{}}
+\toprule
+ & Fixed dataset & This benchmark \\
+\midrule
+Claims in total (in the test split / period) & 2,100 (420) & 20,176 (4,924), mean per world \\
+Ring claims in test & 21 (3--6 per ring) & 384 (4 rings $\times$ 96) \\
+Rings & 5, active all 24 months & 4 per period, each active 6 months \\
+Test-ring doctors with labelled ring claims in training & 100\% & 0\% (by design) \\
+Ring vs.\ legitimate log-amount shift (s.d.) & 1.49 & 0.11 ($\delta=0$) to 1.87 ($\delta=2$) \\
+ROC-AUC of claim amount alone, ring vs.\ legitimate & 0.94 & 0.53 to 0.90 \\
+Ring AP, GB on claim attributes only & 1.000 & 0.086 to 0.811 \\
+Ring recall, GB on claim attributes only & 21/21 [0.84, 1.00] & 0.15 to 0.76 \\
+Generated datasets (independent generator seeds) & 1 (1) & 54 (6) \\
+\botrule
+\end{tabular}
+\end{table}
+
+\end{document}

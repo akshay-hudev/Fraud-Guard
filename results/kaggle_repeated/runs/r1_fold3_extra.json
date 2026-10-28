@@ -1,0 +1,147 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-27T12:03:57+00:00",
+    "git": {
+      "commit": "2eb368c6bb4ca741b7fd61b2b7c00f89eeaee36f",
+      "dirty": false,
+      "research_sources_sha256": "3cb55752dad0700c"
+    },
+    "config_hash": "500033d4f6d7b332",
+    "config": {
+      "fold": 3,
+      "repeat": 1,
+      "methods": [
+        "RGCN",
+        "SimpleHGN",
+        "SAGE+G",
+        "HGT+G"
+      ]
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "hyperparameters": {
+      "RGCN": {
+        "aggr": "sum",
+        "dropout": 0.3,
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.01,
+        "weight_decay": 0.001
+      },
+      "SimpleHGN": {
+        "dropout": 0.1,
+        "heads": 4,
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.01,
+        "weight_decay": 0.001
+      },
+      "SAGE+G": {
+        "aggr": "mean",
+        "dropout": 0.3,
+        "hidden": 64,
+        "layers": 3,
+        "lr": 0.003,
+        "weight_decay": 0.0001
+      },
+      "HGT+G": {
+        "dropout": 0.1,
+        "heads": 4,
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.01,
+        "weight_decay": 0.001
+      }
+    },
+    "data": {
+      "n_providers": 5410,
+      "n_fraud": 506,
+      "P_hash": "11c2c5f183b47228",
+      "files": "data/external/kaggle_provider_fraud"
+    }
+  },
+  "rows": [
+    {
+      "method": "RGCN",
+      "fold": 3,
+      "repeat": 1,
+      "ap": 0.471316957732599,
+      "roc_auc": 0.9044317275764273,
+      "f1": 0.48756218905472637,
+      "precision": 0.49,
+      "recall": 0.48514851485148514,
+      "recall_at_10pct": 0.5346534653465347,
+      "threshold": 0.888327956199646,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.6096170155983821,
+      "train_seconds": 147.9070918560028,
+      "infer_seconds": 1.032560110092163,
+      "best_epoch": 30
+    },
+    {
+      "method": "SimpleHGN",
+      "fold": 3,
+      "repeat": 1,
+      "ap": 0.5722789972694686,
+      "roc_auc": 0.9169467405456141,
+      "f1": 0.5764192139737991,
+      "precision": 0.515625,
+      "recall": 0.6534653465346535,
+      "recall_at_10pct": 0.5643564356435643,
+      "threshold": 0.8655804991722107,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.6841079969462694,
+      "train_seconds": 360.85614705085754,
+      "infer_seconds": 3.1666786670684814,
+      "best_epoch": 22
+    },
+    {
+      "method": "SAGE+G",
+      "fold": 3,
+      "repeat": 1,
+      "ap": 0.5092614907405314,
+      "roc_auc": 0.9187331577194416,
+      "f1": 0.5196078431372549,
+      "precision": 0.5145631067961165,
+      "recall": 0.5247524752475248,
+      "recall_at_10pct": 0.5445544554455446,
+      "threshold": 0.9385516047477722,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.6301443849961996,
+      "train_seconds": 96.31708192825317,
+      "infer_seconds": 0.9308211803436279,
+      "best_epoch": 21
+    },
+    {
+      "method": "HGT+G",
+      "fold": 3,
+      "repeat": 1,
+      "ap": 0.5486952960372746,
+      "roc_auc": 0.9144235524469878,
+      "f1": 0.5381165919282511,
+      "precision": 0.4918032786885246,
+      "recall": 0.594059405940594,
+      "recall_at_10pct": 0.5445544554455446,
+      "threshold": 0.8767581582069397,
+      "n_test": 1082,
+      "n_pos": 101,
+      "best_val_ap": 0.6686775083386364,
+      "train_seconds": 250.7604501247406,
+      "infer_seconds": 3.393199920654297,
+      "best_epoch": 10
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+\begin{table}[h]
+\caption{Public data: hyperparameters re-selected inside every rotation (nested) versus selected once on a separate split (shared; Table~\MainTabKaggle{} of the article). AP mean over the five rotations. Nested $-$ shared: change from re-selection; vs.\ nested GB-P: difference from GB-P when both are selected inside each rotation, with Holm-adjusted $p$. Intervals are corrected resampled 95\% CIs. Same choice: the shared configuration was selected in every rotation, so the results are identical. Hybrids inherit their base model's per-rotation choice.}\label{tab:kaggle_nested}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Method & Nested AP & Nested $-$ shared [95\% CI] & vs.\ nested GB-P [95\% CI] & $p$ \\
+\midrule
+LR-P & 0.682 & $+0.003$ [$-0.008$, $+0.015$] & $-0.024$ [$-0.055$, $+0.007$] & 0.708 \\
+RF-P & 0.680 & $-0.001$ [$-0.021$, $+0.019$] & $-0.026$ [$-0.062$, $+0.010$] & 0.708 \\
+GB-P & 0.706 & $+0.002$ [$-0.016$, $+0.019$] & -- & -- \\
+GB-PG & 0.693 & $-0.001$ [$-0.033$, $+0.030$] & $-0.012$ [$-0.045$, $+0.020$] & 0.708 \\
+GB-PGL & 0.687 & $-0.010$ [$-0.040$, $+0.020$] & $-0.019$ [$-0.057$, $+0.018$] & 0.708 \\
+MLP-P & 0.688 & $+0.003$ [$-0.008$, $+0.014$] & $-0.018$ [$-0.045$, $+0.010$] & 0.708 \\
+SAGE & 0.664 & same choice & $-0.042$ [$-0.062$, $-0.022$] & 0.059 \\
+RGCN & 0.657 & $+0.036$ [$-0.014$, $+0.086$] & $-0.049$ [$-0.103$, $+0.005$] & 0.585 \\
+HAN & 0.670 & $+0.003$ [$-0.023$, $+0.030$] & $-0.036$ [$-0.089$, $+0.017$] & 0.708 \\
+Simple-HGN & 0.682 & $+0.012$ [$-0.032$, $+0.056$] & $-0.023$ [$-0.048$, $+0.001$] & 0.585 \\
+HGT & 0.668 & $-0.008$ [$-0.034$, $+0.019$] & $-0.038$ [$-0.065$, $-0.011$] & 0.213 \\
+BWGNN & 0.670 & $-0.003$ [$-0.018$, $+0.012$] & $-0.036$ [$-0.100$, $+0.029$] & 0.708 \\
+CARE-GNN & 0.673 & $+0.005$ [$-0.019$, $+0.028$] & $-0.032$ [$-0.060$, $-0.005$] & 0.352 \\
+SAGE+G & 0.653 & same choice & $-0.053$ [$-0.078$, $-0.027$] & 0.059 \\
+HGT+G & 0.661 & $+0.013$ [$-0.018$, $+0.043$] & $-0.045$ [$-0.096$, $+0.006$] & 0.585 \\
+\botrule
+\end{tabular}
+\end{table}

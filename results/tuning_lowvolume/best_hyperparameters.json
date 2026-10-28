@@ -1,0 +1,535 @@
+{
+  "provenance": {
+    "created_utc": "2026-10-28T06:00:04+00:00",
+    "git": {
+      "commit": "78072e866d8850111821649c3d9f234acdcb863c",
+      "dirty": false,
+      "research_sources_sha256": "cc29400c9c8b231d"
+    },
+    "config_hash": "2a916c636e332798",
+    "config": {
+      "budget": 10,
+      "dev_seeds": [
+        901,
+        902
+      ],
+      "dev_regime": {
+        "ring_shift": 0.5,
+        "ring_density": 0.5,
+        "ring_claims_per_month": 4.0
+      },
+      "spaces": {
+        "LR-CA": {
+          "C": [
+            1.0,
+            0.001,
+            0.01,
+            0.1,
+            10.0,
+            100.0
+          ]
+        },
+        "RF-CA": {
+          "n_estimators": [
+            300
+          ],
+          "max_depth": [
+            null,
+            8,
+            16
+          ],
+          "min_samples_leaf": [
+            3,
+            1,
+            10
+          ],
+          "max_features": [
+            "sqrt",
+            0.3
+          ]
+        },
+        "GB-C": {
+          "learning_rate": [
+            0.03,
+            0.1,
+            0.2
+          ],
+          "max_leaf_nodes": [
+            15,
+            31,
+            63
+          ],
+          "min_samples_leaf": [
+            10,
+            20,
+            50
+          ],
+          "l2": [
+            0.0,
+            1.0
+          ],
+          "max_iter": [
+            200,
+            400
+          ]
+        },
+        "GB-CA": {
+          "learning_rate": [
+            0.03,
+            0.1,
+            0.2
+          ],
+          "max_leaf_nodes": [
+            15,
+            31,
+            63
+          ],
+          "min_samples_leaf": [
+            10,
+            20,
+            50
+          ],
+          "l2": [
+            0.0,
+            1.0
+          ],
+          "max_iter": [
+            200,
+            400
+          ]
+        },
+        "GB-CAG": {
+          "learning_rate": [
+            0.03,
+            0.1,
+            0.2
+          ],
+          "max_leaf_nodes": [
+            15,
+            31,
+            63
+          ],
+          "min_samples_leaf": [
+            10,
+            20,
+            50
+          ],
+          "l2": [
+            0.0,
+            1.0
+          ],
+          "max_iter": [
+            200,
+            400
+          ]
+        },
+        "MLP-C": {
+          "hidden": [
+            64,
+            128
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.003,
+            0.001
+          ],
+          "weight_decay": [
+            0.0001,
+            1e-05
+          ]
+        },
+        "SAGE": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "aggr": [
+            "sum",
+            "mean"
+          ]
+        },
+        "RGCN": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "aggr": [
+            "sum",
+            "mean"
+          ]
+        },
+        "HAN": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "heads": [
+            2,
+            4
+          ]
+        },
+        "SimpleHGN": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "heads": [
+            2,
+            4
+          ]
+        },
+        "HGT": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "heads": [
+            2,
+            4
+          ]
+        },
+        "BWGNN": {
+          "hidden": [
+            32,
+            64
+          ],
+          "order": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ]
+        },
+        "CARE-GNN": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            1,
+            2
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ]
+        },
+        "SAGE+AG": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "aggr": [
+            "sum",
+            "mean"
+          ]
+        },
+        "HGT+AG": {
+          "hidden": [
+            32,
+            64
+          ],
+          "layers": [
+            2,
+            3
+          ],
+          "dropout": [
+            0.1,
+            0.3
+          ],
+          "lr": [
+            0.001,
+            0.003,
+            0.01
+          ],
+          "weight_decay": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "heads": [
+            2,
+            4
+          ]
+        }
+      },
+      "hybrids_inherit": {
+        "SAGE+AG": "SAGE",
+        "HGT+AG": "HGT"
+      }
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    }
+  },
+  "best": {
+    "BWGNN": {
+      "dropout": 0.3,
+      "hidden": 64,
+      "lr": 0.003,
+      "order": 3,
+      "weight_decay": 0.001
+    },
+    "CARE-GNN": {
+      "dropout": 0.3,
+      "hidden": 32,
+      "layers": 1,
+      "lr": 0.01,
+      "weight_decay": 1e-05
+    },
+    "LR-CA": {
+      "C": 0.01
+    },
+    "RF-CA": {
+      "max_depth": 8,
+      "max_features": 0.3,
+      "min_samples_leaf": 10,
+      "n_estimators": 300
+    },
+    "GB-C": {
+      "l2": 1.0,
+      "learning_rate": 0.03,
+      "max_iter": 200,
+      "max_leaf_nodes": 63,
+      "min_samples_leaf": 10
+    },
+    "GB-CA": {
+      "l2": 1.0,
+      "learning_rate": 0.03,
+      "max_iter": 200,
+      "max_leaf_nodes": 63,
+      "min_samples_leaf": 10
+    },
+    "GB-CAG": {
+      "l2": 1.0,
+      "learning_rate": 0.1,
+      "max_iter": 200,
+      "max_leaf_nodes": 63,
+      "min_samples_leaf": 50
+    },
+    "MLP-C": {
+      "dropout": 0.3,
+      "hidden": 128,
+      "layers": 3,
+      "lr": 0.001,
+      "weight_decay": 1e-05
+    },
+    "SAGE": {
+      "aggr": "sum",
+      "dropout": 0.3,
+      "hidden": 64,
+      "layers": 2,
+      "lr": 0.003,
+      "weight_decay": 0.001
+    },
+    "HGT": {
+      "dropout": 0.1,
+      "heads": 2,
+      "hidden": 32,
+      "layers": 3,
+      "lr": 0.003,
+      "weight_decay": 0.001
+    },
+    "RGCN": {
+      "aggr": "sum",
+      "dropout": 0.3,
+      "hidden": 64,
+      "layers": 2,
+      "lr": 0.003,
+      "weight_decay": 0.001
+    },
+    "HAN": {
+      "dropout": 0.3,
+      "heads": 4,
+      "hidden": 32,
+      "layers": 3,
+      "lr": 0.01,
+      "weight_decay": 1e-05
+    },
+    "SimpleHGN": {
+      "dropout": 0.3,
+      "heads": 4,
+      "hidden": 64,
+      "layers": 3,
+      "lr": 0.003,
+      "weight_decay": 0.0001
+    },
+    "SAGE+AG": {
+      "aggr": "sum",
+      "dropout": 0.3,
+      "hidden": 64,
+      "layers": 2,
+      "lr": 0.003,
+      "weight_decay": 0.001
+    },
+    "HGT+AG": {
+      "dropout": 0.1,
+      "heads": 2,
+      "hidden": 32,
+      "layers": 3,
+      "lr": 0.003,
+      "weight_decay": 0.001
+    }
+  },
+  "best_mean_val_ap": {
+    "BWGNN": 0.4933987234513356,
+    "CARE-GNN": 0.4550444534104804,
+    "LR-CA": 0.4883371630411103,
+    "RF-CA": 0.5316886399805193,
+    "GB-C": 0.43598889247913014,
+    "GB-CA": 0.5247867699975012,
+    "GB-CAG": 0.6573221800499486,
+    "MLP-C": 0.4704912870514634,
+    "SAGE": 0.5391319096461711,
+    "HGT": 0.506271840416451,
+    "RGCN": 0.5355139839780788,
+    "HAN": 0.4928776914756846,
+    "SimpleHGN": 0.5406165131254794
+  }
+}

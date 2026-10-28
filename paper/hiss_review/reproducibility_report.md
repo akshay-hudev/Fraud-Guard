@@ -186,3 +186,15 @@ research-sources hash in the records differs from that of `98638c4` because `ana
 CARE-GNN against GB-CAG in the six finished main-grid regimes (δ = 0 and 1) was looked at once, without tests,
 to report progress to the authors. The design was not changed afterwards; the plan already fixed every setting,
 seed and method.
+
+**Completion.** Finished 18:42:52 IST on 28 October (7 h 23 min): 107 jobs, 107 `done`, 0 `FAILED`
+(`results/round4_logs/queue.log`, git-ignored). Every fourth-round record (180 synthetic files of the two fraud
+GNNs, 48 shape worlds, 30 public-data rotation files, 4 tuning trial files) carries commit `78072e8`,
+`dirty: false` and research-sources hash `cc29400c9c8b231d`. The three tuning merges added BWGNN and CARE-GNN and
+left every existing configuration unchanged; the selected configurations equal those of the lost first launch.
+
+**Checks after integration.** `analyze` and `figures`; `sync_manuscript --check` (no differences); `verify.py`
+(including all 108 main-grid worlds for the fraud GNNs, 48 shape worlds with 16 methods each and every public-data
+rotation); `check_manuscript_numbers.py` (520/520); `order_references.py --check` (53 references in order);
+`check_cross_references.py` (35/35) after compiling both documents (article 37 pages, Online Resource 16 pages, no
+overfull boxes); `pytest research/tests` (34/34).

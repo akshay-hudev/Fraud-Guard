@@ -189,6 +189,58 @@ with labelled collusion) and E-6 (latency of a deployed system) cannot be run an
   now "p < 0.01".
 * The Online Resource's per-regime tuning table was 86 pt too wide; confidence intervals moved to the CSV.
 
+## Fourth round (2026-10-27/28): fraud-specialised GNNs and ring shapes
+
+The authors asked for the two weaknesses a reviewer would most likely raise to be addressed: no GNN designed for
+fraud detection was compared, and the engineered graph features were designed knowing the injected ring shape. The
+plan was `paper/hiss_review/analysis_plan_round4.md`, committed at `98638c4` before any run. The first launch was
+lost when the computer restarted (`reproducibility_report.md`, Section 7); the round was rerun in full.
+
+### Code
+
+| File | Change |
+|---|---|
+| `research/synth/generator.py` | `ring_shape` ∈ {block (default), hub, pairs} and ring size; the default reproduces the recorded worlds exactly (committed in `98638c4`) |
+| `research/models/gnn.py`, `train.py` | BWGNN (heterogeneous Beta-wavelet filters) and CARE-GNN (label-aware neighbour selection with adaptive thresholds and similarity loss); zero auxiliary loss and no-op threshold update for every other model |
+| `research/experiments/synthetic.py`, `kaggle_exp.py`, `tune.py` | The two models, their search spaces, and `--ring-shape/--ring-doctors/--ring-patients` |
+| `research/tests/test_validity.py` | Seven tests (34 in all): relation neighbours reach the fraud GNNs' outputs, Beta-wavelet coefficients, CARE thresholds, default shape reproduces recorded worlds, shape links |
+| `research/experiments/analyze.py` | The fraud GNNs join the GNN family (larger Holm families); shared table row groups; ring-shape summary and table |
+| `research/experiments/figures.py` | Math text in Arial; differences that round to zero shown as 0.00 |
+| `verify.py`, `paper/check_manuscript_numbers.py`, `paper/check_cross_references.py` | Fourth-round runs; 520 number checks; Online Resource S8 and Table S7 |
+
+### New results
+
+| Directory | Content |
+|---|---|
+| `results/tuning*/`, `results/kaggle/tuning/` | BWGNN and CARE-GNN added to the main, low-volume and public-data tuning (existing configurations unchanged) |
+| `results/synthetic*/runs/*__fraudgnn.json` | The two models in all 108 main-grid worlds and at volumes 8, 4 (frozen and re-tuned) and 2 |
+| `results/synthetic_shapes/` | 48 worlds: hub, distributed, small block, large block × full and half per-member volume × seeds 1–6, all 16 methods |
+| `results/kaggle*/runs/*fraud*.json` | Five rotations, 20 repeated rotations and per-rotation selection for the two models |
+
+### Outcomes
+
+| Question | Outcome |
+|---|---|
+| Does a fraud-specialised GNN beat GB-CAG? | **No.** Pooled over regimes BWGNN −0.025 and CARE-GNN −0.037 (Holm p < 0.001); significantly below in seven of nine regimes each, never above. At volume 4 both near chance (0.05–0.08 at s ≥ 0.5). Isolated fraud: CARE-GNN is the weakest model (−0.229). Public data: −0.031 and −0.036 versus GB-P, not significant |
+| Side effect of larger Holm families | HAN's pooled gain over GB-CA (+0.010) is no longer significant (Holm p = 0.059), and CARE-GNN does not beat GB-CA; the sentence "every graph-aware method outperforms GB-CA" was rewritten. Other p-values moved slightly (public data: RGCN 0.008 → 0.009; nested smallest 0.051 → 0.059) |
+| Does the central conclusion depend on the block shape? | **No.** No pure GNN significantly above GB-CAG in any of eight shape × volume cells; pure GNNs significantly below in 32 of 56 comparisons. Graph features add for the hub and large block at full volume and for every shape at half volume (+0.13 to +0.49). The hybrid SAGE+AG gains on the distributed ring (+0.014, +0.093), whose links are sparser than any block of the main grid |
+
+### Manuscript and Online Resource
+
+| Part | Change |
+|---|---|
+| Abstract | Sixteen methods, ring shape added to the design, "or for any other ring shape", isolated-fraud range 0.09–0.23; trimmed to 248 words |
+| Introduction | Contribution 1 and the findings cover the fraud GNNs and the shapes |
+| 3.1, 4.3, 4.5, 5.2, 5.3 | Shapes mentioned; Models describes the two fraud GNNs; fourth round disclosed; public-data meta-path graphs also used by the fraud GNNs |
+| 6.3–6.6 | Fraud-GNN results; low-volume and dose ranges recomputed over all seven pure GNNs |
+| 6.7 (new) | Other ring shapes and sizes |
+| 6.9, S9 | Fraud GNNs excluded from timing comparisons (later round, different load) |
+| 8 | Public-data numbers for 16 methods |
+| 9 | Table 8: shapes row, wording; 9.2: fraud GNNs and the designer-advantage caveat answered; recommendations; limitations (our implementations, PC-GNN not compared, shapes at δ = 0 with six seeds) |
+| 10, back matter, Appendix | Tests (vi) and (xi); later rounds from clean commits; supplementary-information list; data availability; generator table |
+| AI-use statement | Now also names help with experiment design (authors to confirm, U-4) |
+| Online Resource | Section S8 and Table S7 (shapes); later items renumbered (S9–S14, S8–S11); S13 for fourteen comparisons |
+
 ## Other files
 
 * `paper/references.bib`: same additions and DOIs.

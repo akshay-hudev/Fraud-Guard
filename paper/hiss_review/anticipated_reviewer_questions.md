@@ -37,9 +37,14 @@ typology and signal strength be varied and the ground truth be known. The public
 consistency check, not a validation of the dense-ring regime (Section 9, public-data paragraph).
 
 **5. The engineered graph features were designed knowing the injected ring shape. Isn't the comparison rigged?**
-Acknowledged in the Discussion ("One caveat favours the engineered features"). The fourth round tested four other
-shapes and sizes (hub-and-spoke, distributed pairs, small and large blocks) with every method.
-*[To complete after round 4: outcome, with Table reference.]*
+Acknowledged in the Discussion (Section 9.2, "One caveat favours the engineered features"). The fourth round ran
+every method on four other shapes and sizes (hub-and-spoke, a distributed ring with two doctors per patient, small and
+large blocks), each at full and half per-member volume (Section 6.7; Online Resource S8, Table S7). No pure GNN beat
+GB-CAG significantly in any of the eight cells; pure GNNs were significantly worse in 32 of 56 comparisons. The
+graph features still added evidence for the hub and the large block and, at half volume, for every shape. The only
+significant gain over GB-CAG was the hybrid SAGE+AG's on the distributed ring (+0.014 and +0.093), where the
+closure features are least informative. Weakness to concede: shapes that change members over time or imitate
+ordinary referral patterns were not tried, and these runs use six seeds at δ = 0 only.
 
 **6. Ring prevalence (8% of non-isolated claims) is unrealistically high.**
 Stated in the Limitations. The ring-volume experiments lower it to 1.1–4.2% (volumes 8, 4, 2) and change the
@@ -54,15 +59,19 @@ behaviour were not modelled.
 
 **8. Why no fraud-specialised GNNs (CARE-GNN, PC-GNN, BWGNN, GAGA)?**
 BWGNN and CARE-GNN were added in the fourth round, tuned with the same budget, and run in the main grid, at
-reduced volume and on the public data. PC-GNN and GAGA were not run.
-*[To complete after round 4: outcome.]*
+reduced volume, for the other ring shapes and on the public data (Sections 4.3, 6.4–6.7, 8). Both were below GB-CAG
+averaged over regimes (−0.025 and −0.037, Holm p < 0.001) and in seven of nine regimes each, never significantly
+above it, and CARE-GNN was the weakest model on isolated fraud (−0.229). On the public data they were 0.031 and
+0.036 below GB-P (not significant). PC-GNN and GAGA were not run (Limitations). Weakness to concede: both are our
+implementations on HAN's claim-only relation graphs, and HAN was the weakest general-purpose GNN; the manuscript says
+that part of their shortfall may come from that representation, which was not tested.
 Implementation differences from the original papers are stated in Section 4.3 (claim-only relation graphs as for
 HAN; CARE-GNN trained full-batch with the class-weighted loss used for every model instead of under-sampling).
 
 **9. Ten configurations per method is a small tuning budget; GNNs may need more.**
 Every method had the same budget, chosen on development worlds not used for evaluation. Three checks: re-tuning
 at low volume (Table 4), per-regime re-tuning at δ = 0, s = 0.1 and 0.9 (S7: no method changed significantly),
-and per-rotation (nested) selection on the public data (S12: GNNs changed by −0.008 to +0.036, none
+and per-rotation (nested) selection on the public data (S13: GNNs changed by −0.008 to +0.036, none
 significantly). A larger budget was not tried; say so if asked.
 
 **10. Each model was trained once per world. Are the differences robust to initialisation?**
@@ -73,7 +82,7 @@ every world, including the tuning worlds, starts from the same initial weights (
 
 **11. Full-batch training on ~11,000-node graphs. Does this scale?**
 It does not need to for this benchmark; larger graphs would need sampling-based training (Limitations). Cost and
-latency measurements are in Section 6.8 and S8, with the caveat that feature upkeep in an online system was not
+latency measurements are in Section 6.9 and S9, with the caveat that feature upkeep in an online system was not
 measured (E-6 could not be run without a deployment).
 
 ## Statistics
@@ -111,7 +120,7 @@ allows comparison with earlier work, not as a model of current Medicare claims.
 **18. Why corrected resampled tests?**
 Rotations share training data, so a plain paired t-test overstates significance; over 25 rotations it would have
 called every difference significant, whereas the corrected test (Nadeau & Bengio; Bouckaert & Frank) finds only
-RGCN's deficit significant (S12).
+RGCN's deficit significant (S13).
 
 ## Reproducibility and declarations
 

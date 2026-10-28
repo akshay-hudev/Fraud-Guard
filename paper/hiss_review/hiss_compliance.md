@@ -30,7 +30,7 @@ Both pages were read in full. The "editorial policies" URL returned 404, and the
 | Editable source files at every submission | M | "Failing to submit a complete set of editable source files will result in your article not being considered for review." | Bundle built by `paper/make_hiss_bundle.py`: `.tex`, `sn-jnl.cls`, figure files, compiled PDF |
 | Title page: title, names, affiliations, corresponding e-mail | M | — | Present |
 | ORCID iDs | R | — | **Missing**; authors to add |
-| Structured abstract, 150–250 words: Purpose, Methods, Results, Conclusion | M | "Please provide a structured abstract of 150 to 250 words which should be divided into the following sections" | Present: 242 words (248 if each numeric range is counted as two words), with the four headings |
+| Structured abstract, 150–250 words: Purpose, Methods, Results, Conclusion | M | "Please provide a structured abstract of 150 to 250 words which should be divided into the following sections" | Present: 244 words (249 if each numeric range is counted as two words), with the four headings (2026-10-28) |
 | 4–6 keywords | M | "Please provide 4 to 6 keywords which can be used for indexing purposes." | 6 keywords |
 | Decimal headings, at most three levels | M | — | Two numbered levels; unnumbered run-in `\paragraph` headings only |
 | Abbreviations defined at first mention | M | — | Checked; ROC-AUC and CI now defined at first use |
@@ -54,7 +54,7 @@ Both pages were read in full. The "editorial policies" URL returned 404, and the
 | Figures cited in order, captions in the text file, Arabic numbering | M | Checked after revision |
 | Figure file names "Fig" + number | M | "Name your figure files with "Fig" and the figure number, e.g., Fig1.eps." The repository keeps descriptive names; the submission bundle renames them (`Fig3.pdf` … `Fig7.pdf`). Figs. 1–2 are TikZ drawings inside the `.tex`. The Online Resource's three figures are inside `ESM_1.pdf` |
 | Vector graphics with embedded fonts | M | Matplotlib PDFs with TrueType (Type 42) fonts embedded (`pdf.fonttype = 42`) |
-| Lettering Helvetica/Arial, about 8–12 pt | R | Figures use DejaVu Sans at 6.5–8.5 pt. **Not changed**: a cosmetic change, best done once the layout ([iicol] or not) is decided |
+| Lettering Helvetica/Arial, about 8–12 pt | R | **Done (2026-10-28):** Arial throughout, including math text, at 8–9 pt for figures set at the full text width (checked by listing the fonts embedded in every figure PDF) |
 | Colour that survives greyscale; no colour words in captions if printed in B&W | R | Every series has its own marker or line style. One caption (real-data figure) names colours; online colour is free of charge |
 
 ## 5. Statements and declarations

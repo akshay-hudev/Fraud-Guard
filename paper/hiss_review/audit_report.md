@@ -111,3 +111,12 @@ reports 54 worlds from 6 independent seeds. All are listed in `change_log.md`.
 | Single tuning regime | Re-tuning at δ = 0, s = 0.1 and 0.9 (E-4) changed no result significantly. **Done** |
 | Low volume only at δ = 0 | δ = 1 and 2 at volume 4 (E-2). New condition in which pure GNNs beat GB-CAG (sparse rings, shifted claims), shared with logistic regression; reported in the abstract-level findings, Section 6.6, Table 8 and the recommendations. **Done** |
 | A5 (public data, three GNNs only in the repeated rotations) | All methods over 25 rotations (E-7); RGCN significantly below GB-P. **Done** |
+
+## 6. Fourth-round update (2026-10-28)
+
+| Item | Change |
+|---|---|
+| No fraud-specialised GNN compared | BWGNN and CARE-GNN added with the same tuning budget; both below GB-CAG. **Done** |
+| Designer advantage of the engineered features | Four other ring shapes and sizes with every method; no pure GNN above GB-CAG in any cell. The caveat in Section 9.2 now reports this and names the typologies still untested. **Done** |
+| A23 (new, found in this round) | Larger Holm families made HAN's gain over GB-CA non-significant; the text claimed every graph-aware method beat GB-CA. Corrected. **Done** |
+| A24 (new) | The first fourth-round launch ran in a temporary directory and was lost on a restart; rerun from the persistent working tree. Recorded in `reproducibility_report.md`. **Done** |

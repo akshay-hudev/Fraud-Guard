@@ -1,4 +1,4 @@
-# Unresolved issues and author decisions (2026-10-25; updated 2026-10-27)
+# Unresolved issues and author decisions (2026-10-25; updated 2026-10-28)
 
 The items in sections 1 and 2 must be settled before submission. Section 3 lists optional experiments. Each item
 states what is needed, why, and how to do it.
@@ -7,10 +7,10 @@ states what is needed, why, and how to do it.
 
 | ID | Item | Why | How |
 |---|---|---|---|
-| U-1 | **Publish the code version used for the article.** The public repository (`origin/main` at `76ee3e9`) lacks the routing, HGT-ablation, re-analysis, nested-tuning, cost, low-volume and second-round code and results (12 commits on local `main`, plus every commit of this branch). | The Code availability statement and HISS ("data, materials and software must support published claims") require it. The run records cite commits (e.g. `a232dcd`) that are not public. | Review this branch, merge it into `main`, push, and tag the submitted version (e.g. `git tag hiss-submission-v1 && git push --tags`). Only then add the tag to the Code availability statement. Archive a DOI (Zenodo) on acceptance, as the statement already says. |
+| U-1 | ~~**Publish the code version used for the article.**~~ **Resolved 2026-10-28** (authorised by the corresponding author on 2026-10-27): the submission branch was merged into `main`, pushed to `origin` and tagged `hiss-submission-v1`, which the Code availability statement names. | The Code availability statement and HISS ("data, materials and software must support published claims") require it. | Archive a DOI (Zenodo) on acceptance, as the statement says; do not claim a DOI before then. |
 | U-2 | ~~**All five authors approve** the revised manuscript, author list, order and CRediT statement.~~ **Resolved 2026-10-27:** the corresponding author reported that all authors have approved. | HISS authorship policy (ICMJE criteria; no changes after acceptance). | The round-3 additions (Section 6.6 and the Online Resource) were made after this approval; circulating the final PDF before upload is advisable. |
 | U-3 | **Confirm the declarations**: no funding; no competing interests (financial or non-financial, previous three years); ethics "not applicable". | Mandatory declarations; they were not invented here, but only the authors can confirm them. | Each author confirms. If any author has a relevant interest, it must be stated. |
-| U-4 | **Confirm the "Use of AI tools" wording.** It must cover this revision, in which an AI assistant re-analysed statistics, designed and ran the low-volume and second-round experiments, restructured the manuscript into article and Online Resource, and drafted text. | Springer Nature policy: LLM use beyond copy-editing must be documented in the Methods. | Read Section 4.6. The current wording ("help write and review the analysis code, run and document the experiments, and draft and edit parts of the text") covers this revision; adjust if the authors' own description differs. |
+| U-4 | **Confirm the "Use of AI tools" wording.** It must cover this revision, in which an AI assistant re-analysed statistics, designed and ran four rounds of experiments, restructured the manuscript into article and Online Resource, and drafted text. | Springer Nature policy: LLM use beyond copy-editing must be documented in the Methods. | Read Section 4.6. The wording ("help design the experiments, write and review the analysis code, run and document the experiments, and draft and edit parts of the text") was extended on 2026-10-28 to name experiment design; adjust if the authors' own description differs. |
 
 ## 2. Author decisions
 
@@ -20,7 +20,7 @@ states what is needed, why, and how to do it.
 | U-6 | **ORCID iDs** for the authors (recommended by HISS). | Add with `\orcid{...}` if available. |
 | U-7 | ~~**Disclosure of the earlier manuscript version.**~~ Section 9.3 re-analyses the authors' own earlier 2,100-claim dataset, and an earlier manuscript reported "HGT +14.2 pp ring recall", which is not reproducible. **Resolved 2026-10-27:** the corresponding author confirmed that the manuscript is not under consideration elsewhere and that the earlier version was not submitted anywhere. | No disclosure is needed; the authors submit without a cover letter (decided 2026-10-27). The text states that the generator is "an earlier, simpler generator of ours". |
 | U-8 | **Scope fit.** Claims fraud is not named in the HISS aims and scope, and no HISS article on claims fraud was found. | **Decided 2026-10-27:** the authors submit directly, without a pre-submission enquiry. The revised introduction and discussion make the health-information-systems relevance explicit. |
-| U-9 | **Figure lettering** (HISS recommends Helvetica/Arial, about 8–12 pt; the figures use DejaVu Sans, 6.5–8.5 pt). | Optional cosmetic change in `research/experiments/figures.py` (`font.family`, sizes). Do it after U-5, because the column width changes the scale. |
+| U-9 | ~~**Figure lettering**~~ | **Done 2026-10-27/28:** Arial throughout (including math text), 8–9 pt at the full text width. |
 | U-10 | **Revoke the Kaggle API token** shared during an earlier remediation round (listed in `paper/remediation_log.md`). | Housekeeping. |
 | U-11 | **Archive the test predictions** (`results/**/predictions/`, about 30 MB, git-ignored). The reproduction check of the routing runs and the bootstrap need them. | Include them in the Zenodo release planned for acceptance (U-1). The manuscript now states that they are not in the repository and are regenerated by the code. |
 

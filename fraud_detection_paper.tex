@@ -66,14 +66,14 @@ five ring shapes and on public provider-labelled Medicare claims.
 \textbf{Results:} At default volume (ring patients filing 5.7 times as many
 claims as others), per-entity aggregates detected most rings (average
 precision 0.89--0.92) and graph features added up to 0.10 for dense rings.
-At four to eight claims per month, aggregates fell to 0.05--0.42, graph
+At 4--8 claims per month, aggregates fell to 0.05--0.42, graph
 features reached 0.41--0.92 for denser rings, and
 pure GNNs trailed them by 0.17--0.57. No pure GNN outperformed gradient
 boosting with graph features averaged over regimes (upper 95\% limits
 $\le$0.006) or for any other ring shape; hybrids of both gained 0.01, and
 GNNs were 0.09--0.23 worse on isolated fraud. Recurring ring members inflated performance by up to 0.60.
 On public data, gradient boosting on provider aggregates was best
-(average precision 0.704).
+(0.704).
 \textbf{Conclusion:} Relational structure helps when collusion densely links
 otherwise unremarkable members, and a few engineered
 shared-patient features captured it better than message passing alone. Graph

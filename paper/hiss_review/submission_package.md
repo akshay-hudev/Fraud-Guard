@@ -6,9 +6,9 @@ Build the bundle with
 `python paper/make_hiss_bundle.py --cls <sn-jnl.cls> --iicol --pdf <compiled PDF> --supplement-pdf <compiled supplementary_material.pdf>`.
 It writes `paper/hiss_submission/` and `paper/hiss_submission.zip`, both git-ignored.
 
-* `--iicol` produces the two-column layout HISS recommends (27 pages; compiled and checked).
-* Without `--iicol` the bundle is single-column (34 pages), which is also acceptable.
-* `--supplement-pdf` adds Online Resource 1 as `ESM_1.pdf` (10 pages). Compile `supplementary_material.tex`
+* `--iicol` produces the two-column layout HISS recommends (29 pages; compiled and checked on 2026-10-28).
+* Without `--iicol` the bundle is single-column (37 pages), which is also acceptable.
+* `--supplement-pdf` adds Online Resource 1 as `ESM_1.pdf` (16 pages). Compile `supplementary_material.tex`
   next to `sn-jnl.cls` and `results/figures/`, after the article, so that `paper/check_cross_references.py` can compare
   the two `.aux` files.
 * Compile the bundle once and pass that PDF with `--pdf`, so the upload's compiled PDF matches its source.
@@ -17,7 +17,7 @@ It writes `paper/hiss_submission/` and `paper/hiss_submission.zip`, both git-ign
 |---|---|---|
 | `fraud_detection_paper.tex` | Manuscript (LaTeX source) | Single file; references pasted in (no BibTeX step); figure names rewritten to `Fig<N>.pdf` |
 | `sn-jnl.cls` | LaTeX supplementary/style file | Springer Nature template class v12, from the journal template download; not tracked in git |
-| `Fig3.pdf` … `Fig7.pdf` | Figure | Vector PDFs with embedded TrueType fonts. Figs. 1–2 are TikZ drawings inside the `.tex` |
+| `Fig3.pdf` … `Fig7.pdf` | Figure | Vector PDFs with embedded TrueType fonts (Arial). Figs. 1–2 are TikZ drawings inside the `.tex` |
 | `fraud_detection_paper_compiled.pdf` | Compiled manuscript PDF | Required alongside LaTeX source |
 | `ESM_1.pdf` | Supplementary material (Online Resource 1) | Compiled from `supplementary_material.tex`; cited in the article as "Online Resource 1"; title page carries the article title, journal and authors |
 | Cover letter | Cover letter | **Not sent:** the authors decided on 2026-10-27 to submit without one. The corresponding author has confirmed that the manuscript is not under consideration elsewhere and that the earlier version was not submitted anywhere (U-7); give the same answers if the submission form asks |
@@ -26,7 +26,7 @@ It writes `paper/hiss_submission/` and `paper/hiss_submission.zip`, both git-ign
 
 | Material | Location |
 |---|---|
-| Code, tests, configurations, run records | Public GitHub repository, after U-1 (push and tag) |
+| Code, tests, configurations, run records | Public GitHub repository, tag `hiss-submission-v1` (U-1) |
 | Per-world results, tuning logs, test predictions | `results/` (predictions are git-ignored for size; regenerate with the commands in `research/README.md` or attach as an archive) |
 | REFORMS checklist | `paper/reforms_checklist.md` |
 | Generator datasheet | `research/DATASHEET.md` |
@@ -34,7 +34,7 @@ It writes `paper/hiss_submission/` and `paper/hiss_submission.zip`, both git-ign
 
 ## Pre-upload checklist
 
-1. U-1 to U-4 in `unresolved_issues.md` are resolved; all authors have approved.
+1. U-3 and U-4 in `unresolved_issues.md` are confirmed (U-1, U-2 and U-7 are resolved), and every author has seen the final PDF.
 2. `PY=.venv-research/bin/python; $PY -m pytest research/tests -q && $PY verify.py && $PY -m research.experiments.sync_manuscript --check && $PY paper/check_manuscript_numbers.py && $PY paper/order_references.py --check`
    all pass, and `$PY paper/check_cross_references.py <build dir>` passes after compiling both documents.
 3. The manuscript compiles without errors, undefined references, undefined citations or overfull boxes:

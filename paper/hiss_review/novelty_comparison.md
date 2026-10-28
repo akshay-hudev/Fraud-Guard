@@ -44,8 +44,10 @@ limited to what was verified; "not verified" marks what could not be read. Searc
    We found no study that varies the two signal sources independently for patient–provider claim graphs.
 2. **A map of conditions** under which relational structure adds value beyond per-entity aggregates (dense blocks,
    claims not anomalous on their own, ring members not already conspicuous by volume), traced over four ring volumes
-   (16, 8, 4, 2 claims per month; Section 6.6 and Table 8 of the article). The value of structure peaks at
-   intermediate volume and vanishes when rings file about one claim per member.
+   (16, 8, 4, 2 claims per month; Section 6.6 and Table 8 of the article) and five ring shapes and sizes
+   (Section 6.7). The value of structure peaks at intermediate volume and vanishes when rings file about one claim
+   per member; the conclusions hold for every shape tried and against two fraud-specialised GNNs (BWGNN,
+   CARE-GNN), which are existing methods, not contributions.
 3. **Mechanism**: ring detection by GNNs is structural (counting); attention-based HGT needs degree encodings;
    message passing dilutes claim-level anomalies (isolated fraud).
 4. **Quantified evaluation pitfalls**: recurring ring members inflate ring AP by up to 0.60 for an attribute-only

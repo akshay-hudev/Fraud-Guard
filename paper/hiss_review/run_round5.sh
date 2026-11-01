@@ -12,6 +12,9 @@ export RESEARCH_THREADS=${RESEARCH_THREADS:-1} OMP_NUM_THREADS=${RESEARCH_THREAD
 PY=".venv-research/bin/python -m research.experiments"
 LOW=results/tuning_lowvolume/best_hyperparameters.json
 
+# One job per line; xargs -0 keeps long lines whole (BSD xargs -I truncates them at 255 bytes).
+run_jobs() { tr '\n' '\0' | xargs -0 -n1 -P "$PARALLEL" bash -c; }
+
 # C and B first: minutes, not hours.
 {
   for seed in 1 2; do
@@ -20,14 +23,14 @@ LOW=results/tuning_lowvolume/best_hyperparameters.json
   for seed in 1 2 3 4 5 6; do
     echo "$PY.expanded --stage closure --seeds $seed > $LOGS/B_g$seed.log 2>&1"
   done
-} | xargs -P "$PARALLEL" -I{} bash -c "{}"
+} | run_jobs
 
 # A. Wide search: one job per regime and method, slowest last so the fast ones free workers early.
 for method in GB-CAG SAGE RGCN HGT SimpleHGN; do
   for regime in v4_s0.5 v4_s0.9 v16_s0.9; do
     echo "$PY.expanded --stage tune --regime $regime --methods $method > $LOGS/A_tune_${regime}_$method.log 2>&1"
   done
-done | xargs -P "$PARALLEL" -I{} bash -c "{}"
+done | run_jobs
 
 .venv-research/bin/python -m research.experiments.expanded --stage merge > "$LOGS/A_merge.log" 2>&1
 
@@ -35,5 +38,5 @@ for regime in v4_s0.5 v4_s0.9 v16_s0.9; do
   for method in GB-CAG SAGE RGCN SimpleHGN HGT; do
     echo "$PY.expanded --stage eval --regime $regime --methods $method > $LOGS/A_eval_${regime}_$method.log 2>&1"
   done
-done | xargs -P "$PARALLEL" -I{} bash -c "{}"
+done | run_jobs
 echo "round 5 finished $(date)"

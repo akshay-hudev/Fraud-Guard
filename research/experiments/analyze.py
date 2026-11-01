@@ -1170,6 +1170,124 @@ def summarise_shapes(summary: dict) -> None:
         "structure_gain": pick(ring[ring.reference == "GB-CA"])}
 
 
+# Fifth round (paper/hiss_review/analysis_plan_round5.md): wide hyperparameter search, closure columns and the
+# confirmatory test over training seeds.
+EXPANDED_CELLS = {"v4_s0.5": ("synthetic_lowvolume", 0.5, r"Volume 4, $s=0.5$"),
+                  "v4_s0.9": ("synthetic_lowvolume", 0.9, r"Volume 4, $s=0.9$"),
+                  "v16_s0.9": ("synthetic", 0.9, r"Volume 16, $s=0.9$")}
+EXPANDED_GNN = ["SAGE", "RGCN", "SimpleHGN", "HGT"]
+CLOSURE_PAIRS = [("SAGE+Cl", "SAGE"), ("HGT+Cl", "HGT"), ("GB-CA+Cl", "GB-CA"), ("SAGE+Cl", "GB-CAG"), ("HGT+Cl", "GB-CAG"),
+                 ("GB-CA+Cl", "GB-CAG"), ("GB-CAG-Cl", "GB-CAG")]
+
+
+def summarise_expanded(summary: dict) -> None:
+    """Wide search: main versus wide configurations, and each GNN against GB-CAG with both searched widely."""
+    ex = load_rows("expanded")
+    if ex.empty:
+        return
+    best = json.load(open(RESULTS_DIR / "expanded" / "best_hyperparameters.json"))["best"]
+    rows, means = [], []
+    for regime, (sub, dens, _) in EXPANDED_CELLS.items():
+        wide = ex[ex.regime == regime].pivot_table(index="seed", columns="method", values="ring_ap")
+        main = load_rows(sub)
+        main = main[(main.ring_shift == 0.0) & (main.ring_density == dens) & main.seed.isin(ROUND1_SEEDS)]
+        main = main.pivot_table(index="seed", columns="method", values="ring_ap").reindex(wide.index)
+        for m in ["GB-CAG"] + EXPANDED_GNN:
+            rows.append({"regime": regime, "comparison": "wide - main", "method": m,
+                         **paired_comparison(wide[m].to_numpy(), main[m].to_numpy())})
+            means.append({"regime": regime, "method": m, "main": main[m].mean(), "wide": wide[m].mean(), **best[regime][m]})
+        for m in EXPANDED_GNN:
+            rows.append({"regime": regime, "comparison": "vs GB-CAG (wide)", "method": m,
+                         **paired_comparison(wide[m].to_numpy(), wide["GB-CAG"].to_numpy())})
+    c = pd.DataFrame(rows)
+    c["t_p_holm"] = c.groupby(["regime", "comparison"])["t_p"].transform(lambda p: holm(p.tolist()))
+    c.to_csv(TABLES / "expanded_comparisons.csv", index=False)
+    t = pd.DataFrame(means)
+    t.to_csv(TABLES / "expanded_means.csv", index=False)
+    lines = [r"\begin{table}[h]",
+             r"\caption{Wide hyperparameter search (ring AP, $\delta=0$, six worlds, seeds 1--6). Main: the configurations of "
+             r"the main experiment. Wide: 30 candidates from a wider grid (the main configuration and 29 not offered "
+             r"before), selected and early-stopped on validation ring AP on development worlds of the evaluation regime. "
+             r"Wide $-$ main: paired change. $\Delta$: difference from GB-CAG when both are searched widely, with "
+             r"Holm-adjusted $p$ over the four GNNs of the cell.}\label{tab:expanded}",
+             r"\scriptsize", r"\setlength{\tabcolsep}{4pt}", r"\begin{tabular}{@{}lcccccc@{}}", r"\toprule",
+             r"Method & Main & Wide & Wide $-$ main [95\% CI] & $\Delta$ [95\% CI] & $p$ \\"]
+    for regime, (_, _, title) in EXPANDED_CELLS.items():
+        lines += [r"\midrule", rf"\multicolumn{{6}}{{@{{}}l}}{{\textit{{{title}}}}} \\"]
+        for m in ["GB-CAG"] + EXPANDED_GNN:
+            r = t[(t.regime == regime) & (t.method == m)].iloc[0]
+            ch = c[(c.regime == regime) & (c.method == m) & (c.comparison == "wide - main")].iloc[0]
+            vs = c[(c.regime == regime) & (c.method == m) & (c.comparison == "vs GB-CAG (wide)")]
+            cells = ["--", "--"]
+            if len(vs):
+                v = vs.iloc[0]
+                cells = [f"{_sgn(v.mean_diff)} {_ci(v.ci_low, v.ci_high)}", "$<$0.001" if v.t_p_holm < 0.001 else f"{v.t_p_holm:.3f}"]
+            lines.append(" & ".join([LABEL.get(m, m), f"{r['main']:.3f}", f"{r['wide']:.3f}",
+                                     f"{_sgn(ch.mean_diff)} {_ci(ch.ci_low, ch.ci_high)}"] + cells) + r" \\")
+    lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
+    (TABLES / "expanded.tex").write_text("\n".join(lines))
+    summary["expanded"] = {"worlds": int(ex.groupby(["regime", "seed"]).ngroups),
+                           "main_config_kept": {f"{a} | {b}": bool(best[a][b]["main_config"]) for a in best for b in best[a]},
+                           "comparisons": c[["regime", "comparison", "method", "mean_diff", "ci_low", "ci_high", "t_p_holm"]]
+                           .round(4).to_dict(orient="records")}
+
+
+def summarise_closure(summary: dict) -> None:
+    """Closure columns added to a GNN and to GB-CA, and removed from GB-CAG (volumes 8 and 4, delta = 0, seeds 1-6)."""
+    cl = load_rows("closure_columns")
+    if cl.empty:
+        return
+    base = pd.concat([load_rows("synthetic_volume8"), load_rows("synthetic_lowvolume")], ignore_index=True)
+    base = base[(base.ring_shift == 0.0) & base.ring_density.isin(set(cl.ring_density)) & base.seed.isin(ROUND1_SEEDS)]
+    both = pd.concat([base, cl], ignore_index=True)
+    rows = []
+    for (vol, dens), g in both.groupby(["ring_claims_per_month", "ring_density"]):
+        piv = g.pivot_table(index="seed", columns="method", values="ring_ap")
+        for m, ref in CLOSURE_PAIRS:
+            rows.append({"volume": vol, "ring_density": dens, "method": m, "reference": ref,
+                         **paired_comparison(piv[m].to_numpy(), piv[ref].to_numpy())})
+    c = pd.DataFrame(rows)
+    c["t_p_holm"] = c.groupby(["method", "reference"])["t_p"].transform(lambda p: holm(p.tolist()))
+    c.to_csv(TABLES / "closure_comparisons.csv", index=False)
+    show = ["GB-CA", "GB-CA+Cl", "GB-CAG-Cl", "GB-CAG", "SAGE", "SAGE+Cl", "HGT", "HGT+Cl"]
+    m_ = both.groupby(["ring_claims_per_month", "ring_density", "method"]).ring_ap.mean()
+    lines = [r"\begin{table}[h]",
+             r"\caption{Which engineered columns matter (ring AP, $\delta=0$, six worlds, seeds 1--6, main hyperparameters). "
+             r"+Cl: the two closure columns added; $-$Cl: the two closure columns removed, the other five graph features "
+             r"kept.}\label{tab:closure}", r"\scriptsize", r"\setlength{\tabcolsep}{4pt}",
+             r"\begin{tabular}{@{}lc" + "c" * len(show) + "@{}}", r"\toprule",
+             r"Volume & $s$ & " + " & ".join(m.replace("-Cl", r"$-$Cl").replace("+Cl", "+Cl") for m in show) + r" \\", r"\midrule"]
+    for vol in sorted(cl.ring_claims_per_month.unique(), reverse=True):
+        for dens in sorted(cl.ring_density.unique()):
+            lines.append(" & ".join([f"{vol:g}", f"{dens:g}"] + [f"{m_[(vol, dens, m)]:.3f}" for m in show]) + r" \\")
+    lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
+    (TABLES / "closure.tex").write_text("\n".join(lines))
+    summary["closure"] = c[["volume", "ring_density", "method", "reference", "mean_diff", "ci_low", "ci_high", "t_p_holm"]].round(4).to_dict(orient="records")
+
+
+def summarise_confirm_seeds(summary: dict) -> None:
+    """The confirmatory test of the hybrid result repeated with training seeds 1 and 2 (seed 0 is the original test)."""
+    rows = []
+    for sub in ["synthetic_hybrid_confirm", "synthetic_confirm_seeds"]:
+        for f in sorted((RESULTS_DIR / sub / "runs").glob("*.json")):
+            rows += json.load(open(f))["rows"]
+    df = pd.DataFrame(rows)
+    if df.empty or df.model_seed.nunique() < 3:
+        return
+    out = {}
+    for ms, g in df.groupby("model_seed"):
+        piv = g.pivot_table(index="seed", columns="method", values="ring_ap")
+        out[f"training seed {ms}"] = {"sage_ag_mean": float(piv["SAGE+AG"].mean()), "gbcag_mean": float(piv["GB-CAG"].mean()),
+                                      "n_seeds_positive": int((piv["SAGE+AG"] > piv["GB-CAG"]).sum()),
+                                      **paired_comparison(piv["SAGE+AG"].to_numpy(), piv["GB-CAG"].to_numpy())}
+    piv = df.groupby(["seed", "method"]).ring_ap.mean().unstack()
+    out["mean of three training seeds"] = {"sage_ag_mean": float(piv["SAGE+AG"].mean()), "gbcag_mean": float(piv["GB-CAG"].mean()),
+                                           "n_seeds_positive": int((piv["SAGE+AG"] > piv["GB-CAG"]).sum()),
+                                           **paired_comparison(piv["SAGE+AG"].to_numpy(), piv["GB-CAG"].to_numpy())}
+    write_json(TABLES / "hybrid_confirmation_seeds.json", out)
+    summary["hybrid_confirmation_seeds"] = out
+
+
 def summarise_latency(summary: dict) -> None:
     path = RESULTS_DIR / "latency" / "latency.json"
     if not path.exists():
@@ -1270,6 +1388,9 @@ def main():
     summarise_training_seeds(summary)
     summarise_regime_tuning(summary)
     summarise_shapes(summary)
+    summarise_expanded(summary)
+    summarise_closure(summary)
+    summarise_confirm_seeds(summary)
     summarise_latency(summary)
     write_json(RESULTS_DIR / "summary.json", {"provenance": provenance({"analysis": "analyze.py"}), **summary})
     print(json.dumps(summary, indent=1, default=str))

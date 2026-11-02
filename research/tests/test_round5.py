@@ -63,3 +63,17 @@ def test_closure_columns_extend_claim_nodes_only():
         for g, g2 in zip(graphs[split], extra[split]):
             assert g2["claim"].x.size(1) == g["claim"].x.size(1) + len(CLOSURE)
             assert g2["doctor"].x.size(1) == g["doctor"].x.size(1)
+
+
+def test_closure_is_a_degree_term_plus_four_cycles():
+    # Online Resource: closure = deg(p) - 1 + the four-cycles through the claim's patient-doctor edge.
+    world, tab, _, _ = small_world()
+    rows = np.flatnonzero(world.split == "test")
+    claims = world.claims.iloc[rows]
+    patients = claims.groupby("patient_id")["doctor_id"].agg(set).to_dict()
+    doctors = claims.groupby("doctor_id")["patient_id"].agg(set).to_dict()
+    closure = tab["test"]["claim_closure"].to_numpy()
+    for i, (p, d) in enumerate(zip(claims["patient_id"], claims["doctor_id"])):
+        cycles = sum(len((doctors[other] & doctors[d]) - {p}) for other in patients[p] - {d})
+        assert closure[i] == len(patients[p]) - 1 + cycles
+

@@ -224,6 +224,7 @@ def compare_retrained(results: Path) -> pd.DataFrame:
 
 
 def table(results: Path) -> None:
+    compare_retrained(results)
     r = compare(results)
     c, ga, ia = r["comparisons"], r["group_ap"], r["individual_ap"]
     label = {"SimpleHGN": "Simple-HGN"}

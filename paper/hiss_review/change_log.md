@@ -273,7 +273,7 @@ manuscript said public data with labelled collusion do not exist, and they do.
 
 | Section | Change | Item |
 |---|---|---|
-| Abstract | "Equally tuned" removed; "also after a wider search"; group-fraud flags; "the GNNs tested"; 241 words (248 counting ranges as two) | M1, M2, R6 |
+| Abstract | "Equally tuned" removed; "also after a wider search"; group-fraud flags; "the GNNs tested"; 239 words (246 counting ranges as two) | M1, M2, R6 |
 | 1 Introduction | Contribution 1 states the share of the grid searched; contribution 3 no longer claims an "opposite conclusion"; contribution 4 reports the closure result; contribution 5 and the findings cover the group flags; the claim that no collusion labels exist is corrected | M1, M3, M2, R6 |
 | 2 Related work | Ma et al. 2023 (on this dataset), Zhou et al. 2023, Liu et al. 2016, Chen et al. 2020 | M5, M2 |
 | 4.3–4.5 | GB early stopping and MLP settings; budget shares (7% of a GNN grid); fifth and sixth rounds disclosed; Holm families | M1, m-items |
@@ -285,6 +285,7 @@ manuscript said public data with labelled collusion do not exist, and they do.
 | 9 | Two kinds of counting; Table 8 row for the flags; public-data discussion; limitations (search, substructure GNNs, injected rings, flags) | M1, M2, R6 |
 | 10 Reproducibility | The false provenance sentence replaced by what the records and reruns show | M4 |
 | 11, declarations | Conclusion; Code availability names `hiss-submission-v2`; Data availability names the flags' commit | — |
+| Title page (2026-11-03) | Four student authors' institutional email addresses updated at the authors' request; abstract shortened by one line so that the two-column first page fits | — |
 | Online Resource | S4 extended; S15 (wide search), S16 (closure), S17 (group flags); Tables S12–S14 | M1, M2, R6 |
 
 ### Other files

@@ -170,7 +170,7 @@ the manuscript says so.
   narrowed real-data claims with provenance stated honestly; public-data analyses strengthened.
 * (2) Contributions built around the map of conditions and the quantified pitfalls; verified closest works cited;
   real-data result framed as a replication; novelty table.
-* (3) Health-information-systems framing; HISS compliance (structured abstract of 241 words, 248 if ranges count as
+* (3) Health-information-systems framing; HISS compliance (structured abstract of 239 words, 246 if ranges count as
   two, DOIs, figure naming
   and Arial lettering, Online Resource as PDF, declarations).
 

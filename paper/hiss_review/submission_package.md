@@ -6,7 +6,7 @@ Build the bundle with
 `python paper/make_hiss_bundle.py --cls <sn-jnl.cls> --iicol --pdf <compiled PDF> --supplement-pdf <compiled supplementary_material.pdf>`.
 It writes `paper/hiss_submission/` and `paper/hiss_submission.zip`, both git-ignored.
 
-* `--iicol` produces the two-column layout HISS recommends (32 pages; compiled and checked on 2026-11-03).
+* `--iicol` produces the two-column layout HISS recommends (31 pages; compiled and checked on 2026-11-03).
 * Without `--iicol` the bundle is single-column (42 pages), which is also acceptable.
 * `--supplement-pdf` adds Online Resource 1 as `ESM_1.pdf` (21 pages). Compile `supplementary_material.tex`
   next to `sn-jnl.cls` and `results/figures/`, after the article, so that `paper/check_cross_references.py` can compare

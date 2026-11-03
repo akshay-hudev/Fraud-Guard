@@ -25,6 +25,7 @@ MANUSCRIPT = ROOT / "fraud_detection_paper.tex"
 FIGURES = ROOT / "results" / "figures"
 OUT = ROOT / "paper" / "hiss_submission"
 INCLUDE = r"\\includegraphics(?:\[[^\]]*\])?\{([^}]+)\}"
+ONE_COLUMN = ["tab:generator"]     # tables that stay one column wide in the two-column layout
 
 
 def figure_files(tex: str) -> dict[str, str]:
@@ -50,9 +51,14 @@ def main() -> None:
     if args.iicol:
         tex = tex.replace(r"\documentclass[pdflatex,sn-vancouver-num]{sn-jnl}",
                           r"\documentclass[pdflatex,sn-vancouver-num,iicol]{sn-jnl}", 1)
-        for env in ("figure", "table"):
-            tex = re.sub(r"\\begin\{" + env + r"\}(\[[^\]]*\])?", r"\\begin{" + env + r"*}[t]", tex)
-            tex = tex.replace(r"\end{" + env + "}", r"\end{" + env + "*}")
+        # Floats span both columns, except tables in ONE_COLUMN: a spanning float never goes on the page where it
+        # is defined, which would strand the appendix table on a page of its own after its heading.
+        def span(m: re.Match) -> str:
+            env, body = m.group(1), m.group(3)
+            if env == "table" and any(rf"\label{{{lab}}}" in body for lab in ONE_COLUMN):
+                return rf"\begin{{table}}[ht]{body}\end{{table}}"
+            return rf"\begin{{{env}*}}[t]{body}\end{{{env}*}}"
+        tex = re.sub(r"\\begin\{(figure|table)\}(\[[^\]]*\])?(.*?)\\end\{\1\}", span, tex, flags=re.S)
         # Long URLs in the narrow reference column: break them at hyphens too, and allow looser lines.
         tex = tex.replace(r"\begin{thebibliography}", "\\sloppy\\def\\UrlBreaks{\\do\\/\\do\\-\\do\\.}\n\\begin{thebibliography}", 1)
     mapping = figure_files(tex)

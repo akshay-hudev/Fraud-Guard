@@ -84,3 +84,7 @@ paper/hiss_submission.zip
 # Cover letter for the journal submission (not part of the public repository)
 paper/cover_letter_hiss.md
 paper/presubmission_enquiry_hiss.md
+
+# Group-fraud flags from finint/RDPGL (GPL-3.0): downloaded, not redistributed
+data/rdpgl/
+data/rdpgl_download/

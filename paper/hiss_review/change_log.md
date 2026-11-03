@@ -241,6 +241,59 @@ lost when the computer restarted (`reproducibility_report.md`, Section 7); the r
 | AI-use statement | Now also names help with experiment design (authors to confirm, U-4) |
 | Online Resource | Section S8 and Table S7 (shapes); later items renumbered (S9–S14, S8–S11); S13 for fourteen comparisons |
 
+## Fifth and sixth rounds (2026-11-01 to 2026-11-03): remediation after the Phase 1 audit
+
+Branch `hiss-revision-round5`, from tag `hiss-submission-v1`. The audit (`paper/audit_phase1/AUDIT_REPORT.md`) found
+no blocker and five major issues: tuning adequacy (M1), the mechanism's scope (M2), an unsupported claim (M3), a false
+provenance sentence (M4) and missing related work (M5). After a correction of the audit, a sixth item was added: the
+manuscript said public data with labelled collusion do not exist, and they do.
+
+### Code
+
+| File | Change |
+|---|---|
+| `research/experiments/expanded.py` (new) | Round 5: wide search (`tune`, `merge`, `eval`) and closure columns (`closure`) |
+| `research/models/train.py` | `fit_graph(val_keep=...)`: early stopping on a subset of validation claims; default unchanged (tested bit-exact) |
+| `research/experiments/group_labels.py` (new) | Round 6: mapping to the published flags with stopping checks, re-scoring, retraining, description, table |
+| `research/experiments/analyze.py` | Wide-search, closure and three-seed summaries; closure table narrowed to fit the page |
+| `research/experiments/sync_manuscript.py` | Tables `tab:expanded`, `tab:closure`, `tab:grouplabels` |
+| `research/tests/test_round5.py`, `test_group_labels.py` (new) | Wide candidates, ring-AP early stopping, closure columns and the closure identity; mapping, AP definitions, failure of a broken mapping (44 tests in all) |
+| `verify.py`, `paper/check_manuscript_numbers.py`, `paper/check_cross_references.py` | New runs and tables; 663 checked numbers; 44 cross-document numbers |
+
+### New results (all from clean commits)
+
+| Directory | Content |
+|---|---|
+| `results/expanded/` | 15 tuning files and 90 evaluation runs (commit `20de2e4`) |
+| `results/closure_columns/`, `results/synthetic_confirm_seeds/` | 24 worlds each (commit `20de2e4`) |
+| `results/group_labels/` | Re-scored predictions (375 method rotations, each first reproducing its recorded AP), description, 30 retraining runs (commits `4a7ed25`) |
+| `paper/audit_phase1/logs/m4_reruns.csv` | Reruns of the 33 uncommitted-source run files from the tagged code: 227 method runs, every AP identical |
+
+### Manuscript and Online Resource
+
+| Section | Change | Item |
+|---|---|---|
+| Abstract | "Equally tuned" removed; "also after a wider search"; group-fraud flags; "the GNNs tested"; 241 words (248 counting ranges as two) | M1, M2, R6 |
+| 1 Introduction | Contribution 1 states the share of the grid searched; contribution 3 no longer claims an "opposite conclusion"; contribution 4 reports the closure result; contribution 5 and the findings cover the group flags; the claim that no collusion labels exist is corrected | M1, M3, M2, R6 |
+| 2 Related work | Ma et al. 2023 (on this dataset), Zhou et al. 2023, Liu et al. 2016, Chen et al. 2020 | M5, M2 |
+| 4.3–4.5 | GB early stopping and MLP settings; budget shares (7% of a GNN grid); fifth and sixth rounds disclosed; Holm families | M1, m-items |
+| 5 Public data | Group-fraud flags and their mapping; group AP defined | R6 |
+| 6.6 | Confirmatory test over three training seeds (+0.032, p = 0.005) | m10 |
+| 6.8 (new) | A wider hyperparameter search; the deficit survived; HGT's failed selection reported | M1 |
+| 7.2 | Closure columns: recovered 52–90% of the GNN gap, but GB-CAG did not need them; the prediction failed in part | M2 |
+| 8 | Group-fraud flags: no structure gain, every graph model below GB-PG, as predicted | R6 |
+| 9 | Two kinds of counting; Table 8 row for the flags; public-data discussion; limitations (search, substructure GNNs, injected rings, flags) | M1, M2, R6 |
+| 10 Reproducibility | The false provenance sentence replaced by what the records and reruns show | M4 |
+| 11, declarations | Conclusion; Code availability names `hiss-submission-v2`; Data availability names the flags' commit | — |
+| Online Resource | S4 extended; S15 (wide search), S16 (closure), S17 (group flags); Tables S12–S14 | M1, M2, R6 |
+
+### Other files
+
+* `paper/references.bib` and the bibliography: five entries added (58 in all), verified (`reference_verification.md`).
+* Review documents in this folder brought up to date; the README's claim that every run of rounds 2–4 came from a
+  clean commit is withdrawn.
+* `paper/fraud_detection_paper.pdf` and `paper/supplementary_material.pdf` rebuilt (they were stale since 27 October).
+
 ## Other files
 
 * `paper/references.bib`: same additions and DOIs.

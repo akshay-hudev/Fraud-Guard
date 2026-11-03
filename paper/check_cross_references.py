@@ -24,12 +24,14 @@ TO_SUPPLEMENT = {
     "SSecCost": "sec:s_cost", "SSecHGT": "sec:hgtarch", "STabHGT": "tab:hgt_arch",
     "SSecReliance": "sec:reliance", "SFigAblation": "fig:ablation", "SFigProtocol": "fig:protocolres",
     "SSecKaggle": "sec:s_kaggle", "STabKaggleRepeated": "tab:kaggle_repeated", "STabKaggleNested": "tab:kaggle_nested",
-    "SSecLegacy": "sec:legacy", "STabLegacy": "tab:legacy",
+    "SSecLegacy": "sec:legacy", "STabLegacy": "tab:legacy", "SSecWide": "sec:s_wide", "STabWide": "tab:expanded",
+    "SSecClosure": "sec:s_closure", "STabClosure": "tab:closure", "SSecGroup": "sec:s_group", "STabGroup": "tab:grouplabels",
 }
 # Online Resource macro -> label in the article
 TO_ARTICLE = {"MainSecLowVolume": "sec:lowvolume", "MainSecMechanism": "sec:mechanism",
               "MainTabAblation": "tab:ablation", "MainTabProtocol": "tab:protocol", "MainTabKaggle": "tab:kaggle",
-              "MainTabLowVolume": "tab:lowvolume", "MainRefNadeau": "nadeau2003", "MainRefBouckaert": "bouckaert2004"}
+              "MainTabLowVolume": "tab:lowvolume", "MainRefNadeau": "nadeau2003", "MainRefBouckaert": "bouckaert2004",
+              "MainRefChen": "chen2020count", "MainRefMa": "ma2023rdpgl", "MainSecData": "sec:realdata_data"}
 
 
 def macros(tex: Path) -> dict[str, str]:

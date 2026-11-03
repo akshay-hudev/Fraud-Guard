@@ -30,7 +30,7 @@ Both pages were read in full. The "editorial policies" URL returned 404, and the
 | Editable source files at every submission | M | "Failing to submit a complete set of editable source files will result in your article not being considered for review." | Bundle built by `paper/make_hiss_bundle.py`: `.tex`, `sn-jnl.cls`, figure files, compiled PDF |
 | Title page: title, names, affiliations, corresponding e-mail | M | — | Present |
 | ORCID iDs | R | — | **Missing**; authors to add |
-| Structured abstract, 150–250 words: Purpose, Methods, Results, Conclusion | M | "Please provide a structured abstract of 150 to 250 words which should be divided into the following sections" | Present: 244 words (249 if each numeric range is counted as two words), with the four headings (2026-10-28) |
+| Structured abstract, 150–250 words: Purpose, Methods, Results, Conclusion | M | "Please provide a structured abstract of 150 to 250 words which should be divided into the following sections" | Present: 241 words (248 if each numeric range is counted as two words), with the four headings (2026-11-03) |
 | 4–6 keywords | M | "Please provide 4 to 6 keywords which can be used for indexing purposes." | 6 keywords |
 | Decimal headings, at most three levels | M | — | Two numbered levels; unnumbered run-in `\paragraph` headings only |
 | Abbreviations defined at first mention | M | — | Checked; ROC-AUC and CI now defined at first use |
@@ -67,7 +67,7 @@ Both pages were read in full. The "editorial policies" URL returned 404, and the
 | Ethics approval | M (human research) | Not applicable: synthetic data plus a public CC0 dataset with pseudonymous identifiers only. Wording made precise ("de-identified" replaced by what was verified) |
 | Consent to participate / for publication | M where applicable | Not applicable; stated |
 | Data availability | M (declarations) | Present; checksums in `research/README.md` |
-| Code availability | M (support claims) | **Blocker:** the public repository (`origin/main` at `76ee3e9`) lacks 12 local commits, including the routing, HGT-ablation, re-analysis, nested-tuning and cost code and their result records. The authors must push and tag the submitted version |
+| Code availability | M (support claims) | Names the tag `hiss-submission-v2`, which must be on the public remote before upload (U-1). The earlier blocker, missing commits on `origin/main`, was resolved with `hiss-submission-v1` on 2026-10-28 |
 | Author contributions (CRediT recommended) | R | Present, provisional. **All authors must confirm** |
 | Use of LLMs documented in Methods | M | Section "Use of AI tools". **Authors confirm wording**, including this revision |
 | Authorship criteria (ICMJE); no author changes after acceptance | M | Author list unchanged; **all authors must approve** |

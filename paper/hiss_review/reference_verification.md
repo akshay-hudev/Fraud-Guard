@@ -64,3 +64,32 @@ re-checked against its arXiv abstract (29 models, 10 datasets).
 * None of the existing entries' metadata was wrong.
 * One citation-adjacent number in the text was wrong and has been corrected: the Holm-adjusted p for SAGE+AG
   at δ = 0, s = 0.1 is 0.095, not 0.61 (0.61 is rounded from HGT+AG's 0.645).
+
+## Added in the fifth revision (2026-11-01)
+
+Five entries were added after the Phase 1 audit (`paper/audit_phase1/AUDIT_REPORT.md`, M2 and M5), so the bibliography
+now has 58 entries. Metadata were checked against the registry records on 2026-11-01.
+
+| Key | Registry | Checked |
+|---|---|---|
+| `ma2023rdpgl` | Crossref `10.24963/ijcai.2023/681` | Title, IJCAI 2023, pp. 6138–6146, first eight authors |
+| `zhou2023fraudauditor` | Crossref `10.1109/TVCG.2023.3261910` | Title, IEEE TVCG 29(6), pp. 2849–2861, first eight authors |
+| `liu2016graph` | Crossref `10.1609/aimag.v37i2.2630` | Title, AI Magazine 37(2), pp. 33–46, first eight authors |
+| `chen2020count` | DataCite `10.48550/arXiv.2002.04025` | Title, 2020, all four authors |
+| `liu2022bond` | DataCite `10.48550/arXiv.2206.10071` | Title, 2022, first eight authors |
+
+**Attributed claims.**
+
+* `chen2020count`: checked against the full text (ar5iv rendering, first 100,000 characters). Corollary 3.4: "MPNNs
+  cannot induced-subgraph-count any connected pattern with 3 or more nodes." Theorem 3.5: "MPNNs can perform
+  subgraph-count of star-shaped patterns." A draft of Online Resource S16 said *only* star-shaped patterns; the text
+  read does not state "only", so the word was removed. S16 gives instead the eight-cycle versus two four-cycles example,
+  which needs no citation.
+* `liu2022bond`: abstract only. It supports the statement that the benchmark assesses methods separately on synthetic
+  and organic outliers, and no more; the manuscript claims no more.
+* `ma2023rdpgl`: full text read on 2026-11-02 (Sections 1 and 4.1, Table 1, references). Same dataset as ours (558,211
+  claims; cites the Kaggle page), group-fraud labels from experts of China's National Healthcare Security
+  Administration, temporal split. Labels published at `finint/RDPGL`, commit `6e0151d`; the README's code section reads
+  "Coming soon". The earlier "abstract only" reading led to a wrong description (see the Phase 1 audit's correction).
+* `zhou2023fraudauditor`, `liu2016graph`: abstracts only, for the descriptions in Related Work. Liu et al.'s deployment
+  is stated in its abstract ("multiple sites and data sets, both government and commercial").

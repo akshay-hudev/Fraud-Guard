@@ -15,8 +15,11 @@
 \newcommand{\MainTabProtocol}{6}
 \newcommand{\MainTabKaggle}{7}
 \newcommand{\MainTabLowVolume}{4}
-\newcommand{\MainRefNadeau}{48}
-\newcommand{\MainRefBouckaert}{49}
+\newcommand{\MainRefNadeau}{52}
+\newcommand{\MainRefBouckaert}{53}
+\newcommand{\MainRefChen}{37}
+\newcommand{\MainRefMa}{13}
+\newcommand{\MainSecData}{5.1}
 
 \renewcommand{\thetable}{S\arabic{table}}
 \renewcommand{\thefigure}{S\arabic{figure}}
@@ -44,8 +47,9 @@ dose-response, the confirmatory test of the hybrid result, three robustness chec
 ring volume, training-seed replication and per-regime tuning), results for other ring shapes and sizes, the cost of
 training and scoring, single-factor
 ablations of HGT, which inputs the trained models use, figures of the mechanism ablations and of new versus
-recurring rings, repeated cross-validation and per-rotation tuning on the public data, and a re-analysis of a
-small fixed benchmark. Every number is generated from the run records in the article's code repository.}
+recurring rings, repeated cross-validation and per-rotation tuning on the public data, a re-analysis of a
+small fixed benchmark, a wide hyperparameter search, the closure-column experiment and the analysis of published
+group-fraud flags. Every number is generated from the run records in the article's code repository.}
 
 \maketitle
 
@@ -206,17 +210,25 @@ In seeds 1--6, after re-tuning at volume 4, SAGE+AG had higher ring AP than GB-C
 ($s=0.1$: 0.129 against 0.078, Holm $p=0.035$), the only significant advantage over GB-CAG in the
 low-volume experiments. Because this comparison was singled out after the results had been seen, we tested
 it once more as fixed in an analysis plan committed before the runs started
-(\texttt{paper/hiss\_review/analysis\_plan\_round2.md}): fresh generator seeds 7--18, $\delta=0$,
+(\texttt{paper/\allowbreak hiss\_review/\allowbreak analysis\_plan\_round2.md}): fresh generator seeds 7--18, $\delta=0$,
 $s=0.1$, volume 4, the re-tuned configurations, only GB-CAG and SAGE+AG, and one two-sided paired $t$-test
 at $\alpha=0.05$. SAGE+AG had a mean ring AP of 0.129 against 0.104 for GB-CAG: a difference of $+0.024$
 (95\% CI $[0.005, 0.043]$, $p=0.016$; Wilcoxon $p=0.009$), positive in nine of twelve seeds, with a
 chance level of 0.021. By the pre-declared rule the advantage is confirmed; its size is about half the
 exploratory estimate.
 
+That test used one training seed, the one used for tuning. A later plan, also committed before its runs
+(\texttt{paper/\allowbreak hiss\_review/\allowbreak analysis\_plan\_round5.md}), repeated it with training seeds 1 and 2, with a two-sided
+paired $t$-test at $\alpha=0.05$ on each world's mean over the three training seeds as the primary test. GB-CAG's
+scores were identical for every training seed in these worlds, so only SAGE+AG varied. Its mean ring AP was 0.136
+against 0.104: a difference of $+0.032$ (95\% CI $[0.012, 0.052]$, $p=0.005$; Wilcoxon $p=0.002$), positive in eleven
+of twelve seeds. By training seed the difference was $+0.024$, $+0.028$ and $+0.044$ ($p=0.016$, $0.019$ and $0.005$;
+descriptive). By the pre-declared rule the advantage is robust to the training seed.
+
 \section{Feature shift at reduced ring volume}\label{sec:s_shift}
 In the article, ring volume was reduced to 4 claims per month only at $\delta=0$ (Section~\MainSecLowVolume{}).
 Here that test is repeated with ring claims also shifted, $\delta=1$ and $2$, as fixed in the plan for the third
-round of experiments before its runs (\texttt{paper/hiss\_review/analysis\_plan\_round3.md}): seeds 1--6, all 14
+round of experiments before its runs (\texttt{paper/\allowbreak hiss\_review/\allowbreak analysis\_plan\_round3.md}): seeds 1--6, all 14
 methods, the hyperparameters of the main experiment, and legitimate claims, isolated fraud and ring members shared
 with the $\delta=0$ and default-volume worlds of the same seed. Table~\ref{tab:lowvolume_shift} gives ring AP.
 Per-density $p$-values are Holm-adjusted within each method's three densities, pooled ones over methods with the
@@ -320,8 +332,8 @@ HGT+AG & $+0.012$ [$-0.004$, $+0.028$] & 0.227 & $+0.007$ [$-0.005$, $+0.019$] &
 
 \section{Per-regime tuning}\label{sec:s_regime}
 All methods were tuned once, on development worlds at $\delta=0.5$, $s=0.5$. To test whether the regime-level
-conclusions depend on that choice, the tuning protocol (ten configurations per method, development seeds 901 and
-902, validation AP; hybrids inherit their base configuration) was repeated on development worlds of the two
+conclusions depend on that choice, the selection (the same ten candidate configurations per method, development
+seeds 901 and 902, validation AP; hybrids inherit their base configuration) was repeated on development worlds of the two
 $\delta=0$ regimes in which the comparisons matter most, sparse ($s=0.1$) and dense ($s=0.9$) rings, and every
 method was evaluated on seeds 1--6 of that regime with the re-selected configurations, as fixed in the plan for the
 third round. Table~\ref{tab:regimetuned} shows the result.
@@ -362,7 +374,7 @@ HGT+AG & 0.964 & 0.964 & $+0.034$ & 0.666 & 0.990 & 0.990 & $0.000$ & 1.000 \\
 
 \section{Other ring shapes and sizes}\label{sec:s_shapes}
 The engineered graph features were designed knowing the default ring: four doctors and twelve patients linked as a
-block. As fixed in the plan for the fourth round (\texttt{paper/hiss\_review/analysis\_plan\_round4.md}), every
+block. As fixed in the plan for the fourth round (\texttt{paper/\allowbreak hiss\_review/\allowbreak analysis\_plan\_round4.md}), every
 method was therefore also run on four other ring shapes and sizes at $\delta=0$ (seeds 1--6, hyperparameters of the
 main experiment): a hub (one hub doctor linked to all twelve patients, each patient also linked to one of three spoke
 doctors); a distributed ring (eight doctors and 24 patients, each patient linked to two ring doctors drawn at
@@ -556,7 +568,7 @@ fold $k+1$ validation, three training folds) was repeated with the stratified fo
 times (seeds 1--4), giving 25 rotations with the article's split as the first. The second round covered the
 tabular models, the MLP and three GNNs (SAGE, HAN, HGT); RGCN, Simple-HGN and the two hybrids were added in the
 third round and the fraud-specialised BWGNN and CARE-GNN in the fourth, with the same reshuffled folds
-(\texttt{paper/hiss\_review/analysis\_plan\_round3.md} and \texttt{round4.md}). Hyperparameters are those of the shared selection. Each method is compared with GB-P by
+(\texttt{paper/\allowbreak hiss\_review/\allowbreak analysis\_plan\_round3.md} and \texttt{round4.md}). Hyperparameters are those of the shared selection. Each method is compared with GB-P by
 the corrected repeated cross-validation $t$-test (Nadeau and Bengio 2003; Bouckaert and Frank 2004; references
 \MainRefNadeau{} and \MainRefBouckaert{} of the article), which inflates the variance
 of the mean difference by $1/25 + 1/3$ instead of $1/25$, with 24 degrees of freedom, and the fourteen $p$-values
@@ -593,11 +605,12 @@ HGT+G & 0.654 $\pm$ 0.041 & $-0.039$ [$-0.068$, $-0.009$] & 0.146 \\
 \end{tabular}
 \end{table}
 
-\textbf{Per-rotation (nested) selection.} The shared selection uses a separate 60/20/20 split whose validation
-providers also appear in the test folds of the rotations. Re-selecting each method's configuration inside every
+\textbf{Per-rotation (nested) selection.} The shared selection uses a separate 60/20/20 split of the same providers:
+18--22\% of the providers of each test fold of the first repetition were in its validation set and 59--62\% in its
+training set. The 25 rotations above all use these shared configurations. Re-selecting each method's configuration inside every
 rotation, from the same six candidates and on that rotation's validation fold only, removes this overlap.
-Table~\ref{tab:kaggle_nested} compares nested with shared selection, and every method with GB-P when both are
-selected inside each rotation. Re-selection changed AP by at most 0.010 for the tabular models and the MLP and by
+It was done for the first repetition only. Table~\ref{tab:kaggle_nested} compares nested with shared selection,
+and every method with GB-P when both are selected inside each rotation. Re-selection changed AP by at most 0.010 for the tabular models and the MLP and by
 $-0.008$ (HGT) to $+0.036$ (RGCN) for the GNNs and hybrids, with no change significant; SAGE selected its shared
 configuration in all five rotations, and SAGE+G inherits it, so their results are identical. We had expected the
 shared selection to favour the GNNs; it did not do so systematically. With every method selected inside each
@@ -675,6 +688,198 @@ ROC-AUC of claim amount alone, ring vs.\ legitimate & 0.94 & 0.53 to 0.90 \\
 Ring AP, GB on claim attributes only & 1.000 & 0.086 to 0.811 \\
 Ring recall, GB on claim attributes only & 21/21 [0.84, 1.00] & 0.15 to 0.76 \\
 Generated datasets (independent generator seeds) & 1 (1) & 54 (6) \\
+\botrule
+\end{tabular}
+\end{table}
+
+\section{Wide hyperparameter search}\label{sec:s_wide}
+A plan committed before the runs (\texttt{paper/\allowbreak hiss\_review/\allowbreak analysis\_plan\_round5.md}) searched more widely for SAGE,
+RGCN, Simple-HGN and HGT, and gave GB-CAG the same budget. Each method received 30 candidates: its main configuration
+and 29 draws (sampling seed 1) from a wider grid, none of which any earlier tuning had offered. For the GNNs the grid
+covered hidden size 16--128, 2--4 layers, dropout 0--0.3, learning rate $3\times10^{-4}$ to $10^{-2}$, weight decay
+$10^{-5}$ to $10^{-3}$, and sum or mean aggregation or 2--8 attention heads. For GB-CAG it covered learning rate
+0.01--0.2, 7--127 leaves, minimum leaf size 5--50, $\ell_2$ penalty 0--10 and 200--800 iterations. Candidates were
+selected and early-stopped on validation ring AP, over at most 300 epochs with patience 30; the main protocol uses
+overall AP, 200 and 20. All 30 ran on development world 901, drawn at the evaluation regime ($\delta=0$ and the
+cell's volume and $s$), and the six best also on world 902. The best mean over the two was chosen. Evaluation used seeds
+1--6 and training seed 0, and the training label was unchanged.
+
+The selected configuration replaced the main one in every case except Simple-HGN at volume 4 and $s=0.5$
+(Table~\ref{tab:expanded}). The plan's rule for volume 4 is that the claim that pure GNNs trail GB-CAG stands for a
+cell only if every GNN's mean stays below GB-CAG's and the upper 95\% limit of its difference is below zero. Both cells
+meet it: the largest upper limit is $-0.109$. At default volume no GNN was above GB-CAG, so the statement that no
+pure GNN outperformed it needs no qualification.
+
+The wider search changed little. Only SAGE at volume 4 and $s=0.9$ improved significantly ($+0.063$, 95\% CI
+$[0.028, 0.098]$, Holm $p=0.029$). GB-CAG's ring AP changed by at most 0.022. HGT's selected configuration at volume 4
+and $s=0.9$ (hidden size 128, two layers, eight heads, learning rate $3\times10^{-4}$) had a validation ring AP of
+0.19 on the development worlds but reached 0.029 on the evaluation worlds. Its best validation epoch came within the
+first five in five of six worlds, so early stopping ended training before it learned. Its main configuration reached
+0.098. We report the failure as it occurred; it does not affect the decision, because both configurations are far
+below GB-CAG. Validation ring AP varied widely between candidates on the low-volume development worlds (0.02 to 0.27
+on the first world), so selection from two worlds is noisy. That is the main limit of this search.
+\begin{table}[h]
+\caption{Wide hyperparameter search (ring AP, $\delta=0$, six worlds, seeds 1--6). Main: the configurations of the main experiment. Wide: 30 candidates from a wider grid (the main configuration and 29 not offered before), selected and early-stopped on validation ring AP on development worlds of the evaluation regime. Wide $-$ main: paired change. $\Delta$: difference from GB-CAG when both are searched widely, with Holm-adjusted $p$ over the four GNNs of the cell.}\label{tab:expanded}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Method & Main & Wide & Wide $-$ main [95\% CI] & $\Delta$ [95\% CI] & $p$ \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{Volume 4, $s=0.5$}} \\
+GB-CAG & 0.409 & 0.407 & $-0.001$ [$-0.040$, $+0.037$] & -- & -- \\
+SAGE & 0.108 & 0.146 & $+0.038$ [$-0.030$, $+0.106$] & $-0.261$ [$-0.414$, $-0.109$] & 0.013 \\
+RGCN & 0.112 & 0.124 & $+0.012$ [$-0.017$, $+0.041$] & $-0.283$ [$-0.404$, $-0.161$] & 0.008 \\
+Simple-HGN & 0.133 & 0.137 & $+0.004$ [$-0.038$, $+0.046$] & $-0.271$ [$-0.427$, $-0.114$] & 0.013 \\
+HGT & 0.079 & 0.090 & $+0.011$ [$-0.016$, $+0.039$] & $-0.317$ [$-0.455$, $-0.179$] & 0.008 \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{Volume 4, $s=0.9$}} \\
+GB-CAG & 0.570 & 0.593 & $+0.022$ [$-0.001$, $+0.045$] & -- & -- \\
+SAGE & 0.131 & 0.193 & $+0.063$ [$+0.028$, $+0.098$] & $-0.399$ [$-0.468$, $-0.331$] & $<$0.001 \\
+RGCN & 0.142 & 0.169 & $+0.027$ [$-0.055$, $+0.109$] & $-0.424$ [$-0.482$, $-0.366$] & $<$0.001 \\
+Simple-HGN & 0.151 & 0.206 & $+0.055$ [$-0.001$, $+0.110$] & $-0.387$ [$-0.461$, $-0.313$] & $<$0.001 \\
+HGT & 0.098 & 0.029 & $-0.069$ [$-0.148$, $+0.009$] & $-0.564$ [$-0.662$, $-0.465$] & $<$0.001 \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{Volume 16, $s=0.9$}} \\
+GB-CAG & 0.990 & 0.991 & $+0.002$ [$0.000$, $+0.003$] & -- & -- \\
+SAGE & 0.976 & 0.984 & $+0.008$ [$-0.001$, $+0.017$] & $-0.008$ [$-0.015$, $0.000$] & 0.089 \\
+RGCN & 0.954 & 0.969 & $+0.015$ [$-0.005$, $+0.036$] & $-0.022$ [$-0.035$, $-0.009$] & 0.028 \\
+Simple-HGN & 0.957 & 0.961 & $+0.004$ [$-0.014$, $+0.021$] & $-0.031$ [$-0.049$, $-0.012$] & 0.028 \\
+HGT & 0.949 & 0.928 & $-0.020$ [$-0.042$, $+0.001$] & $-0.063$ [$-0.134$, $+0.008$] & 0.089 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\section{Closure columns}\label{sec:s_closure}
+For a claim of patient $p$ and doctor $d$, the closure of the G features is
+$\sum_{d'\in N(p)\setminus\{d\}} D_{d'd}$, where $N(p)$ is the patient's doctors and $D_{d'd}$ the number of
+patients shared by doctors $d'$ and $d$ in the period. Each term counts $p$ once, and every other shared patient
+$p'$ closes a four-cycle $p$--$d$--$p'$--$d'$--$p$ through the claim's edge. The closure therefore equals
+$\deg(p)-1$ plus the number of those four-cycles, which we confirmed on 800 sampled claims of a generated world.
+Message-passing networks cannot perform induced-subgraph counting of any connected pattern of three or more nodes
+(reference~\MainRefChen{} of the article), and a four-cycle in a bipartite graph is necessarily induced. A small
+example shows the limit directly: an eight-cycle and two disjoint four-cycles are both bipartite and two-regular, so
+with identical node attributes message passing gives every node the same computation tree, although only the second
+graph contains four-cycles. The limit is a worst-case one, and real node attributes can break such ties.
+
+A plan committed before the runs (\texttt{paper/\allowbreak hiss\_review/\allowbreak analysis\_plan\_round5.md}) tested whether this is what
+the pure GNNs lack. At $\delta=0$, volumes 8 and 4 and $s=0.5$ and $0.9$ (seeds 1--6, hyperparameters of the main
+experiment), it added the two closure columns, raw and degree-normalised, to the claim nodes of SAGE and HGT
+(SAGE+Cl, HGT+Cl) and to GB-CA (GB-CA+Cl), and removed them from GB-CAG, keeping its other five graph features
+(GB-CAG$-$Cl). It predicted that SAGE+Cl and HGT+Cl would recover at least half of the gap between the pure GNN and
+GB-CAG, and that GB-CAG$-$Cl would lose most of the structure gain.
+
+The first part held and the second did not (Table~\ref{tab:closure}). The columns recovered 82--90\% of SAGE's gap
+and 52--84\% of HGT's, with gains of 0.15--0.36 (Holm $p\le0.027$ over the four cells of each comparison). SAGE+Cl
+stayed 0.02--0.08 below GB-CAG (Holm $p\ge0.18$), and HGT+Cl 0.16--0.22 below it at volume 4 (Holm $p\le0.033$) and
+0.04--0.08 below it at volume 8 (Holm $p=0.061$). With six seeds these intervals are wide and do not show
+equivalence: at volume 4 and $s=0.9$ SAGE+Cl differed from GB-CAG by $-0.080$ (95\% CI $[-0.224, 0.064]$). GB-CA+Cl
+reached 30--90\% of the structure gain. GB-CAG$-$Cl lost 0.01--0.07 (Holm $p\ge0.21$) and kept 79--98\% of the
+structure gain, so the second part of the prediction failed.
+
+The plan's reporting rule for a failed prediction says that the article does not offer four-cycle counting as the
+explanation and that it states that the tested GNNs cannot count such patterns in general. We follow it. The rule
+also anticipated that the columns would not close the gap, which is not what happened, so we report instead what the
+columns did. After seeing the result we noted that the prediction could not have isolated the closure: of the five
+remaining columns, the number of doctors sharing at least two patients with the claim's doctor and the patient's
+share of such doctor pairs both test for a second shared patient, which is itself a four-cycle, and the two Jaccard
+columns derive from the same shared-patient counts. Only the mean degree of the doctor's patients does not. This reading is
+post hoc, and no run tested it, because the plan excluded additions after the results were seen.
+
+\begin{table}[h]
+\caption{Which engineered columns matter (ring AP, $\delta=0$, six worlds, seeds 1--6, main hyperparameters). +Cl: the two closure columns added; $-$Cl: the two closure columns removed, the other five graph features kept.}\label{tab:closure}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Volume, $s$ & GB-CA & GB-CA+Cl & GB-CAG$-$Cl & GB-CAG & SAGE & SAGE+Cl & HGT & HGT+Cl \\
+\midrule
+8, 0.5 & 0.372 & 0.795 & 0.864 & 0.879 & 0.683 & 0.856 & 0.649 & 0.802 \\
+8, 0.9 & 0.311 & 0.864 & 0.912 & 0.923 & 0.755 & 0.906 & 0.689 & 0.885 \\
+4, 0.5 & 0.052 & 0.160 & 0.334 & 0.409 & 0.108 & 0.363 & 0.079 & 0.251 \\
+4, 0.9 & 0.055 & 0.331 & 0.525 & 0.570 & 0.131 & 0.491 & 0.098 & 0.348 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\section{Group-fraud flags on the public data}\label{sec:s_group}
+Ma et al.\ (reference~\MainRefMa{} of the article) added expert-annotated group-fraud flags to the public dataset used
+in the article, and published them at \texttt{https://github.com/finint/RDPGL} (commit \texttt{6e0151d}). Anti-fraud
+experts of China's National Healthcare Security Administration judged the records from domain expertise; the criterion
+is not documented, and neither group identifiers nor group sizes are published. The flags cover 100 of the 506
+fraudulent providers and 109,683 of the 558,211 claims. They are constant within a provider and never mark a provider
+that is not labelled fraudulent. The release recodes identifiers. We mapped them to the original ones by rank and
+confirmed the mapping for all 5,410 providers on claim count, inpatient count, total reimbursement, total deductible
+and fraud label.
+
+A plan committed before any score was computed (\texttt{paper/\allowbreak hiss\_review/\allowbreak analysis\_plan\_round6.md}) fixed the
+analysis below. The flagged providers were already known to hold about half of the fraud providers' claims, so the
+map of the article made two predictions: graph features would add little (P1), and no pure GNN would be significantly
+above gradient boosting with graph features (P2).
+
+\paragraph{Stored predictions.} We re-scored the stored test predictions of all 15 methods on all 25 rotations; nothing
+was retrained. All 375 sets of predictions first reproduced their recorded AP. Models had been trained on the
+provider fraud label, as synthetic models are trained on any fraud and scored on rings. Group AP ranks flagged
+providers against non-fraud providers with the other fraud providers excluded, and individual AP ranks the other fraud
+providers against non-fraud providers (Table~\ref{tab:grouplabels}). Tests are the corrected repeated cross-validation
+tests of Section~\ref{sec:s_kaggle}, with Holm adjustment within each family.
+
+Both predictions held. Graph features added nothing to GB-P (GB-PG $-0.001$, 95\% CI $[-0.026, 0.024]$; GB-PGL
+$0.000$ $[-0.035, 0.035]$; Holm $p=1.000$). All nine graph models were below GB-PG, by 0.10--0.21 (SAGE+G significantly,
+Holm $p=0.031$; the others Holm $p\ge0.090$). The structure gain was no larger on group AP than on individual AP
+(difference $+0.010$ $[-0.021, 0.040]$, $p=0.510$).
+
+\paragraph{Retraining on the flag.} Those models were not trained to find groups, so GB-P and GB-PG were retrained on the
+flag on all 25 rotations, and SAGE, RGCN and HGT on the five rotations of the first repetition, with the other fraud
+providers removed from every split and hyperparameters unchanged. GB-P reached 0.764 and GB-PG 0.755 (difference $-0.009$
+$[-0.072, 0.055]$, $p=0.785$). Over the five rotations GB-PG reached 0.775, SAGE 0.711 ($-0.065$ $[-0.235, 0.105]$), RGCN
+0.640 ($-0.136$ $[-0.456, 0.185]$) and HGT 0.758 ($-0.018$ $[-0.256, 0.221]$), with Holm $p=0.916$ for each. Training on
+the flag narrowed HGT's gap to GB-PG, from $-0.099$ on all 25 rotations of the stored predictions. With five rotations
+these tests have little power, and the intervals are compatible with sizeable differences in either direction.
+
+\paragraph{Description of the flags.} Flagged providers are large: a median of 618 claims, against 114.5 for other fraud
+providers and 27 for non-fraud providers. Through shared beneficiaries, which correspond to the benchmark's ring
+structure, they are no more densely linked than other fraud providers: median maximum Jaccard overlap 0.087 and 0.088,
+and share of beneficiaries shared with another provider 0.895 and 0.894. They do have more co-providers, as large
+providers do. Assortativity through shared beneficiaries is weak: on average 11.7\% of a flagged provider's co-providers
+are flagged, against 10.1\% for unflagged providers and a base rate of 1.8\%, which is high for both because shared
+beneficiaries concentrate on large providers. Through shared physicians it is marked: 13.7\% against 2.9\%. We cannot
+tell whether this reflects coordination, the size of these providers or the annotation criterion, and it did not help
+detection, because aggregates already rank these providers highly and the physician features are among the inputs of GB-PG.
+
+\paragraph{Reading.} By the plan's rules the result is called consistent with the map, not a validation. The flags are an
+undocumented expert judgement on claims that may be synthetic (Section~\MainSecData{} of the article). If the experts
+used shared links, any relational signal would be partly built in. On the relation that corresponds to the benchmark's
+rings the flagged providers are not denser, so these data sit in the regime of unusually active members and do not
+test dense rings of otherwise unremarkable members.
+
+Ma et al.\ report that their RDPGL exceeded baselines on these flags. Its scores are not comparable with ours. It scores
+claims on a temporal split, and at least 4,058 of its 4,512 outpatient test-period providers also appear in training
+(from its Table 1), whereas ours are disjoint providers. Its code was not available at the commit we used (the README
+says ``Coming soon''), so RDPGL itself was not run.
+
+\begin{table}[h]
+\caption{Public data re-scored on the published group-fraud flags (25 rotations, models trained on the provider fraud label, nothing retrained). Group AP: 100 flagged providers against non-fraud providers, other fraud providers excluded (chance 0.020). Individual AP: the other fraud providers against non-fraud providers (chance 0.076). Mean $\pm$ s.d. over rotations. $\Delta$: difference in group AP from GB-PG (or, for GB-PG and GB-PGL, from GB-P), with the corrected repeated cross-validation 95\% CI and Holm-adjusted $p$ within each family.}\label{tab:grouplabels}
+\scriptsize
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Method & Group AP & Individual AP & $\Delta$ [95\% CI] & $p$ \\
+\midrule
+LR-P & 0.677 $\pm$ 0.113 & 0.572 $\pm$ 0.049 & -- & -- \\
+RF-P & 0.626 $\pm$ 0.105 & 0.580 $\pm$ 0.047 & -- & -- \\
+GB-P & 0.719 $\pm$ 0.109 & 0.596 $\pm$ 0.050 & -- & -- \\
+GB-PG & 0.719 $\pm$ 0.119 & 0.585 $\pm$ 0.050 & $-0.001$ $[-0.026, 0.024]$ & 1.000 \\
+GB-PGL & 0.719 $\pm$ 0.117 & 0.587 $\pm$ 0.053 & $+0.000$ $[-0.035, 0.035]$ & 1.000 \\
+MLP-P & 0.656 $\pm$ 0.105 & 0.581 $\pm$ 0.044 & -- & -- \\
+SAGE & 0.617 $\pm$ 0.158 & 0.574 $\pm$ 0.055 & $-0.102$ $[-0.212, 0.008]$ & 0.182 \\
+RGCN & 0.531 $\pm$ 0.120 & 0.499 $\pm$ 0.056 & $-0.187$ $[-0.328, -0.046]$ & 0.091 \\
+HAN & 0.588 $\pm$ 0.111 & 0.571 $\pm$ 0.050 & $-0.130$ $[-0.239, -0.022]$ & 0.122 \\
+Simple-HGN & 0.610 $\pm$ 0.124 & 0.572 $\pm$ 0.053 & $-0.109$ $[-0.216, -0.002]$ & 0.182 \\
+HGT & 0.620 $\pm$ 0.111 & 0.577 $\pm$ 0.056 & $-0.099$ $[-0.197, -0.000]$ & 0.182 \\
+BWGNN & 0.623 $\pm$ 0.122 & 0.571 $\pm$ 0.053 & $-0.095$ $[-0.225, 0.035]$ & 0.182 \\
+CARE-GNN & 0.591 $\pm$ 0.112 & 0.569 $\pm$ 0.042 & $-0.128$ $[-0.239, -0.017]$ & 0.130 \\
+SAGE+G & 0.504 $\pm$ 0.137 & 0.543 $\pm$ 0.052 & $-0.215$ $[-0.351, -0.078]$ & 0.031 \\
+HGT+G & 0.602 $\pm$ 0.111 & 0.559 $\pm$ 0.049 & $-0.116$ $[-0.209, -0.023]$ & 0.116 \\
 \botrule
 \end{tabular}
 \end{table}

@@ -1,0 +1,70 @@
+{
+  "provenance": {
+    "created_utc": "2026-11-02T06:04:44+00:00",
+    "git": {
+      "commit": "4a7ed2584d9580fbdccfbbed21aefd26596bc451",
+      "dirty": false,
+      "research_sources_sha256": "7451377714365593"
+    },
+    "config_hash": "f947dbd5082f3806",
+    "config": {
+      "repeat": 4,
+      "fold": 2,
+      "methods": [
+        "GB-P",
+        "GB-PG"
+      ],
+      "rdpgl_commit": "6e0151d40ea5e9def878959d9863bb6f2a8cf8f4"
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "hyperparameters": {
+      "GB-P": {
+        "l2": 0.0,
+        "learning_rate": 0.03,
+        "max_iter": 200,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 50
+      },
+      "GB-PG": {
+        "l2": 0.0,
+        "learning_rate": 0.03,
+        "max_iter": 200,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 50
+      }
+    }
+  },
+  "rows": [
+    {
+      "method": "GB-P",
+      "repeat": 4,
+      "fold": 2,
+      "rotation": 22,
+      "group_ap": 0.7464257809846044,
+      "n_group": 17,
+      "n_legit": 981,
+      "best_epoch": null
+    },
+    {
+      "method": "GB-PG",
+      "repeat": 4,
+      "fold": 2,
+      "rotation": 22,
+      "group_ap": 0.7816449772528073,
+      "n_group": 17,
+      "n_legit": 981,
+      "best_epoch": null
+    }
+  ]
+}

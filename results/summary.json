@@ -1,10 +1,10 @@
 {
   "provenance": {
-    "created_utc": "2026-10-28T15:36:38+00:00",
+    "created_utc": "2026-11-03T06:29:12+00:00",
     "git": {
-      "commit": "78072e866d8850111821649c3d9f234acdcb863c",
-      "dirty": false,
-      "research_sources_sha256": "cc29400c9c8b231d"
+      "commit": "ccc5067119506a3e48b940c25cb42d37bbafba79",
+      "dirty": true,
+      "research_sources_sha256": "ba4dd73a5f1e6fb4"
     },
     "config_hash": "40c70da62144a4f8",
     "config": {
@@ -2688,6 +2688,603 @@
         "t_p_holm": 0.0039
       }
     ]
+  },
+  "expanded": {
+    "worlds": 18,
+    "main_config_kept": {
+      "v4_s0.5 | GB-CAG": false,
+      "v4_s0.5 | SAGE": false,
+      "v4_s0.5 | RGCN": false,
+      "v4_s0.5 | SimpleHGN": true,
+      "v4_s0.5 | HGT": false,
+      "v4_s0.9 | GB-CAG": false,
+      "v4_s0.9 | SAGE": false,
+      "v4_s0.9 | RGCN": false,
+      "v4_s0.9 | SimpleHGN": false,
+      "v4_s0.9 | HGT": false,
+      "v16_s0.9 | GB-CAG": false,
+      "v16_s0.9 | SAGE": false,
+      "v16_s0.9 | RGCN": false,
+      "v16_s0.9 | SimpleHGN": false,
+      "v16_s0.9 | HGT": false
+    },
+    "comparisons": [
+      {
+        "regime": "v4_s0.5",
+        "comparison": "wide - main",
+        "method": "GB-CAG",
+        "mean_diff": -0.0014,
+        "ci_low": -0.0399,
+        "ci_high": 0.037,
+        "t_p_holm": 1.0
+      },
+      {
+        "regime": "v4_s0.5",
+        "comparison": "wide - main",
+        "method": "SAGE",
+        "mean_diff": 0.0381,
+        "ci_low": -0.0301,
+        "ci_high": 0.1062,
+        "t_p_holm": 1.0
+      },
+      {
+        "regime": "v4_s0.5",
+        "comparison": "wide - main",
+        "method": "RGCN",
+        "mean_diff": 0.0122,
+        "ci_low": -0.0166,
+        "ci_high": 0.0409,
+        "t_p_holm": 1.0
+      },
+      {
+        "regime": "v4_s0.5",
+        "comparison": "wide - main",
+        "method": "SimpleHGN",
+        "mean_diff": 0.0037,
+        "ci_low": -0.0384,
+        "ci_high": 0.0458,
+        "t_p_holm": 1.0
+      },
+      {
+        "regime": "v4_s0.5",
+        "comparison": "wide - main",
+        "method": "HGT",
+        "mean_diff": 0.0113,
+        "ci_low": -0.0163,
+        "ci_high": 0.0388,
+        "t_p_holm": 1.0
+      },
+      {
+        "regime": "v4_s0.5",
+        "comparison": "vs GB-CAG (wide)",
+        "method": "SAGE",
+        "mean_diff": -0.2615,
+        "ci_low": -0.4139,
+        "ci_high": -0.109,
+        "t_p_holm": 0.0134
+      },
+      {
+        "regime": "v4_s0.5",
+        "comparison": "vs GB-CAG (wide)",
+        "method": "RGCN",
+        "mean_diff": -0.2828,
+        "ci_low": -0.4044,
+        "ci_high": -0.1612,
+        "t_p_holm": 0.0075
+      },
+      {
+        "regime": "v4_s0.5",
+        "comparison": "vs GB-CAG (wide)",
+        "method": "SimpleHGN",
+        "mean_diff": -0.2707,
+        "ci_low": -0.427,
+        "ci_high": -0.1143,
+        "t_p_holm": 0.0134
+      },
+      {
+        "regime": "v4_s0.5",
+        "comparison": "vs GB-CAG (wide)",
+        "method": "HGT",
+        "mean_diff": -0.317,
+        "ci_low": -0.4552,
+        "ci_high": -0.1787,
+        "t_p_holm": 0.0075
+      },
+      {
+        "regime": "v4_s0.9",
+        "comparison": "wide - main",
+        "method": "GB-CAG",
+        "mean_diff": 0.0223,
+        "ci_low": -0.0005,
+        "ci_high": 0.0451,
+        "t_p_holm": 0.2146
+      },
+      {
+        "regime": "v4_s0.9",
+        "comparison": "wide - main",
+        "method": "SAGE",
+        "mean_diff": 0.0627,
+        "ci_low": 0.0277,
+        "ci_high": 0.0976,
+        "t_p_holm": 0.0289
+      },
+      {
+        "regime": "v4_s0.9",
+        "comparison": "wide - main",
+        "method": "RGCN",
+        "mean_diff": 0.027,
+        "ci_low": -0.055,
+        "ci_high": 0.1091,
+        "t_p_holm": 0.4352
+      },
+      {
+        "regime": "v4_s0.9",
+        "comparison": "wide - main",
+        "method": "SimpleHGN",
+        "mean_diff": 0.0546,
+        "ci_low": -0.0013,
+        "ci_high": 0.1104,
+        "t_p_holm": 0.2146
+      },
+      {
+        "regime": "v4_s0.9",
+        "comparison": "wide - main",
+        "method": "HGT",
+        "mean_diff": -0.0693,
+        "ci_low": -0.1477,
+        "ci_high": 0.0091,
+        "t_p_holm": 0.2146
+      },
+      {
+        "regime": "v4_s0.9",
+        "comparison": "vs GB-CAG (wide)",
+        "method": "SAGE",
+        "mean_diff": -0.3993,
+        "ci_low": -0.4681,
+        "ci_high": -0.3306,
+        "t_p_holm": 0.0001
+      },
+      {
+        "regime": "v4_s0.9",
+        "comparison": "vs GB-CAG (wide)",
+        "method": "RGCN",
+        "mean_diff": -0.4237,
+        "ci_low": -0.4818,
+        "ci_high": -0.3655,
+        "t_p_holm": 0.0
+      },
+      {
+        "regime": "v4_s0.9",
+        "comparison": "vs GB-CAG (wide)",
+        "method": "SimpleHGN",
+        "mean_diff": -0.387,
+        "ci_low": -0.461,
+        "ci_high": -0.313,
+        "t_p_holm": 0.0001
+      },
+      {
+        "regime": "v4_s0.9",
+        "comparison": "vs GB-CAG (wide)",
+        "method": "HGT",
+        "mean_diff": -0.5638,
+        "ci_low": -0.6622,
+        "ci_high": -0.4653,
+        "t_p_holm": 0.0001
+      },
+      {
+        "regime": "v16_s0.9",
+        "comparison": "wide - main",
+        "method": "GB-CAG",
+        "mean_diff": 0.0016,
+        "ci_low": -0.0003,
+        "ci_high": 0.0035,
+        "t_p_holm": 0.2952
+      },
+      {
+        "regime": "v16_s0.9",
+        "comparison": "wide - main",
+        "method": "SAGE",
+        "mean_diff": 0.0079,
+        "ci_low": -0.0009,
+        "ci_high": 0.0167,
+        "t_p_holm": 0.2952
+      },
+      {
+        "regime": "v16_s0.9",
+        "comparison": "wide - main",
+        "method": "RGCN",
+        "mean_diff": 0.0152,
+        "ci_low": -0.0053,
+        "ci_high": 0.0357,
+        "t_p_holm": 0.2952
+      },
+      {
+        "regime": "v16_s0.9",
+        "comparison": "wide - main",
+        "method": "SimpleHGN",
+        "mean_diff": 0.0036,
+        "ci_low": -0.0141,
+        "ci_high": 0.0213,
+        "t_p_holm": 0.6201
+      },
+      {
+        "regime": "v16_s0.9",
+        "comparison": "wide - main",
+        "method": "HGT",
+        "mean_diff": -0.0204,
+        "ci_low": -0.042,
+        "ci_high": 0.0011,
+        "t_p_holm": 0.2952
+      },
+      {
+        "regime": "v16_s0.9",
+        "comparison": "vs GB-CAG (wide)",
+        "method": "SAGE",
+        "mean_diff": -0.0076,
+        "ci_low": -0.0148,
+        "ci_high": -0.0003,
+        "t_p_holm": 0.0885
+      },
+      {
+        "regime": "v16_s0.9",
+        "comparison": "vs GB-CAG (wide)",
+        "method": "RGCN",
+        "mean_diff": -0.022,
+        "ci_low": -0.0348,
+        "ci_high": -0.0091,
+        "t_p_holm": 0.0282
+      },
+      {
+        "regime": "v16_s0.9",
+        "comparison": "vs GB-CAG (wide)",
+        "method": "SimpleHGN",
+        "mean_diff": -0.0307,
+        "ci_low": -0.0493,
+        "ci_high": -0.012,
+        "t_p_holm": 0.0282
+      },
+      {
+        "regime": "v16_s0.9",
+        "comparison": "vs GB-CAG (wide)",
+        "method": "HGT",
+        "mean_diff": -0.0629,
+        "ci_low": -0.1337,
+        "ci_high": 0.0079,
+        "t_p_holm": 0.0885
+      }
+    ]
+  },
+  "closure": [
+    {
+      "volume": 4.0,
+      "ring_density": 0.5,
+      "method": "SAGE+Cl",
+      "reference": "SAGE",
+      "mean_diff": 0.2557,
+      "ci_low": 0.123,
+      "ci_high": 0.3883,
+      "t_p_holm": 0.007
+    },
+    {
+      "volume": 4.0,
+      "ring_density": 0.5,
+      "method": "HGT+Cl",
+      "reference": "HGT",
+      "mean_diff": 0.1718,
+      "ci_low": 0.0349,
+      "ci_high": 0.3087,
+      "t_p_holm": 0.0266
+    },
+    {
+      "volume": 4.0,
+      "ring_density": 0.5,
+      "method": "GB-CA+Cl",
+      "reference": "GB-CA",
+      "mean_diff": 0.1077,
+      "ci_low": 0.0648,
+      "ci_high": 0.1507,
+      "t_p_holm": 0.0013
+    },
+    {
+      "volume": 4.0,
+      "ring_density": 0.5,
+      "method": "SAGE+Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.0453,
+      "ci_low": -0.1231,
+      "ci_high": 0.0325,
+      "t_p_holm": 0.5838
+    },
+    {
+      "volume": 4.0,
+      "ring_density": 0.5,
+      "method": "HGT+Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.1579,
+      "ci_low": -0.2603,
+      "ci_high": -0.0554,
+      "t_p_holm": 0.0322
+    },
+    {
+      "volume": 4.0,
+      "ring_density": 0.5,
+      "method": "GB-CA+Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.2487,
+      "ci_low": -0.3269,
+      "ci_high": -0.1704,
+      "t_p_holm": 0.0017
+    },
+    {
+      "volume": 4.0,
+      "ring_density": 0.5,
+      "method": "GB-CAG-Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.0745,
+      "ci_low": -0.1512,
+      "ci_high": 0.0021,
+      "t_p_holm": 0.2179
+    },
+    {
+      "volume": 4.0,
+      "ring_density": 0.9,
+      "method": "SAGE+Cl",
+      "reference": "SAGE",
+      "mean_diff": 0.36,
+      "ci_low": 0.2597,
+      "ci_high": 0.4604,
+      "t_p_holm": 0.001
+    },
+    {
+      "volume": 4.0,
+      "ring_density": 0.9,
+      "method": "HGT+Cl",
+      "reference": "HGT",
+      "mean_diff": 0.2495,
+      "ci_low": 0.1807,
+      "ci_high": 0.3184,
+      "t_p_holm": 0.001
+    },
+    {
+      "volume": 4.0,
+      "ring_density": 0.9,
+      "method": "GB-CA+Cl",
+      "reference": "GB-CA",
+      "mean_diff": 0.2752,
+      "ci_low": 0.1975,
+      "ci_high": 0.3529,
+      "t_p_holm": 0.0005
+    },
+    {
+      "volume": 4.0,
+      "ring_density": 0.9,
+      "method": "SAGE+Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.0797,
+      "ci_low": -0.2235,
+      "ci_high": 0.0642,
+      "t_p_holm": 0.5838
+    },
+    {
+      "volume": 4.0,
+      "ring_density": 0.9,
+      "method": "HGT+Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.2226,
+      "ci_low": -0.3384,
+      "ci_high": -0.1068,
+      "t_p_holm": 0.0172
+    },
+    {
+      "volume": 4.0,
+      "ring_density": 0.9,
+      "method": "GB-CA+Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.2396,
+      "ci_low": -0.3379,
+      "ci_high": -0.1414,
+      "t_p_holm": 0.0023
+    },
+    {
+      "volume": 4.0,
+      "ring_density": 0.9,
+      "method": "GB-CAG-Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.0451,
+      "ci_low": -0.107,
+      "ci_high": 0.0167,
+      "t_p_holm": 0.3587
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.5,
+      "method": "SAGE+Cl",
+      "reference": "SAGE",
+      "mean_diff": 0.1729,
+      "ci_low": 0.0874,
+      "ci_high": 0.2585,
+      "t_p_holm": 0.007
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.5,
+      "method": "HGT+Cl",
+      "reference": "HGT",
+      "mean_diff": 0.1533,
+      "ci_low": 0.0585,
+      "ci_high": 0.2481,
+      "t_p_holm": 0.0266
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.5,
+      "method": "GB-CA+Cl",
+      "reference": "GB-CA",
+      "mean_diff": 0.423,
+      "ci_low": 0.3198,
+      "ci_high": 0.5263,
+      "t_p_holm": 0.0004
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.5,
+      "method": "SAGE+Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.0231,
+      "ci_low": -0.0732,
+      "ci_high": 0.0269,
+      "t_p_holm": 0.5838
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.5,
+      "method": "HGT+Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.0769,
+      "ci_low": -0.143,
+      "ci_high": -0.0108,
+      "t_p_holm": 0.0609
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.5,
+      "method": "GB-CA+Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.0838,
+      "ci_low": -0.116,
+      "ci_high": -0.0515,
+      "t_p_holm": 0.0023
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.5,
+      "method": "GB-CAG-Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.015,
+      "ci_low": -0.0382,
+      "ci_high": 0.0082,
+      "t_p_holm": 0.3587
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.9,
+      "method": "SAGE+Cl",
+      "reference": "SAGE",
+      "mean_diff": 0.151,
+      "ci_low": 0.0929,
+      "ci_high": 0.2091,
+      "t_p_holm": 0.0034
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.9,
+      "method": "HGT+Cl",
+      "reference": "HGT",
+      "mean_diff": 0.1957,
+      "ci_low": 0.0733,
+      "ci_high": 0.318,
+      "t_p_holm": 0.0266
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.9,
+      "method": "GB-CA+Cl",
+      "reference": "GB-CA",
+      "mean_diff": 0.5523,
+      "ci_low": 0.4732,
+      "ci_high": 0.6315,
+      "t_p_holm": 0.0
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.9,
+      "method": "SAGE+Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.0177,
+      "ci_low": -0.0351,
+      "ci_high": -0.0003,
+      "t_p_holm": 0.1882
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.9,
+      "method": "HGT+Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.0385,
+      "ci_low": -0.0785,
+      "ci_high": 0.0015,
+      "t_p_holm": 0.0609
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.9,
+      "method": "GB-CA+Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.0598,
+      "ci_low": -0.0786,
+      "ci_high": -0.0411,
+      "t_p_holm": 0.0017
+    },
+    {
+      "volume": 8.0,
+      "ring_density": 0.9,
+      "method": "GB-CAG-Cl",
+      "reference": "GB-CAG",
+      "mean_diff": -0.0116,
+      "ci_low": -0.0425,
+      "ci_high": 0.0194,
+      "t_p_holm": 0.3817
+    }
+  ],
+  "hybrid_confirmation_seeds": {
+    "training seed 0": {
+      "sage_ag_mean": 0.12862453466222543,
+      "gbcag_mean": 0.1043647461601739,
+      "n_seeds_positive": 9,
+      "n": 12,
+      "mean_diff": 0.024259788502051516,
+      "ci_low": 0.0054517258005736015,
+      "ci_high": 0.043067851203529434,
+      "t_p": 0.01611167096211214,
+      "cohen_dz": 0.8195386457311127,
+      "wilcoxon_p": 0.00927734375
+    },
+    "training seed 1": {
+      "sage_ag_mean": 0.13216627611621243,
+      "gbcag_mean": 0.1043647461601739,
+      "n_seeds_positive": 10,
+      "n": 12,
+      "mean_diff": 0.027801529956038507,
+      "ci_low": 0.005489110681354593,
+      "ci_high": 0.05011394923072242,
+      "t_p": 0.01914729754988094,
+      "cohen_dz": 0.7916779071758498,
+      "wilcoxon_p": 0.01220703125
+    },
+    "training seed 2": {
+      "sage_ag_mean": 0.14819866386156036,
+      "gbcag_mean": 0.1043647461601739,
+      "n_seeds_positive": 9,
+      "n": 12,
+      "mean_diff": 0.04383391770138647,
+      "ci_low": 0.016112530022119927,
+      "ci_high": 0.07155530538065301,
+      "t_p": 0.005146035098090073,
+      "cohen_dz": 1.0046662492703118,
+      "wilcoxon_p": 0.00927734375
+    },
+    "mean of three training seeds": {
+      "sage_ag_mean": 0.1363298248799994,
+      "gbcag_mean": 0.1043647461601739,
+      "n_seeds_positive": 11,
+      "n": 12,
+      "mean_diff": 0.0319650787198255,
+      "ci_low": 0.011664892939111902,
+      "ci_high": 0.052265264500539095,
+      "t_p": 0.005279692213617639,
+      "cohen_dz": 1.000465822875868,
+      "wilcoxon_p": 0.00244140625
+    }
   },
   "latency": {
     "worlds": 4,

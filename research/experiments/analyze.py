@@ -1254,12 +1254,12 @@ def summarise_closure(summary: dict) -> None:
     lines = [r"\begin{table}[h]",
              r"\caption{Which engineered columns matter (ring AP, $\delta=0$, six worlds, seeds 1--6, main hyperparameters). "
              r"+Cl: the two closure columns added; $-$Cl: the two closure columns removed, the other five graph features "
-             r"kept.}\label{tab:closure}", r"\scriptsize", r"\setlength{\tabcolsep}{4pt}",
-             r"\begin{tabular}{@{}lc" + "c" * len(show) + "@{}}", r"\toprule",
-             r"Volume & $s$ & " + " & ".join(m.replace("-Cl", r"$-$Cl").replace("+Cl", "+Cl") for m in show) + r" \\", r"\midrule"]
+             r"kept.}\label{tab:closure}", r"\scriptsize", r"\setlength{\tabcolsep}{2pt}",
+             r"\begin{tabular}{@{}l" + "c" * len(show) + "@{}}", r"\toprule",
+             r"Volume, $s$ & " + " & ".join(m.replace("-Cl", r"$-$Cl") for m in show) + r" \\", r"\midrule"]
     for vol in sorted(cl.ring_claims_per_month.unique(), reverse=True):
         for dens in sorted(cl.ring_density.unique()):
-            lines.append(" & ".join([f"{vol:g}", f"{dens:g}"] + [f"{m_[(vol, dens, m)]:.3f}" for m in show]) + r" \\")
+            lines.append(" & ".join([f"{vol:g}, {dens:g}"] + [f"{m_[(vol, dens, m)]:.3f}" for m in show]) + r" \\")
     lines += [r"\botrule", r"\end{tabular}", r"\end{table}"]
     (TABLES / "closure.tex").write_text("\n".join(lines))
     summary["closure"] = c[["volume", "ring_density", "method", "reference", "mean_diff", "ci_low", "ci_high", "t_p_holm"]].round(4).to_dict(orient="records")

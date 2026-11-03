@@ -1,0 +1,74 @@
+HEAD research_sources_sha256: cc29400c9c8b231d
+
+ablation: n=6 {'dirty': 6} first=2026-10-22T05:04:11+00:00 last=2026-10-22T07:02:31+00:00
+   commits: {'f16ccc7': 6}
+   sources: {'none': 6}
+
+ablation_arch: n=6 {'clean': 6} first=2026-10-23T07:10:39+00:00 last=2026-10-23T07:52:31+00:00
+   commits: {'a232dcd': 6}
+   sources: {'4f1589a32b01daa9': 6}
+
+cascade: n=54 {'clean': 54} first=2026-10-23T06:47:02+00:00 last=2026-10-23T07:49:28+00:00
+   commits: {'a232dcd': 54}
+   sources: {'4f1589a32b01daa9': 54}
+
+kaggle: n=25 {'dirty': 20, 'clean': 5} first=2026-10-22T06:11:30+00:00 last=2026-10-28T09:29:21+00:00
+   commits: {'f16ccc7': 20, '78072e8': 5}
+   sources: {'none': 20, 'cc29400c9c8b231d': 5}
+
+kaggle_nested: n=35 {'clean': 16, 'dirty': 19} first=2026-10-23T06:53:55+00:00 last=2026-10-28T06:10:34+00:00
+   commits: {'5581e2e': 21, 'a232dcd': 5, '78072e8': 5, '8c3434a': 4}
+   sources: {'dfb870223106e371': 15, 'df47d889bd584376': 6, '4f1589a32b01daa9': 5, 'cc29400c9c8b231d': 5, '14e8bec1584dcbeb': 4}
+
+kaggle_repeated: n=60 {'clean': 51, 'dirty': 9} first=2026-10-26T16:36:46+00:00 last=2026-10-28T09:37:47+00:00
+   commits: {'2eb368c': 20, '78072e8': 20, '5581e2e': 20}
+   sources: {'3cb55752dad0700c': 20, 'cc29400c9c8b231d': 20, 'df47d889bd584376': 11, 'dfb870223106e371': 9}
+
+synthetic: n=486 {'clean': 112, 'dirty': 374} first=2026-10-20T13:38:17+00:00 last=2026-10-28T08:09:00+00:00
+   commits: {'f16ccc7': 324, '78072e8': 108, '8c3434a': 45, '6c6a0c2': 9}
+   sources: {'none': 324, 'cc29400c9c8b231d': 108, '14e8bec1584dcbeb': 46, 'eb03b4697c4919c4': 4, '1e7bfee25a2f3b9e': 4}
+
+synthetic_hybrid_confirm: n=12 {'dirty': 12} first=2026-10-26T14:40:49+00:00 last=2026-10-26T14:45:35+00:00
+   commits: {'8c3434a': 12}
+   sources: {'14e8bec1584dcbeb': 12}
+
+synthetic_lowvolume: n=36 {'clean': 36} first=2026-10-25T17:41:53+00:00 last=2026-10-28T08:22:07+00:00
+   commits: {'12d89ff': 18, '78072e8': 18}
+   sources: {'9b7ea1bb9e07f6b2': 18, 'cc29400c9c8b231d': 18}
+
+synthetic_lowvolume_retuned: n=36 {'dirty': 18, 'clean': 18} first=2026-10-25T18:53:32+00:00 last=2026-10-28T08:21:34+00:00
+   commits: {'78072e8': 18, '9f615d7': 13, '8c97426': 5}
+   sources: {'cc29400c9c8b231d': 18, '4a0bc11f20e34678': 13, 'c601208ff2218c10': 5}
+
+synthetic_lowvolume_shift: n=36 {'clean': 36} first=2026-10-27T13:11:14+00:00 last=2026-10-27T14:45:22+00:00
+   commits: {'2eb368c': 36}
+   sources: {'3cb55752dad0700c': 36}
+
+synthetic_modelseeds: n=36 {'clean': 36} first=2026-10-27T14:44:43+00:00 last=2026-10-27T15:47:45+00:00
+   commits: {'2eb368c': 36}
+   sources: {'3cb55752dad0700c': 36}
+
+synthetic_persistent: n=12 {'dirty': 12} first=2026-10-22T00:33:50+00:00 last=2026-10-22T05:38:52+00:00
+   commits: {'f16ccc7': 12}
+   sources: {'none': 12}
+
+synthetic_regimetuned: n=12 {'clean': 12} first=2026-10-27T15:52:56+00:00 last=2026-10-27T16:25:05+00:00
+   commits: {'2eb368c': 12}
+   sources: {'3cb55752dad0700c': 12}
+
+synthetic_shapes: n=48 {'clean': 48} first=2026-10-28T09:47:37+00:00 last=2026-10-28T13:12:52+00:00
+   commits: {'78072e8': 48}
+   sources: {'cc29400c9c8b231d': 48}
+
+synthetic_volume2: n=36 {'dirty': 18, 'clean': 18} first=2026-10-26T13:16:09+00:00 last=2026-10-28T09:33:58+00:00
+   commits: {'8c3434a': 18, '78072e8': 18}
+   sources: {'14e8bec1584dcbeb': 18, 'cc29400c9c8b231d': 18}
+
+synthetic_volume8: n=36 {'dirty': 18, 'clean': 18} first=2026-10-26T12:39:20+00:00 last=2026-10-28T09:30:09+00:00
+   commits: {'8c3434a': 18, '78072e8': 18}
+   sources: {'14e8bec1584dcbeb': 18, 'cc29400c9c8b231d': 18}
+latency/latency.json {'commit': '5ac1d2b75b3e00e9084ae42791262b3be6b48820', 'dirty': False, 'research_sources_sha256': 'df186132d5fb598e'} 2026-10-23T07:57:55+00:00
+legacy/legacy_reanalysis.json {'commit': '36026e933f063482fa73328e583013fb7c441fdb', 'dirty': False, 'research_sources_sha256': 'bf16c914ecd07d77'} 2026-10-23T06:53:04+00:00
+tuning/best_hyperparameters.json {'commit': '78072e866d8850111821649c3d9f234acdcb863c', 'dirty': False, 'research_sources_sha256': 'cc29400c9c8b231d'} 2026-10-28T06:06:05+00:00
+kaggle/tuning/best_hyperparameters.json {'commit': '78072e866d8850111821649c3d9f234acdcb863c', 'dirty': False, 'research_sources_sha256': 'cc29400c9c8b231d'} 2026-10-28T05:59:54+00:00
+tuning_lowvolume/best_hyperparameters.json {'commit': '78072e866d8850111821649c3d9f234acdcb863c', 'dirty': False, 'research_sources_sha256': 'cc29400c9c8b231d'} 2026-10-28T06:00:04+00:00

@@ -1,0 +1,99 @@
+{
+  "provenance": {
+    "created_utc": "2026-11-02T06:34:32+00:00",
+    "git": {
+      "commit": "20de2e4144601bddf8e5222339829af59e504b27",
+      "dirty": false,
+      "research_sources_sha256": "f226e8a38e080830"
+    },
+    "config_hash": "1e24fb024885336f",
+    "config": {
+      "n_patients": 6000,
+      "n_doctors": 300,
+      "n_hospitals": 40,
+      "n_regions": 5,
+      "n_specialties": 8,
+      "n_periods": 4,
+      "period_months": 6,
+      "legit_rate_mean": 3.0,
+      "legit_rate_shape": 1.5,
+      "p_regular": 0.85,
+      "isolated_rate": 0.03,
+      "isolated_shift": 2.0,
+      "ring_shift": 0.0,
+      "ring_density": 0.9,
+      "ring_doctors": 4,
+      "ring_patients": 12,
+      "ring_claims_per_month": 4.0,
+      "rings_per_period": 4,
+      "persistent_rings": 0,
+      "seed": 6
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "hyperparameters": {
+      "GB-CAG": {
+        "l2": 1.0,
+        "learning_rate": 0.01,
+        "max_iter": 800,
+        "max_leaf_nodes": 63,
+        "min_samples_leaf": 50
+      }
+    },
+    "claims_hash": "d9db0d2cb3dbae9d"
+  },
+  "rows": [
+    {
+      "method": "GB-CAG",
+      "regime": "v4_s0.9",
+      "n_patients": 6000,
+      "n_doctors": 300,
+      "n_hospitals": 40,
+      "n_regions": 5,
+      "n_specialties": 8,
+      "n_periods": 4,
+      "period_months": 6,
+      "legit_rate_mean": 3.0,
+      "legit_rate_shape": 1.5,
+      "p_regular": 0.85,
+      "isolated_rate": 0.03,
+      "isolated_shift": 2.0,
+      "ring_shift": 0.0,
+      "ring_density": 0.9,
+      "ring_doctors": 4,
+      "ring_patients": 12,
+      "ring_claims_per_month": 4.0,
+      "rings_per_period": 4,
+      "persistent_rings": 0,
+      "seed": 6,
+      "ap": 0.7559248224179456,
+      "roc_auc": 0.9502883306475602,
+      "f1": 0.6666666666666666,
+      "precision": 0.6693877551020408,
+      "recall": 0.6639676113360324,
+      "recall_at_5pct": 0.6518218623481782,
+      "threshold": 0.4604298770656166,
+      "n_test": 4616,
+      "n_pos": 247,
+      "ring_ap": 0.6660786578607716,
+      "ring_recall": 0.6875,
+      "n_ring": 96,
+      "isolated_ap": 0.695593513841458,
+      "isolated_recall": 0.6490066225165563,
+      "n_isolated": 151,
+      "best_val_ring_ap": 0.5862101366314205,
+      "best_epoch": null,
+      "train_seconds": 13.095108032226562
+    }
+  ]
+}

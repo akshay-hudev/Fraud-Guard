@@ -1,0 +1,16 @@
+regime,method,main,wide,hp,mean_val_ring_ap,main_config,n_trials
+v4_s0.5,GB-CAG,0.408712329991716,0.407267346398499,"{'l2': 1.0, 'learning_rate': 0.1, 'max_iter': 800, 'max_leaf_nodes': 127, 'min_samples_leaf': 5}",0.29540769449055365,False,30
+v4_s0.5,SAGE,0.1076971788147278,0.1457785624067561,"{'aggr': 'sum', 'dropout': 0.3, 'hidden': 32, 'layers': 3, 'lr': 0.003, 'weight_decay': 0.0001}",0.1925625911653975,False,30
+v4_s0.5,RGCN,0.11230851656575175,0.12448418992376686,"{'aggr': 'sum', 'dropout': 0.1, 'hidden': 128, 'layers': 4, 'lr': 0.0003, 'weight_decay': 1e-05}",0.14616817215679018,False,30
+v4_s0.5,SimpleHGN,0.1329051887435568,0.13660913723917817,"{'dropout': 0.3, 'heads': 4, 'hidden': 64, 'layers': 3, 'lr': 0.003, 'weight_decay': 0.0001}",0.09889011933835123,True,30
+v4_s0.5,HGT,0.07906139885688442,0.09031348618496855,"{'dropout': 0.3, 'heads': 2, 'hidden': 64, 'layers': 2, 'lr': 0.001, 'weight_decay': 0.001}",0.10114906616487171,False,30
+v4_s0.9,GB-CAG,0.5702723958646968,0.5925293641659888,"{'l2': 1.0, 'learning_rate': 0.01, 'max_iter': 800, 'max_leaf_nodes': 63, 'min_samples_leaf': 50}",0.5779567967318735,False,30
+v4_s0.9,SAGE,0.13054344529007658,0.193210117256207,"{'aggr': 'sum', 'dropout': 0.3, 'hidden': 32, 'layers': 3, 'lr': 0.003, 'weight_decay': 0.0001}",0.25171488669997066,False,30
+v4_s0.9,RGCN,0.14182047088787256,0.1688687251903819,"{'aggr': 'sum', 'dropout': 0.3, 'hidden': 32, 'layers': 3, 'lr': 0.003, 'weight_decay': 0.0001}",0.1916767324081754,False,30
+v4_s0.9,SimpleHGN,0.15091708961775635,0.20550550154868766,"{'dropout': 0.1, 'heads': 8, 'hidden': 128, 'layers': 3, 'lr': 0.003, 'weight_decay': 0.0001}",0.2558557703197868,False,30
+v4_s0.9,HGT,0.09809268879051565,0.02876359776874877,"{'dropout': 0.3, 'heads': 8, 'hidden': 128, 'layers': 2, 'lr': 0.0003, 'weight_decay': 0.0001}",0.1909819870320245,False,30
+v16_s0.9,GB-CAG,0.9896168994584739,0.99122466664341,"{'l2': 0.0, 'learning_rate': 0.2, 'max_iter': 800, 'max_leaf_nodes': 15, 'min_samples_leaf': 10}",0.9947996609835839,False,30
+v16_s0.9,SAGE,0.9758103455414705,0.9836652780361202,"{'aggr': 'sum', 'dropout': 0.3, 'hidden': 32, 'layers': 4, 'lr': 0.01, 'weight_decay': 1e-05}",0.9878380139386992,False,30
+v16_s0.9,RGCN,0.954040494921872,0.9692454336730564,"{'aggr': 'sum', 'dropout': 0.3, 'hidden': 32, 'layers': 4, 'lr': 0.01, 'weight_decay': 1e-05}",0.9826383648401549,False,30
+v16_s0.9,SimpleHGN,0.9569339673729385,0.960569715163539,"{'dropout': 0.1, 'heads': 2, 'hidden': 64, 'layers': 3, 'lr': 0.01, 'weight_decay': 0.0001}",0.9853169778437384,False,30
+v16_s0.9,HGT,0.9487867789975497,0.9283387776854366,"{'dropout': 0.3, 'heads': 8, 'hidden': 16, 'layers': 2, 'lr': 0.01, 'weight_decay': 0.0001}",0.9778317393820575,False,30

@@ -1,0 +1,31 @@
+\begin{table}[h]
+\caption{Wide hyperparameter search (ring AP, $\delta=0$, six worlds, seeds 1--6). Main: the configurations of the main experiment. Wide: 30 candidates from a wider grid (the main configuration and 29 not offered before), selected and early-stopped on validation ring AP on development worlds of the evaluation regime. Wide $-$ main: paired change. $\Delta$: difference from GB-CAG when both are searched widely, with Holm-adjusted $p$ over the four GNNs of the cell.}\label{tab:expanded}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Method & Main & Wide & Wide $-$ main [95\% CI] & $\Delta$ [95\% CI] & $p$ \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{Volume 4, $s=0.5$}} \\
+GB-CAG & 0.409 & 0.407 & $-0.001$ [$-0.040$, $+0.037$] & -- & -- \\
+SAGE & 0.108 & 0.146 & $+0.038$ [$-0.030$, $+0.106$] & $-0.261$ [$-0.414$, $-0.109$] & 0.013 \\
+RGCN & 0.112 & 0.124 & $+0.012$ [$-0.017$, $+0.041$] & $-0.283$ [$-0.404$, $-0.161$] & 0.008 \\
+Simple-HGN & 0.133 & 0.137 & $+0.004$ [$-0.038$, $+0.046$] & $-0.271$ [$-0.427$, $-0.114$] & 0.013 \\
+HGT & 0.079 & 0.090 & $+0.011$ [$-0.016$, $+0.039$] & $-0.317$ [$-0.455$, $-0.179$] & 0.008 \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{Volume 4, $s=0.9$}} \\
+GB-CAG & 0.570 & 0.593 & $+0.022$ [$-0.001$, $+0.045$] & -- & -- \\
+SAGE & 0.131 & 0.193 & $+0.063$ [$+0.028$, $+0.098$] & $-0.399$ [$-0.468$, $-0.331$] & $<$0.001 \\
+RGCN & 0.142 & 0.169 & $+0.027$ [$-0.055$, $+0.109$] & $-0.424$ [$-0.482$, $-0.366$] & $<$0.001 \\
+Simple-HGN & 0.151 & 0.206 & $+0.055$ [$-0.001$, $+0.110$] & $-0.387$ [$-0.461$, $-0.313$] & $<$0.001 \\
+HGT & 0.098 & 0.029 & $-0.069$ [$-0.148$, $+0.009$] & $-0.564$ [$-0.662$, $-0.465$] & $<$0.001 \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{Volume 16, $s=0.9$}} \\
+GB-CAG & 0.990 & 0.991 & $+0.002$ [$0.000$, $+0.003$] & -- & -- \\
+SAGE & 0.976 & 0.984 & $+0.008$ [$-0.001$, $+0.017$] & $-0.008$ [$-0.015$, $0.000$] & 0.089 \\
+RGCN & 0.954 & 0.969 & $+0.015$ [$-0.005$, $+0.036$] & $-0.022$ [$-0.035$, $-0.009$] & 0.028 \\
+Simple-HGN & 0.957 & 0.961 & $+0.004$ [$-0.014$, $+0.021$] & $-0.031$ [$-0.049$, $-0.012$] & 0.028 \\
+HGT & 0.949 & 0.928 & $-0.020$ [$-0.042$, $+0.001$] & $-0.063$ [$-0.134$, $+0.008$] & 0.089 \\
+\botrule
+\end{tabular}
+\end{table}

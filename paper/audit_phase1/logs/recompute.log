@@ -1,0 +1,8 @@
+main grid: cells 144 seeds per cell min/max 12 12 | shifts on disk: [0.0, 1.0, 2.0] seeds on disk: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+tab:regime_ringap: 144 cells checked, 0 mismatches
+tab:regime_isoap: 144 cells checked, 0 mismatches
+tab:pooled: 30 cells checked, 0 mismatches
+tab:kaggle: 60 cells, 0 mismatches; folds per method [5]
+tab:lowvolume: 144 cells, 0 mismatches; worlds per cell frozen/retuned: [6] [6]
+persistent seeds: [1, 2, 3, 4, 5, 6] densities: [0.1, 0.9] methods: ['GB-CA', 'GB-CAG', 'HGT', 'MLP-C', 'Overlap-score', 'SAGE']
+confirm: seeds [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18] vol [4.] dens [0.1] diff=0.0243 CI=[0.005,0.043] p=0.0161 pos=9 means SAGE+AG=0.129 GB-CAG=0.104

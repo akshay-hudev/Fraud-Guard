@@ -41,13 +41,13 @@
 
 \title[When Does Relational Structure Help Healthcare Fraud Detection?]{When Does Relational Structure Help Healthcare Fraud Detection? A Controlled Benchmark of Heterogeneous Graph Neural Networks and Graph-Augmented Tabular Models}
 
-\author*[1]{\fnm{H M} \sur{Akshay}}\email{rvit23bcs106.rvitm@rvei.edu.in}
+\author*[1]{\fnm{H M} \sur{Akshay}}\email{hmakshay\_23bcs106.rvitm@rvei.edu.in}
 
-\author[1]{\fnm{Gaurav} \sur{S B}}\email{rvit23bcs258.rvitm@rvei.edu.in}
+\author[1]{\fnm{Gaurav} \sur{S B}}\email{gauravsb\_23bcs258.rvitm@rvei.edu.in}
 
-\author[1]{\fnm{Eshita} \sur{Narayana}}\email{rvit23bcs031.rvitm@rvei.edu.in}
+\author[1]{\fnm{Eshita} \sur{Narayana}}\email{eshitan\_23bcs031.rvitm@rvei.edu.in}
 
-\author[1]{\fnm{Harshita} \sur{Srivastava}}\email{rvit23bcs323.rvitm@rvei.edu.in}
+\author[1]{\fnm{Harshita} \sur{Srivastava}}\email{harshitas\_23bcs323.rvitm@rvei.edu.in}
 
 \author[1]{\fnm{Malini M} \sur{Patil}}\email{malinimp.rvitm@rvei.edu.in}
 
@@ -61,7 +61,7 @@ leave traces in claim networks; when they beat tabular
 models is unclear.
 \textbf{Methods:} We built a synthetic claims benchmark that independently
 varies the feature-level signal, doctor--patient density, claim volume and
-shape of fraud rings, and tests without leakage on rings of unseen members.
+shape of fraud rings, and tests without leakage on unseen ring members.
 Sixteen methods, including gradient boosting with and without
 engineered graph features, five heterogeneous and two fraud-specialised GNNs,
 were compared in nine regimes, at four ring volumes, for
@@ -73,14 +73,14 @@ At 4--8 claims per month, aggregates fell to 0.05--0.42, graph
 features reached 0.41--0.92 for denser rings, and
 pure GNNs trailed them by 0.17--0.57, also after a wider search. No pure GNN
 outperformed gradient boosting with graph features averaged over regimes
-(upper 95\% limits $\le$0.006) or for any other ring shape; hybrids gained 0.01, and
+(upper 95\% limits $\le$0.006) or for other ring shapes; hybrids gained 0.01, and
 GNNs were 0.09--0.23 worse on isolated fraud. Recurring ring members inflated performance by up to 0.60.
 On public data, gradient boosting on provider aggregates was best
 (0.704), also for expert-flagged group fraud.
 \textbf{Conclusion:} Relational structure helps when collusion densely links
 otherwise unremarkable members, and engineered
 shared-patient features captured it better than the GNNs tested. Graph
-models should be evaluated against graph-augmented tabular baselines on
+models should be compared with graph-augmented tabular baselines on
 unseen entities.}
 
 \keywords{Healthcare fraud detection, Provider rings, Heterogeneous graph neural networks, Gradient boosting, Synthetic benchmark, Data leakage}

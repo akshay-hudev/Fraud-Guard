@@ -1,0 +1,66 @@
+{
+  "provenance": {
+    "created_utc": "2026-11-02T06:03:05+00:00",
+    "git": {
+      "commit": "4a7ed2584d9580fbdccfbbed21aefd26596bc451",
+      "dirty": false,
+      "research_sources_sha256": "7451377714365593"
+    },
+    "config_hash": "9af692fb3b690dca",
+    "config": {
+      "rdpgl_commit": "6e0151d40ea5e9def878959d9863bb6f2a8cf8f4"
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    }
+  },
+  "description": {
+    "n": {
+      "group": 100,
+      "other fraud": 406,
+      "non-fraud": 4904
+    },
+    "group_rate": 0.018484288354898338,
+    "median_claims": {
+      "group": 618.0,
+      "other fraud": 114.5,
+      "non-fraud": 27.0
+    },
+    "features": {
+      "group": {
+        "bene_max_jaccard": 0.0869625312980592,
+        "bene_shared_share": 0.8952793522994,
+        "bene_log_n_coproviders": 5.653896861353852
+      },
+      "other fraud": {
+        "bene_max_jaccard": 0.08811764705882352,
+        "bene_shared_share": 0.8944272445820434,
+        "bene_log_n_coproviders": 4.448499276371912
+      },
+      "non-fraud": {
+        "bene_max_jaccard": 0.08169682967526633,
+        "bene_shared_share": 0.9230769230769231,
+        "bene_log_n_coproviders": 3.332204510175204
+      }
+    },
+    "beneficiary": {
+      "flag_share_among_coproviders_of_group": 0.11671158076050002,
+      "flag_share_among_coproviders_of_others": 0.10130306935526914,
+      "flag_share_among_coproviders_of_other_fraud": 0.09622449859680503
+    },
+    "physician": {
+      "flag_share_among_coproviders_of_group": 0.13651032511792002,
+      "flag_share_among_coproviders_of_others": 0.028610290076558905,
+      "flag_share_among_coproviders_of_other_fraud": 0.030873710028228977
+    }
+  }
+}

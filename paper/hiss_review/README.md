@@ -1,4 +1,4 @@
-# HISS submission review: summary and readiness assessment (2026-10-25; updated 2026-10-28)
+# HISS submission review: summary and readiness assessment (2026-10-25; updated 2026-11-03)
 
 This review covers the target journal *Health Information Science and Systems* (Springer Nature), the manuscript
 `fraud_detection_paper.tex` with its Online Resource `supplementary_material.tex`, and branch
@@ -17,8 +17,9 @@ the authors.
 | [unresolved_issues.md](unresolved_issues.md) | Author confirmations, decisions, experiments not run |
 | [submission_package.md](submission_package.md) | Files to upload and the pre-upload checklist |
 | [anticipated_reviewer_questions.md](anticipated_reviewer_questions.md) | Likely reviewer questions with prepared answers |
-| [analysis_plan_round2.md](analysis_plan_round2.md), [round3](analysis_plan_round3.md), [round4](analysis_plan_round4.md) | The three later experimental rounds, each fixed before its runs (commits `6c6a0c2`, `2eb368c`, `98638c4`) |
-| `run_round2.sh`, `run_round3.sh`, `run_round4.sh` | The jobs of those rounds (136, 116 and 107) |
+| [analysis_plan_round2.md](analysis_plan_round2.md) to [round6](analysis_plan_round6.md) | The five later experimental rounds, each fixed before its runs (commits `6c6a0c2`, `2eb368c`, `98638c4`, `3a7631a`, `e59f69f`) |
+| `run_round2.sh` to `run_round5.sh` | The jobs of rounds 2–5 (136, 116, 107 and 23); round 6 re-scores stored predictions (`research/README.md`, step 16) |
+| [../audit_phase1/AUDIT_REPORT.md](../audit_phase1/AUDIT_REPORT.md) | The Phase 1 readiness audit (2026-10-28), with its corrections, which led to rounds 5 and 6 |
 
 **Rounds after the first audit.** The authors asked for the weaknesses to be addressed before submission. Three
 pre-declared rounds followed:
@@ -29,6 +30,10 @@ pre-declared rounds followed:
 * **Round 3** (2026-10-27): feature shift at reduced volume, training-seed replication, per-regime tuning, and
   repeated rotations for every method.
 * **Round 4** (2026-10-27/28): two fraud-specialised GNNs (BWGNN, CARE-GNN) and four further ring shapes and sizes.
+* **Round 5** (2026-11-01/02), after the Phase 1 audit: a three-times wider hyperparameter search, the closure-column
+  test of the mechanism, and the confirmatory test over two further training seeds.
+* **Round 6** (2026-11-02): published expert group-fraud flags for the public data, which the manuscript had wrongly
+  said did not exist, used to re-score the public-data analysis.
 
 Every outcome is reported, including those that weakened earlier statements.
 
@@ -37,20 +42,24 @@ Every outcome is reported, including those that weakened earlier statements.
 ### Scientifically validated (evidence re-checked in this review)
 
 * **Leakage controls**: label invariance, period isolation, entity-disjoint test rings, information flow,
-  alignment, ring-shape construction. Automated tests: 34/34 pass.
+  alignment, ring-shape construction. Automated tests: 44/44 pass.
 * **Regeneration**: every table regenerates from the run records; retrained GB-CAG, SAGE and HGT reproduce the
-  stored predictions on all 54 routing worlds; 520 numbers quoted in the article and Online Resource are recomputed
-  from the artifacts (`paper/check_manuscript_numbers.py`, all pass); every run of rounds 2–4 comes from a clean
-  commit.
+  stored predictions on all 54 routing worlds; 663 numbers quoted in the article and Online Resource are recomputed
+  from the artifacts (`paper/check_manuscript_numbers.py`, all pass). An earlier version of this file said that every
+  run of rounds 2–4 came from a clean commit. That was false: 33 run files came from source states that match no
+  commit. All 33 were re-run from the tagged code, and every AP was reproduced exactly (227 method runs). Rounds 5 and
+  6 ran from clean commits.
 * **No pure GNN beats gradient boosting with engineered graph features (GB-CAG)**: averaged over regimes (twelve
   seeds, seed as unit; upper 95% limits ≤ +0.006 AP), for any of four other ring shapes and sizes, and with
-  per-regime re-tuning. One per-regime exception: RGCN at δ = 2, s = 0.1 (+0.005), where every method exceeds 0.98.
+  per-regime re-tuning, and after a 30-candidate search selected on ring AP in three cells, where the low-volume
+  deficit stayed at 0.26–0.56. One per-regime exception: RGCN at δ = 2, s = 0.1 (+0.005), where every method exceeds 0.98.
   The two fraud-specialised GNNs are below GB-CAG (−0.025 and −0.037, Holm p < 0.001).
 * **One condition where some pure GNNs win**: sparse rings at reduced volume whose claims are also shifted (δ = 1,
   2): SAGE and HAN (and RGCN at δ = 2) beat GB-CAG by 0.07–0.18, but so does logistic regression without graph
   inputs; the manuscript attributes this to learning a weak claim-level shift, not to detecting coordination.
 * **Hybrids gain a small amount**: +0.010 and +0.009 averaged over regimes (Holm p ≤ 0.016), most for sparse rings
-  and for the distributed ring shape; confirmed at low volume on fresh seeds (+0.024, p = 0.016). With three
+  and for the distributed ring shape; confirmed at low volume on fresh seeds (+0.024, p = 0.016) and on the mean of
+  three training seeds (+0.032, p = 0.005). With three
   training seeds the gain shrinks (+0.013 → +0.009 at δ = 0) and is of the order of training-seed variation; the
   article says so.
 * **Isolated fraud**: every GNN is 0.093–0.229 AP worse than GB-CAG (Holm p < 0.001).
@@ -60,11 +69,15 @@ Every outcome is reported, including those that weakened earlier statements.
 * **Memorisation**: recurring ring members inflate an attribute-only model by up to 0.60 AP.
 * **Public data**: GB-P has the highest mean AP over 5 and 25 rotations and with per-rotation selection; graph
   features change it by at most +0.006/+0.007 (upper 95% limits, 25 rotations); only RGCN's deficit is significant.
+  On the 100 providers that experts flagged as group fraud, graph features add nothing (−0.001) and every graph model
+  is below GB-PG, as predicted before scoring; those providers are conspicuous by volume.
 
 ### Improved but not fully validated
 
 * **GNN shortfall on the public data**: consistent in direction but not significant over rotations after
   correction, except RGCN.
+* **Mechanism at low volume**: two closure columns recover most of the GNNs' gap, but GB-CAG does not need them, so
+  four-cycle counting is not shown to be the explanation (the pre-declared prediction failed in one of its two parts).
 * **Secondary analyses** (low volume, dose-response, shapes, mechanism, training seeds): six seeds; shapes at δ = 0
   only; mechanism in one regime.
 * **Fraud-specialised GNNs**: our implementations on HAN's claim-only relation graphs; not in the persistent-ring,
@@ -117,17 +130,17 @@ Yes:
 
 * every table regenerates from the run records, and the manuscript tables equal the generated files;
 * retrained models reproduce the stored predictions;
-* 34/34 research tests pass; 520/520 quoted numbers match; 35/35 cross-document references agree;
+* 44/44 research tests pass; 663/663 quoted numbers match; 44/44 cross-document references agree;
 * both documents and the two-column upload bundle compile without errors, undefined references or overfull boxes;
-* the code version is public and tagged `hiss-submission-v1` (U-1).
+* the code version is tagged `hiss-submission-v2` (U-1; `hiss-submission-v1` remains for the first version).
 
 **5. Are the statistical comparisons defensible?**
 Yes, with stated limits:
 
 * the generator seed is the unit of pooled synthetic tests (twelve seeds, 11 df);
-* rounds 2–4 were each fixed in a committed plan before their runs, every outcome is reported, and the article
-  discloses that they were added after the first results were seen;
-* the hybrid result was confirmed by a single pre-specified test on fresh seeds;
+* rounds 2–6 were each fixed in a committed plan before their runs, every outcome is reported, including a failed
+  prediction in round 5, and the article discloses that they were added after the first results were seen;
+* the hybrid result was confirmed by pre-specified tests on fresh seeds and over three training seeds;
 * public-data comparisons use the corrected resampled test (5 rotations) and the corrected repeated
   cross-validation test (25 rotations);
 * Holm adjustment within pre-specified families, re-adjusted when the families grew; intervals are reported, and
@@ -136,13 +149,14 @@ Yes, with stated limits:
 **6. Does the real-world evaluation support the claims?**
 Only the narrow claim made: on one public dataset with provider-level labels of undocumented provenance, no
 graph-based method improved on provider aggregates, over 25 rotations and with per-rotation selection, and labels
-show no assortativity through shared beneficiaries. It cannot validate ring detection or the dense-ring regime, and
+show no assortativity through shared beneficiaries. On published expert group-fraud flags the same holds, as
+predicted, but those providers stand out by volume. It cannot validate ring detection or the dense-ring regime, and
 the manuscript says so.
 
 **7. The three biggest reasons a HISS reviewer might reject the paper**
 
-1. **External validity.** The central conclusions rest on the authors' own simulator, and the only real data cannot
-   test ring detection.
+1. **External validity.** The central conclusions rest on the authors' own simulator. The public data now include
+   expert group-fraud flags, but those providers are large, so they do not test dense rings of unremarkable members.
 2. **Incremental novelty.** "Tree ensembles with graph features beat GNNs" is known in general and on this
    dataset. The paper's own claim is the map of conditions and the pitfalls, which a reviewer may still judge
    modest.
@@ -150,12 +164,14 @@ the manuscript says so.
 
 **8. Changes completed to address them**
 
-* (1) Low-volume stress test, ring-volume dose-response, feature shift at reduced volume, four further ring shapes
+* (1) Group-fraud flags on the public data (round 6); a wider hyperparameter search and a mechanism test (round 5);
+  low-volume stress test, ring-volume dose-response, feature shift at reduced volume, four further ring shapes
   and sizes (the designer-advantage concern), fraud-specialised GNNs, training-seed and per-regime-tuning checks,
   narrowed real-data claims with provenance stated honestly; public-data analyses strengthened.
 * (2) Contributions built around the map of conditions and the quantified pitfalls; verified closest works cited;
   real-data result framed as a replication; novelty table.
-* (3) Health-information-systems framing; HISS compliance (structured abstract of 248 words, DOIs, figure naming
+* (3) Health-information-systems framing; HISS compliance (structured abstract of 241 words, 248 if ranges count as
+  two, DOIs, figure naming
   and Arial lettering, Online Resource as PDF, declarations).
 
 **9. What remains unresolved?**
@@ -167,6 +183,6 @@ the manuscript says so.
 
 **10. Submit now?**
 **The scientific work for this submission is complete, and the package is technically ready** once the authors
-have confirmed U-3 and U-4 and seen the final PDF. That does not make acceptance likely or certain: the three
+have confirmed U-3 and U-4, seen the final PDF, and pushed the tag (U-1). That does not make acceptance likely or certain: the three
 reasons in point 7 remain, and only reviewers can judge them. Improved writing alone is not a reason to call the
 manuscript ready; the conditions above are.

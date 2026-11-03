@@ -18,7 +18,10 @@ REQUIRED_TABLES = ["synthetic_ring_ap.csv", "synthetic_ring_ap_comparisons.csv",
                    "kaggle_repeated.tex", "kaggle_repeated_comparisons.csv", "kaggle_nested.tex",
                    "lowvolume_shift.tex", "lowvolume_shift_comparisons.csv", "modelseeds.tex",
                    "modelseeds_comparisons.csv", "modelseeds_variance.csv", "regimetuned.tex",
-                   "regimetuned_comparisons.csv", "shapes.tex", "shapes_comparisons.csv", "shapes_ring_ap.csv"]
+                   "regimetuned_comparisons.csv", "shapes.tex", "shapes_comparisons.csv", "shapes_ring_ap.csv",
+                   "expanded.tex", "expanded_comparisons.csv", "expanded_means.csv", "closure.tex",
+                   "closure_comparisons.csv", "hybrid_confirmation_seeds.json", "group_labels.tex",
+                   "group_labels_chance.json"]
 REQUIRED_FIGURES = ["fig_regime_ring_ap.pdf", "fig_delta_heatmaps.pdf", "fig_ablation.pdf", "fig_kaggle_ap.pdf",
                     "fig_protocol.pdf", "fig_cascade.pdf", "fig_ring_graph.pdf"]
 
@@ -65,6 +68,12 @@ counts = {
     "synthetic_regimetuned": check_runs("synthetic_regimetuned", ["method", "ring_ap", "seed"]),
     # Fourth round (paper/hiss_review/analysis_plan_round4.md).
     "synthetic_shapes": check_runs("synthetic_shapes", ["method", "ring_ap", "seed", "ring_doctors", "ring_patients"]),
+    # Fifth round (paper/hiss_review/analysis_plan_round5.md).
+    "expanded": check_runs("expanded", ["method", "regime", "ring_ap", "seed"]),
+    "closure_columns": check_runs("closure_columns", ["method", "ring_ap", "seed", "ring_claims_per_month"]),
+    "synthetic_confirm_seeds": check_runs("synthetic_confirm_seeds", ["method", "ring_ap", "seed", "model_seed"]),
+    # Sixth round (paper/hiss_review/analysis_plan_round6.md): models retrained on the group-fraud flags.
+    "group_labels": check_runs("group_labels", ["method", "group_ap", "rotation"]),
 }
 # Second round (paper/hiss_review/analysis_plan_round2.md): the main grid is complete for seeds 1-12.
 main_worlds = {(r["ring_shift"], r["ring_density"], r["seed"]) for f in (RESULTS / "synthetic" / "runs").glob("*.json")
@@ -91,6 +100,16 @@ for f in sorted((RESULTS / "cascade" / "runs").glob("*.json")):
     for model, check in json.loads(f.read_text()).get("reproduction", {}).items():
         if check["max_abs_diff"] > 1e-6:
             problems.append(f"{f.name}: {model} does not reproduce the stored predictions ({check['max_abs_diff']:.2e})")
+# Fifth round: 3 regimes x 5 methods x 6 seeds; 2 volumes x 2 densities x 6 seeds; 2 training seeds x 12 seeds.
+for sub, n in [("expanded", 90), ("closure_columns", 24), ("synthetic_confirm_seeds", 24)]:
+    if len(list((RESULTS / sub / "runs").glob("*.json"))) != n:
+        problems.append(f"{sub}: expected {n} run files")
+# Sixth round: 25 tabular and 5 GNN rotation files; the re-scoring covers 15 methods on 25 rotations.
+if len(list((RESULTS / "group_labels" / "runs").glob("*.json"))) != 30:
+    problems.append("group_labels: expected 30 run files")
+for name in ["group_labels/rescored.json", "group_labels/description.json", "group_labels/comparisons.csv"]:
+    if not (RESULTS / name).exists():
+        problems.append(f"missing results/{name}")
 for name in ["legacy/legacy_reanalysis.json", "latency/latency.json"]:
     if not (RESULTS / name).exists():
         problems.append(f"missing results/{name}")

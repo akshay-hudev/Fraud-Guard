@@ -20,7 +20,10 @@ This study varies the properties of collusive rings independently (feature shift
 fourth round, shape and size), tests on rings of unseen members, explains the result mechanistically (ablations,
 rewiring, input reliance) and quantifies two evaluation pitfalls. On the public data it replicates Yoo et al.'s
 direction under stricter conditions (provider-disjoint folds, equal tuning, corrected tests, nested selection).
-See contribution list (Section 1) and `paper/hiss_review/novelty_comparison.md`.
+See contribution list (Section 1) and `paper/hiss_review/novelty_comparison.md`. Ma et al. (IJCAI 2023) is the
+closest work on organised fraud and uses the same public dataset with expert group-fraud flags. It proposes a
+detector and evaluates it on a temporal split with overlapping providers; this study asks when structure helps, and
+re-scores its own provider-disjoint analysis on those flags (Online Resource S17).
 
 **3. Is a negative result ("GNNs do not beat engineered features") publishable?**
 The contribution is the map of conditions (Table 8), not a single negative result: structure helps for dense
@@ -34,7 +37,10 @@ payers' systems follow from it (Section 9).
 They may not, and the manuscript says so (Limitations; Conclusion). Real claims with labelled collusive schemes
 are not publicly available (E-5 could not be run). The synthetic benchmark is used because only there can the
 typology and signal strength be varied and the ground truth be known. The public provider-labelled data are a
-consistency check, not a validation of the dense-ring regime (Section 9, public-data paragraph).
+consistency check, not a validation of the dense-ring regime (Section 9, public-data paragraph). On the published
+expert group-fraud flags (Section 8; S17) the predicted result held, with no structure gain and every graph model
+below GB-PG. Weakness to concede: the flagged providers stand out by volume, the criterion is undocumented, and the
+claims may be synthetic, so this does not test dense rings of unremarkable members.
 
 **5. The engineered graph features were designed knowing the injected ring shape. Isn't the comparison rigged?**
 Acknowledged in the Discussion (Section 9.2, "One caveat favours the engineered features"). The fourth round ran
@@ -72,18 +78,29 @@ HAN; CARE-GNN trained full-batch with the class-weighted loss used for every mod
 Every method had the same budget, chosen on development worlds not used for evaluation. Three checks: re-tuning
 at low volume (Table 4), per-regime re-tuning at δ = 0, s = 0.1 and 0.9 (S7: no method changed significantly),
 and per-rotation (nested) selection on the public data (S13: GNNs changed by −0.008 to +0.036, none
-significantly). A larger budget was not tried; say so if asked.
+significantly). The fifth round then gave SAGE, RGCN, Simple-HGN, HGT and GB-CAG 30 candidates each, 29 of them new,
+selected on ring AP on development worlds of the evaluation regime (Section 6.8; S15). The low-volume deficit stayed at
+0.26–0.56, and only SAGE improved significantly (+0.063). Weakness to concede: two development worlds make selection
+noisy, and one selected HGT configuration failed to train on most evaluation worlds.
 
 **10. Each model was trained once per world. Are the differences robust to initialisation?**
 The third round retrained five methods with two further training seeds (S6). GNN deficits are unchanged; the
 hybrids' small gain shrinks (+0.013 to +0.009 pooled) and is of the order of the training-seed variation, which
-the article now states. A related subtlety, found and corrected during the revision: with a fixed training seed
+the article now states. The confirmatory low-volume test was repeated over three training seeds in the fifth round
+(+0.032, p = 0.005; S4). A related subtlety, found and corrected during the revision: with a fixed training seed
 every world, including the tuning worlds, starts from the same initial weights (Section 4.3).
 
 **11. Full-batch training on ~11,000-node graphs. Does this scale?**
 It does not need to for this benchmark; larger graphs would need sampling-based training (Limitations). Cost and
-latency measurements are in Section 6.9 and S9, with the caveat that feature upkeep in an online system was not
+latency measurements are in Section 6.10 and S9, with the caveat that feature upkeep in an online system was not
 measured (E-6 could not be run without a deployment).
+
+**11a. Why do the GNNs fall behind at low volume? Is it expressivity?**
+In part, perhaps. The claim closure counts four-cycles, which message passing cannot count in general (Chen et al.
+2020). Giving SAGE or HGT the two closure columns recovered 52–90% of their gap. GB-CAG did not need those
+columns, however: without them it kept 79–98% of its gain, because its other shared-patient features carry similar
+information. The pre-declared prediction therefore failed in one of its two parts, and the article does not offer
+four-cycle counting as the explanation (Section 7.2; S16). Substructure-aware GNNs were not tested.
 
 ## Statistics
 
@@ -101,8 +118,9 @@ Agreed and stated (Section 4.5); the manuscript reports confidence intervals and
 pure GNN's upper 95% limit against GB-CAG is at most +0.006 AP averaged over regimes).
 
 **15. Were analyses chosen after seeing results?**
-Seeds 7–12 and three further rounds were added after the first results were seen, each under a plan committed
-before its runs (`analysis_plan_round2.md` to `round4.md`; commit times are the record). The one result singled
+Seeds 7–12 and five further rounds were added after the first results were seen, each under a plan committed
+before its runs (`analysis_plan_round2.md` to `round6.md`; commit times are the record). Round 5's mechanism
+prediction failed in one of its two parts, and the article reports it. The one result singled
 out after exploration (hybrid advantage at low volume) was retested on fresh seeds with a single pre-declared
 test (S4). Stated in Section 4.5 and the Limitations.
 
@@ -125,7 +143,9 @@ RGCN's deficit significant (S13).
 ## Reproducibility and declarations
 
 **19. Is the code available?**
-Yes, publicly, at the tagged version `hiss-submission-v1` (Code availability). A DOI archive is planned on
+Yes, at the tagged version `hiss-submission-v2` (Code availability; push it before upload).
+Records of 33 run files originally pointed to no commit; all were re-run from the tagged code with identical AP
+(Section 10). A DOI archive is planned on
 acceptance; do not claim it exists before then. Test predictions (about 30 MB) are regenerated by the code.
 
 **20. Use of AI tools.**

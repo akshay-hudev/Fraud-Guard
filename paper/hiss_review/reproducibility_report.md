@@ -198,3 +198,102 @@ left every existing configuration unchanged; the selected configurations equal t
 rotation); `check_manuscript_numbers.py` (520/520); `order_references.py --check` (53 references in order);
 `check_cross_references.py` (35/35) after compiling both documents (article 37 pages, Online Resource 16 pages, no
 overfull boxes); `pytest research/tests` (34/34).
+
+## 8. Fifth round (2026-11-01/02)
+
+**Plan.** `paper/hiss_review/analysis_plan_round5.md`, committed at `3a7631a` (17:02:59 IST on 1 November) before any
+run of the round. It answers issues M1, M2 and m10 of the Phase 1 audit (`paper/audit_phase1/AUDIT_REPORT.md`).
+
+**Launch.** `PARALLEL=6 RESEARCH_THREADS=1 bash paper/hiss_review/run_round5.sh` from the repository's working tree at
+commit `20de2e4`, which changes only how the queue splits its job lines. No file under `research/` was edited while
+it ran. Every record carries commit `20de2e4`, `dirty: false` and research-sources hash `f226e8a38e080830`.
+
+**Departures from the plan's execution line.** Both concern scheduling and neither touches an analysis setting.
+
+* The plan names `PARALLEL=4`; six workers were used. Timings from this round are not reported anywhere.
+* The laptop was shut down at about 23:45 IST on 1 November, with HGT at 27–30 of 30 candidates and evaluation not
+  started. The queue was restarted at 11:12 IST on 2 November from the same commit. Finished candidates and worlds
+  are skipped, and the only candidates repeated were those in flight. A snapshot of the tuning files taken before the
+  shutdown is not kept in the repository.
+
+**Observations made before the results were complete.** Validation ring AP on development worlds 901 and 902, from
+the tuning files, was looked at at 20:06 IST on 1 November to judge progress. Neither test scores nor evaluation seeds were
+involved, and nothing was changed afterwards. The results of C and B were read when they finished, before A ended.
+The plan already fixed every setting, seed and method for A.
+
+**C. Confirmatory test over training seeds** (24 new worlds; complete). Primary test, on each world's mean over training
+seeds 0–2: SAGE+AG 0.136 against GB-CAG 0.104, +0.032, 95% CI [0.012, 0.052], p = 0.005, Wilcoxon p = 0.002, positive
+in 11 of 12 seeds. By training seed: +0.024 (p = 0.016), +0.028 (p = 0.019), +0.044 (p = 0.005). GB-CAG's scores are
+identical across training seeds in these worlds, so only SAGE+AG varies. By the plan's rule the result is robust to
+the training seed.
+
+**B. Closure columns** (24 worlds; complete). The prediction had two parts.
+
+* **Held:** SAGE+Cl and HGT+Cl recovered 82–90% and 52–84% of the gap to GB-CAG (gains 0.15–0.36, Holm p ≤ 0.027).
+* **Failed:** GB-CAG−Cl kept 79–98% of the structure gain (losses 0.01–0.07, Holm p ≥ 0.21).
+
+The plan's reporting rule was applied: the manuscript does not offer four-cycle counting as the explanation. Its
+clause "the columns did not close the gap" did not fit the outcome, because they closed most of it, so the manuscript reports
+what happened instead. That four of the five remaining columns are also shared-patient statistics was noticed after
+the result. It is labelled post hoc and was not tested, because the plan excludes additions.
+
+The identity behind the mechanism, closure = deg(p) − 1 + number of four-cycles through the claim's edge, was
+confirmed on 800 sampled test claims of world 901 (volume 4, s = 0.9) with no mismatch.
+
+**Reruns of the 33 uncommitted-source run files (audit M4).** All 33 were re-run from an exact copy of the
+`research/` tree at tag `hiss-submission-v1` (`diff -r` against `git archive` of the tag is empty), with the original
+commands (`paper/audit_phase1/scripts/m4_*.sh`), and compared by `paper/audit_phase1/scripts/compare_uncommitted.py`.
+The log is `paper/audit_phase1/logs/m4_reruns.csv`.
+
+| Group | Files | Result |
+|---|---|---|
+| Main grid (δ = 0) | 4 | Identical |
+| Low-volume re-tuned | 5 | Identical |
+| Nested public data | 15 | Identical, same configuration selected in every rotation |
+| Repeated public data | 9 | AP identical; test scores of LR-P differ in six files, by at most 6 × 10⁻⁸ |
+
+In total 227 method runs: every AP identical, 221 with identical scores, six within 6 × 10⁻⁸.
+
+**A. Wide hyperparameter search** (15 tuning files, 90 evaluation runs; complete 13:01 IST on 2 November).
+
+* *Rule at volume 4* (every GNN below GB-CAG with upper 95% limit < 0): met in both cells. Gaps 0.26–0.32 at s = 0.5
+  and 0.39–0.56 at s = 0.9; largest upper limit −0.109; Holm p ≤ 0.014.
+* *Rule at default volume* (no GNN significantly above GB-CAG): met. All four GNNs are below, by 0.008–0.063.
+* *Wide against main:* only SAGE at volume 4, s = 0.9 improved significantly (+0.063, Holm p = 0.029). GB-CAG changed by
+  at most 0.022. The main configuration was kept only by Simple-HGN at volume 4, s = 0.5.
+* *Failure:* HGT's selected configuration at volume 4, s = 0.9 had its best validation epoch within the first five in
+  five of six worlds and reached 0.029, against 0.19 on the development worlds. It is reported as it occurred.
+
+## 9. Sixth round (2026-11-02)
+
+**Plan.** `paper/hiss_review/analysis_plan_round6.md`, committed at `e59f69f` (11:28:04 IST) on branch
+`hiss-revision-round6`, in a separate worktree so that `HEAD` of the main tree stayed at `20de2e4` while round 5 ran.
+Before the plan, only label counts had been looked at (listed in the plan). The code was committed at `4a7ed25` and run
+from that commit. The branch was merged after round 5 ended.
+
+**Data.** `finint/RDPGL` at `6e0151d`; git blob hashes of both files verified. The first download hit a time limit
+and was resumed; the hash check would have caught a partial file.
+
+**Mapping.** Rank order, confirmed for all 5,410 providers on claim count, inpatient count, total reimbursement, total
+deductible and fraud label. 100 providers are flagged, all of them fraud providers, and the flag is constant within a
+provider.
+
+**A. Re-scoring.** All 375 stored prediction sets first reproduced their recorded AP.
+
+* *P1 held:* GB-PG − GB-P = −0.001 [−0.026, 0.024], Holm p = 1.000.
+* *P2 held:* all nine graph models were below GB-PG, by 0.10–0.21; only SAGE+G is significant (Holm p = 0.031).
+* Group AP of GB-P and GB-PG is 0.719, against a chance level of 0.020.
+
+**B. Retraining on the flag.** GB-P 0.764 and GB-PG 0.755 (−0.009 [−0.072, 0.055]). On five rotations, SAGE 0.711, RGCN 0.640
+and HGT 0.758 against GB-PG 0.775 (Holm p = 0.916 each). The intervals are wide; HGT's gap narrowed when it was
+trained on the flag.
+
+**C. Description.** Median claims are 618 for flagged providers, 114.5 for other fraud providers and 27 for non-fraud
+providers. Median maximum beneficiary Jaccard is 0.087 against 0.088. The flag is assortative through shared
+physicians (13.7% against 2.9%) but hardly through shared beneficiaries (11.7% against 10.1%).
+
+**Checks after integration.** `analyze`, `group_labels --stage table`, `sync_manuscript --check` (no differences),
+`verify.py`, `check_manuscript_numbers.py` (663/663), `order_references.py --check` (58 in order),
+`check_cross_references.py` (44/44) after compiling both documents (article 42 pages, Online Resource 21 pages,
+no overfull boxes), `pytest research/tests` (44/44).
+

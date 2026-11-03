@@ -1,0 +1,18 @@
+
+.venv-research/lib/python3.12/site-packages/torch/jit/frontend.py:1210: 19 warnings
+  /Users/apple/Desktop/Akshay@goAI/FraudGuard/.venv-research/lib/python3.12/site-packages/torch/jit/frontend.py:1210: DeprecationWarning: Attribute s is deprecated and will be removed in Python 3.14; use value instead
+    s += value.s
+
+research/tests/test_routing_and_ablations.py::test_score_metrics_budget_and_ring_level
+  /Users/apple/Desktop/Akshay@goAI/FraudGuard/research/experiments/cascade.py:91: RuntimeWarning: Mean of empty slice.
+    out[f"{kind}_recall_at_{pct}pct"] = float(top[fraud_type == kind].mean())
+
+research/tests/test_routing_and_ablations.py::test_score_metrics_budget_and_ring_level
+  /Users/apple/Desktop/Akshay@goAI/FraudGuard/.venv-research/lib/python3.12/site-packages/numpy/core/_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+    ret = ret.dtype.type(ret / rcount)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+34 passed, 41 warnings in 8.59s
+( .venv-research/bin/python -m pytest research/tests -q -x 2>&1 | tail -15; )  10.74s user 1.22s system 127% cpu 9.390 total
+
+[exited with code 0]

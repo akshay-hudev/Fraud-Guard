@@ -1,0 +1,2 @@
+run files: {'synthetic': 486, 'synthetic_persistent': 12, 'ablation': 6, 'kaggle': 25, 'kaggle_nested': 35, 'cascade': 54, 'ablation_arch': 6, 'synthetic_lowvolume': 36, 'synthetic_lowvolume_retuned': 36, 'synthetic_volume8': 36, 'synthetic_volume2': 36, 'synthetic_hybrid_confirm': 12, 'kaggle_repeated': 60, 'synthetic_lowvolume_shift': 36, 'synthetic_modelseeds': 36, 'synthetic_regimetuned': 12, 'synthetic_shapes': 48}
+All result artifacts present with provenance.

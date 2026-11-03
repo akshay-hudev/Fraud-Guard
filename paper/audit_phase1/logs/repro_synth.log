@@ -1,0 +1,23 @@
+synthetic emergent_d0.0_s0.1_g11_m0 GB-C      max|dscore|=0.00e+00 ringAP new=0.0920 stored=0.0920 isoAP new=0.5294 stored=0.5294
+synthetic emergent_d0.0_s0.1_g11_m0 GB-CA     max|dscore|=0.00e+00 ringAP new=0.9094 stored=0.9094 isoAP new=0.5355 stored=0.5355
+synthetic emergent_d0.0_s0.1_g11_m0 GB-CAG    max|dscore|=0.00e+00 ringAP new=0.9451 stored=0.9451 isoAP new=0.4826 stored=0.4826
+synthetic emergent_d0.0_s0.1_g11_m0 LR-CA     max|dscore|=0.00e+00 ringAP new=0.9003 stored=0.9003 isoAP new=0.3961 stored=0.3961
+synthetic emergent_d0.0_s0.1_g11_m0 RF-CA     max|dscore|=0.00e+00 ringAP new=0.8732 stored=0.8732 isoAP new=0.5474 stored=0.5474
+synthetic emergent_d0.0_s0.1_g11_m0 MLP-C     max|dscore|=0.00e+00 ringAP new=0.0733 stored=0.0733 isoAP new=0.5749 stored=0.5749
+synthetic emergent_d0.0_s0.1_g11_m0 SAGE      max|dscore|=0.00e+00 ringAP new=0.9599 stored=0.9599 isoAP new=0.3499 stored=0.3499
+synthetic emergent_d0.0_s0.1_g11_m0 SAGE+AG   max|dscore|=0.00e+00 ringAP new=0.9640 stored=0.9640 isoAP new=0.3324 stored=0.3324
+done in 23s
+synthetic emergent_d0.0_s0.9_g1_m0 GB-CA     max|dscore|=0.00e+00 ringAP new=0.9041 stored=0.9041 isoAP new=0.5066 stored=0.5066
+synthetic emergent_d0.0_s0.9_g1_m0 LR-CA     max|dscore|=0.00e+00 ringAP new=0.8892 stored=0.8892 isoAP new=0.3426 stored=0.3426
+synthetic emergent_d0.0_s0.9_g1_m0 RF-CA     max|dscore|=0.00e+00 ringAP new=0.8298 stored=0.8298 isoAP new=0.3913 stored=0.3913
+synthetic emergent_d0.0_s0.9_g1_m0 MLP-C     max|dscore|=0.00e+00 ringAP new=0.0938 stored=0.0938 isoAP new=0.5634 stored=0.5634
+synthetic emergent_d0.0_s0.9_g1_m0 RGCN      max|dscore|=0.00e+00 ringAP new=0.9541 stored=0.9541 isoAP new=0.5275 stored=0.5275
+synthetic emergent_d0.0_s0.9_g1_m0 SAGE+AG   max|dscore|=0.00e+00 ringAP new=0.9881 stored=0.9881 isoAP new=0.6372 stored=0.6372
+synthetic emergent_d0.0_s0.9_g1_m0 HGT+AG    max|dscore|=0.00e+00 ringAP new=0.9835 stored=0.9835 isoAP new=0.6163 stored=0.6163
+done in 74s
+synthetic_lowvolume_retuned emergent_d0.0_s0.1_v4_g1_m0 GB-CA     max|dscore|=0.00e+00 ringAP new=0.0506 stored=0.0506 isoAP new=0.6381 stored=0.6381
+synthetic_lowvolume_retuned emergent_d0.0_s0.1_v4_g1_m0 GB-CAG    max|dscore|=0.00e+00 ringAP new=0.0698 stored=0.0698 isoAP new=0.6270 stored=0.6270
+synthetic_lowvolume_retuned emergent_d0.0_s0.1_v4_g1_m0 SAGE+AG   max|dscore|=0.00e+00 ringAP new=0.1328 stored=0.1328 isoAP new=0.5488 stored=0.5488
+done in 9s
+
+[exited with code 0]

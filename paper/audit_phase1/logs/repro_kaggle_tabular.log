@@ -1,0 +1,27 @@
+tuning split sizes 3246 1082 1082 fraud 304 101 101
+
+repeat 0 fold 0: n train/val/test 3246/1082/1082; fraud 304/101/101; test providers that were in the tuning-validation set: 216
+  LR-P    max|dscore|=1.19e-07 AP new=0.6690 stored=0.6690
+  RF-P    max|dscore|=0.00e+00 AP new=0.6486 stored=0.6486
+  GB-P    max|dscore|=0.00e+00 AP new=0.6671 stored=0.6671
+  GB-PG   max|dscore|=0.00e+00 AP new=0.6581 stored=0.6581
+  GB-PGL  max|dscore|=0.00e+00 AP new=0.6589 stored=0.6589
+  MLP-P   max|dscore|=0.00e+00 AP new=0.6587 stored=0.6587
+
+repeat 0 fold 3: n train/val/test 3246/1082/1082; fraud 303/102/101; test providers that were in the tuning-validation set: 199
+  GB-P    max|dscore|=0.00e+00 AP new=0.7359 stored=0.7359
+  GB-PG   max|dscore|=0.00e+00 AP new=0.7358 stored=0.7358
+  GB-PGL  max|dscore|=0.00e+00 AP new=0.7292 stored=0.7292
+
+repeat 3 fold 1: n train/val/test 3246/1082/1082; fraud 304/101/101; test providers that were in the tuning-validation set: 211
+  LR-P    max|dscore|=9.31e-10 AP new=0.7444 stored=0.7444
+  RF-P    max|dscore|=0.00e+00 AP new=0.7265 stored=0.7265
+  GB-P    max|dscore|=0.00e+00 AP new=0.7355 stored=0.7355
+  GB-PG   max|dscore|=0.00e+00 AP new=0.7490 stored=0.7490
+  GB-PGL  max|dscore|=0.00e+00 AP new=0.7424 stored=0.7424
+  MLP-P   max|dscore|=0.00e+00 AP new=0.7302 stored=0.7302
+
+repeat 4 fold 4: n train/val/test 3246/1082/1082; fraud 303/101/102; test providers that were in the tuning-validation set: 201
+  GB-P    max|dscore|=0.00e+00 AP new=0.6947 stored=0.6947
+  GB-PG   max|dscore|=0.00e+00 AP new=0.6865 stored=0.6865
+  GB-PGL  max|dscore|=0.00e+00 AP new=0.6906 stored=0.6906

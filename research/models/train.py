@@ -39,11 +39,12 @@ def _scores(model, graphs, target) -> np.ndarray:
 
 
 def fit_graph(kind: str, graphs: dict, hp: dict, seed: int, max_epochs: int = 200, patience: int = 20,
-              target: str = "claim") -> dict:
+              target: str = "claim", val_keep: np.ndarray | None = None) -> dict:
     """Train on the 'train' graphs, early-stop on 'val' AP, score the 'val' and 'test' target claims.
 
     Each split may hold several graphs (one per audit period); the training loss
-    is the mean over all training target claims.
+    is the mean over all training target claims. ``val_keep`` (boolean, one entry per
+    validation target) restricts the early-stopping AP to those targets.
     """
     set_seed(seed)
     g_tr, g_va, g_te = (_as_list(graphs[k]) for k in ["train", "val", "test"])
@@ -54,6 +55,7 @@ def fit_graph(kind: str, graphs: dict, hp: dict, seed: int, max_epochs: int = 20
     pw = _pos_weight(torch.cat(y_tr))
     n_tr = sum(len(y) for y in y_tr)
     y_va = np.concatenate([g[target].y[g[target].target_mask].numpy() for g in g_va])
+    keep = np.ones(len(y_va), bool) if val_keep is None else val_keep
     best, best_state, best_epoch, bad = -1.0, None, 0, 0
     t0 = time.time()
     for epoch in range(1, max_epochs + 1):
@@ -70,7 +72,7 @@ def fit_graph(kind: str, graphs: dict, hp: dict, seed: int, max_epochs: int = 20
         model.end_epoch()                     # CARE-GNN adapts its neighbour-selection thresholds; no-op otherwise
         model.eval()
         with torch.no_grad():
-            ap = _ap(y_va, _scores(model, g_va, target))
+            ap = _ap(y_va[keep], _scores(model, g_va, target)[keep])
         if ap > best + 1e-6:
             best, best_state, best_epoch, bad = ap, copy.deepcopy(model.state_dict()), epoch, 0
         else:

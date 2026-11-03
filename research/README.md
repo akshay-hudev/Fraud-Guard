@@ -33,6 +33,20 @@ Set `RESEARCH_THREADS` to control torch threads per process (default 4).
   | Train_Outpatientdata-1542865627584.csv | `f532ed7e25f50d6abf3ba89ceeb2a23e2a352792f90d086b13999a561fd23889` |
 
   Only the labelled `Train*` files are used (the `Test*` files have no labels).
+* **Group-fraud flags** (Ma et al., IJCAI 2023; GPL-3.0, not redistributed here): `claims.csv` and `bene.csv` from
+  https://github.com/finint/RDPGL, folder `Medical Fraud Dataset`, at commit `6e0151d40ea5e9def878959d9863bb6f2a8cf8f4`,
+  saved to `data/rdpgl/` (git-ignored). They add a group-fraud flag to the Kaggle claims above; `group_labels.py` maps
+  the recoded provider identifiers back and stops if the mapping fails for any provider.
+
+  ```bash
+  mkdir -p data/rdpgl && for f in claims.csv bene.csv; do curl -sL -o data/rdpgl/$f \
+    "https://raw.githubusercontent.com/finint/RDPGL/6e0151d40ea5e9def878959d9863bb6f2a8cf8f4/Medical%20Fraud%20Dataset/$f"; done
+  ```
+
+  | File | SHA-256 |
+  |---|---|
+  | claims.csv | `0f7c89affcbf1040172dc27b913b9bdfd5751e67453cec3cef4d9c41495d9689` |
+  | bene.csv | `6f6f2bc05c543fe23df580b5385ba6169434619c51eb748e768c5877c2118607` |
 
 ## Reproducing the results
 
@@ -83,6 +97,16 @@ PARALLEL=4 bash paper/hiss_review/run_round3.sh
 # 14. Fourth round: BWGNN and CARE-GNN (tuning, main grid, low volume, volumes 8 and 2, public data) and four
 #     further ring shapes and sizes with every method (--ring-shape, --ring-doctors, --ring-patients; 107 jobs)
 PARALLEL=4 bash paper/hiss_review/run_round4.sh
+# 15. Fifth round: wide hyperparameter search (tune, merge, eval), closure columns and the confirmatory test over
+#     training seeds 1 and 2. Restartable: finished candidates and worlds are skipped.
+PARALLEL=6 RESEARCH_THREADS=1 bash paper/hiss_review/run_round5.sh
+# 16. Sixth round: the public-data models re-scored on the group-fraud flags (needs data/rdpgl and the stored
+#     predictions of steps 5 and 12), the flags described, and models retrained on the flags
+$PY -m research.experiments.group_labels --stage rescore
+$PY -m research.experiments.group_labels --stage describe
+$PY -m research.experiments.group_labels --stage retrain --methods GB-P GB-PG
+$PY -m research.experiments.group_labels --stage retrain --repeats 0 --methods SAGE RGCN HGT
+$PY -m research.experiments.group_labels --stage table && $PY -m research.experiments.sync_manuscript
 ```
 
 **Second experimental round.** `paper/hiss_review/analysis_plan_round2.md` pre-declares, and
@@ -96,7 +120,9 @@ PARALLEL=4 bash paper/hiss_review/run_round4.sh
 
 The round runs about 9 hours with four workers (`PARALLEL=4`). The third and fourth rounds
 (`analysis_plan_round3.md`, `analysis_plan_round4.md`) are run the same way by `run_round3.sh` and `run_round4.sh`
-(about 9 and 7 hours with four workers).
+(about 9 and 7 hours with four workers). The fifth round (`analysis_plan_round5.md`, `run_round5.sh`) took about
+8.5 hours of running, in two sessions, with six workers on a 4-core laptop. The sixth (`analysis_plan_round6.md`) re-scores stored
+predictions in seconds; its retraining takes about an hour.
 
 **Statistical units.** The nine regimes of one generator seed share their legitimate claims, isolated fraud and
 ring members (the generator draws them before applying δ and s), so comparisons pooled over regimes test the twelve

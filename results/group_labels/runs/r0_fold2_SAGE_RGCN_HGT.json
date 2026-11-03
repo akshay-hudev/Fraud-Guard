@@ -1,0 +1,91 @@
+{
+  "provenance": {
+    "created_utc": "2026-11-02T06:31:26+00:00",
+    "git": {
+      "commit": "4a7ed2584d9580fbdccfbbed21aefd26596bc451",
+      "dirty": false,
+      "research_sources_sha256": "7451377714365593"
+    },
+    "config_hash": "6654b3ce5d3b1354",
+    "config": {
+      "repeat": 0,
+      "fold": 2,
+      "methods": [
+        "SAGE",
+        "RGCN",
+        "HGT"
+      ],
+      "rdpgl_commit": "6e0151d40ea5e9def878959d9863bb6f2a8cf8f4"
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "macOS-26.6.2-x86_64-i386-64bit",
+      "processor": "i386",
+      "cpu_count": 8,
+      "numpy": "1.26.4",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "sklearn": "1.5.2",
+      "torch": "2.2.2",
+      "torch_geometric": "2.6.1"
+    },
+    "hyperparameters": {
+      "SAGE": {
+        "aggr": "mean",
+        "dropout": 0.3,
+        "hidden": 64,
+        "layers": 3,
+        "lr": 0.003,
+        "weight_decay": 0.0001
+      },
+      "RGCN": {
+        "aggr": "sum",
+        "dropout": 0.3,
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.01,
+        "weight_decay": 0.001
+      },
+      "HGT": {
+        "dropout": 0.1,
+        "heads": 4,
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.01,
+        "weight_decay": 0.001
+      }
+    }
+  },
+  "rows": [
+    {
+      "method": "SAGE",
+      "repeat": 0,
+      "fold": 2,
+      "rotation": 2,
+      "group_ap": 0.7326414452587992,
+      "n_group": 19,
+      "n_legit": 981,
+      "best_epoch": 1
+    },
+    {
+      "method": "RGCN",
+      "repeat": 0,
+      "fold": 2,
+      "rotation": 2,
+      "group_ap": 0.5522999910041331,
+      "n_group": 19,
+      "n_legit": 981,
+      "best_epoch": 2
+    },
+    {
+      "method": "HGT",
+      "repeat": 0,
+      "fold": 2,
+      "rotation": 2,
+      "group_ap": 0.8434172896711596,
+      "n_group": 19,
+      "n_legit": 981,
+      "best_epoch": 21
+    }
+  ]
+}

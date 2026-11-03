@@ -1,0 +1,25 @@
+\begin{table}[h]
+\caption{Public data re-scored on the published group-fraud flags (25 rotations, models trained on the provider fraud label, nothing retrained). Group AP: 100 flagged providers against non-fraud providers, other fraud providers excluded (chance 0.020). Individual AP: the other fraud providers against non-fraud providers (chance 0.076). Mean $\pm$ s.d. over rotations. $\Delta$: difference in group AP from GB-PG (or, for GB-PG and GB-PGL, from GB-P), with the corrected repeated cross-validation 95\% CI and Holm-adjusted $p$ within each family.}\label{tab:grouplabels}
+\scriptsize
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Method & Group AP & Individual AP & $\Delta$ [95\% CI] & $p$ \\
+\midrule
+LR-P & 0.677 $\pm$ 0.113 & 0.572 $\pm$ 0.049 & -- & -- \\
+RF-P & 0.626 $\pm$ 0.105 & 0.580 $\pm$ 0.047 & -- & -- \\
+GB-P & 0.719 $\pm$ 0.109 & 0.596 $\pm$ 0.050 & -- & -- \\
+GB-PG & 0.719 $\pm$ 0.119 & 0.585 $\pm$ 0.050 & $-0.001$ $[-0.026, 0.024]$ & 1.000 \\
+GB-PGL & 0.719 $\pm$ 0.117 & 0.587 $\pm$ 0.053 & $+0.000$ $[-0.035, 0.035]$ & 1.000 \\
+MLP-P & 0.656 $\pm$ 0.105 & 0.581 $\pm$ 0.044 & -- & -- \\
+SAGE & 0.617 $\pm$ 0.158 & 0.574 $\pm$ 0.055 & $-0.102$ $[-0.212, 0.008]$ & 0.182 \\
+RGCN & 0.531 $\pm$ 0.120 & 0.499 $\pm$ 0.056 & $-0.187$ $[-0.328, -0.046]$ & 0.091 \\
+HAN & 0.588 $\pm$ 0.111 & 0.571 $\pm$ 0.050 & $-0.130$ $[-0.239, -0.022]$ & 0.122 \\
+Simple-HGN & 0.610 $\pm$ 0.124 & 0.572 $\pm$ 0.053 & $-0.109$ $[-0.216, -0.002]$ & 0.182 \\
+HGT & 0.620 $\pm$ 0.111 & 0.577 $\pm$ 0.056 & $-0.099$ $[-0.197, -0.000]$ & 0.182 \\
+BWGNN & 0.623 $\pm$ 0.122 & 0.571 $\pm$ 0.053 & $-0.095$ $[-0.225, 0.035]$ & 0.182 \\
+CARE-GNN & 0.591 $\pm$ 0.112 & 0.569 $\pm$ 0.042 & $-0.128$ $[-0.239, -0.017]$ & 0.130 \\
+SAGE+G & 0.504 $\pm$ 0.137 & 0.543 $\pm$ 0.052 & $-0.215$ $[-0.351, -0.078]$ & 0.031 \\
+HGT+G & 0.602 $\pm$ 0.111 & 0.559 $\pm$ 0.049 & $-0.116$ $[-0.209, -0.023]$ & 0.116 \\
+\botrule
+\end{tabular}
+\end{table}

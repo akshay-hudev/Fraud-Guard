@@ -23,7 +23,8 @@ TABLES = {"tab:regime_ringap": "synthetic_ring_ap.tex", "tab:pooled": "synthetic
           "tab:dose": "dose_response.tex", "tab:kaggle_repeated": "kaggle_repeated.tex",
           "tab:kaggle_nested": "kaggle_nested.tex", "tab:lowvolume_shift": "lowvolume_shift.tex",
           "tab:modelseeds": "modelseeds.tex", "tab:regimetuned": "regimetuned.tex",
-          "tab:shapes": "shapes.tex", "tab:expanded": "expanded.tex", "tab:closure": "closure.tex"}
+          "tab:shapes": "shapes.tex", "tab:expanded": "expanded.tex", "tab:closure": "closure.tex",
+          "tab:grouplabels": "group_labels.tex"}
 BLOCK = re.compile(r"\\begin\{table\}.*?\\end\{table\}", re.S)
 
 
